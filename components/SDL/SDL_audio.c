@@ -6,7 +6,7 @@ unsigned char *sdl_buffer; //[SAMPLECOUNT * SAMPLESIZE * 2];
 void *user_data;
 bool paused = true;
 bool locked = false;
-xSemaphoreHandle xSemaphoreAudio = NULL;
+SemaphoreHandle_t xSemaphoreAudio = NULL;
 
 IRAM_ATTR void updateTask(void *arg)
 {
@@ -29,7 +29,7 @@ void SDL_AudioInit()
 	sdl_buffer = heap_caps_malloc(SAMPLECOUNT * SAMPLESIZE * 2, MALLOC_CAP_8BIT | MALLOC_CAP_DMA);
 
 	static const i2s_config_t i2s_config = {
-	.mode = I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN,
+	.mode = I2S_MODE_MASTER | I2S_MODE_TX /*| I2S_MODE_DAC_BUILT_IN*/,
 	.sample_rate = SAMPLERATE,
 	.bits_per_sample = SAMPLESIZE*8, /* the DAC module will only take the 8bits from MSB */
 	.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
@@ -45,7 +45,7 @@ void SDL_AudioInit()
 
 	ESP_ERROR_CHECK(i2s_set_pin(i2s_num, NULL));
 	//ESP_ERROR_CHECK(i2s_set_clk(i2s_num, SAMPLERATE, I2S_BITS_PER_SAMPLE_16BIT, I2S_CHANNEL_STEREO));
-	ESP_ERROR_CHECK(i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN));	
+	// ESP_ERROR_CHECK(i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN));	
 }
 
 int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained)

@@ -2385,8 +2385,8 @@ draw_player_shot_loop_end:
 void JE_loadMap( void )
 {
 	printf("Loading Map\n");
-	if(megaData1.mainmap == NULL)
-	{
+	// if(megaData1.mainmap == NULL)
+	// {
 /*		JE_MapType *map1 = allocateTwoDimenArrayOnHeapUsingMalloc(300, 14);
 		megaData1.mainmap = map1;
 		megaData1.shapes = malloc(sizeof(struct JE_MegaDataShapesType1)*72);
@@ -2396,7 +2396,7 @@ void JE_loadMap( void )
 		megaData3.shapes = malloc(sizeof(struct JE_MegaDataShapesType2_3)*70);
 		eventRec = malloc(EVENT_MAXIMUM * sizeof(struct JE_EventRecType));
 		*/
-	}
+	// }
 
 	JE_DanCShape shape;
 

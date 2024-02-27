@@ -170,7 +170,7 @@ static void backlight_init()
     ledc_timer_config_t ledc_timer;
     memset(&ledc_timer, 0, sizeof(ledc_timer));
 
-    ledc_timer.bit_num = LEDC_TIMER_13_BIT; //set timer counter bit number
+    ledc_timer.duty_resolution = LEDC_TIMER_13_BIT; //set timer counter bit number
     ledc_timer.freq_hz = 5000;              //set frequency of pwm
     ledc_timer.speed_mode = LEDC_LOW_SPEED_MODE;   //timer mode,
     ledc_timer.timer_num = LEDC_TIMER_0;    //timer index
@@ -227,7 +227,7 @@ void ili_init(spi_device_handle_t spi)
     backlight_init();
     //Reset the display
     gpio_set_level(PIN_NUM_RST, 0);
-    vTaskDelay(100 / portTICK_RATE_MS);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     gpio_set_level(PIN_NUM_RST, 1);
     vTaskDelay(120);
 
@@ -361,10 +361,10 @@ void IRAM_ATTR displayTask(void *arg) {
 
     SDL_LockDisplay();
     //Initialize the SPI bus
-    ret=spi_bus_initialize(CONFIG_HW_LCD_MISO_GPIO == 0 ? VSPI_HOST : HSPI_HOST, &buscfg, 1);  // DMA Channel
+    ret=spi_bus_initialize(CONFIG_HW_LCD_MISO_GPIO == 0 ? SPI3_HOST : SPI3_HOST, &buscfg, 1);  // DMA Channel
     //assert(ret==ESP_OK);
     //Attach the LCD to the SPI bus
-    ret=spi_bus_add_device(CONFIG_HW_LCD_MISO_GPIO == 0 ? VSPI_HOST : HSPI_HOST, &devcfg, &spi);
+    ret=spi_bus_add_device(CONFIG_HW_LCD_MISO_GPIO == 0 ? SPI3_HOST : SPI3_HOST, &devcfg, &spi);
     assert(ret==ESP_OK);
     //Initialize the LCD
     ili_init(spi);

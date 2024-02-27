@@ -224,23 +224,23 @@ void inputInit()
     io_conf.pull_up_en = 1;
     gpio_config(&io_conf);
     
-#ifndef CONFIG_HW_ODROID_GO
-    //create a queue to handle gpio event from isr
-    gpio_evt_queue = xQueueCreate(10, sizeof(GPIOEvent));
-    //start gpio task
-	//xTaskCreatePinnedToCore(&gpioTask, "GPIO", 1500, NULL, 7, NULL, 0);
+// #ifndef CONFIG_HW_ODROID_GO
+//     //create a queue to handle gpio event from isr
+//     gpio_evt_queue = xQueueCreate(10, sizeof(GPIOEvent));
+//     //start gpio task
+// 	//xTaskCreatePinnedToCore(&gpioTask, "GPIO", 1500, NULL, 7, NULL, 0);
 
-    //install gpio isr service
-    gpio_install_isr_service(ESP_INTR_FLAG_SHARED);
+//     //install gpio isr service
+//     gpio_install_isr_service(ESP_INTR_FLAG_SHARED);
 
-    //hook isr handler
-	for (int i=0; i < NELEMS(keymap[0]); i++)
-    	gpio_isr_handler_add(keymap[0][i].gpio, gpio_isr_handler, (void*) keymap[0][i].gpio);
-#else
-	adc1_config_width(ADC_WIDTH_12Bit);
-    adc1_config_channel_atten(ODROID_GAMEPAD_IO_X, ADC_ATTEN_11db);
-	adc1_config_channel_atten(ODROID_GAMEPAD_IO_Y, ADC_ATTEN_11db);
-#endif    
+//     //hook isr handler
+// 	for (int i=0; i < NELEMS(keymap[0]); i++)
+//     	gpio_isr_handler_add(keymap[0][i].gpio, gpio_isr_handler, (void*) keymap[0][i].gpio);
+// #else
+// 	adc1_config_width(ADC_WIDTH_12Bit);
+//     adc1_config_channel_atten(ODROID_GAMEPAD_IO_X, ADC_ATTEN_11db);
+// 	adc1_config_channel_atten(ODROID_GAMEPAD_IO_Y, ADC_ATTEN_11db);
+// #endif    
 
 	printf("keyboard: GPIO task created.\n");
     initInput = true;

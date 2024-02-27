@@ -1041,8 +1041,8 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 						for (i=0;i<endsamples;i++)
 							vibval1[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 					} else vibval1 = vibval_const;
-					if (cptr[9].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
-					else tremval1 = tremval_const;
+					// if (cptr[9].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
+					// else tremval1 = tremval_const;
 
 					// calculate channel output
 					for (i=0;i<endsamples;i++) {
@@ -1067,10 +1067,10 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 						for (i=0;i<endsamples;i++)
 							vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 					} else vibval2 = vibval_const;
-					if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
-					else tremval1 = tremval_const;
-					if (cptr[9].tremolo) tremval2 = trem_lut;	// tremolo enabled, use table
-					else tremval2 = tremval_const;
+					// if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
+					// else tremval1 = tremval_const;
+					// if (cptr[9].tremolo) tremval2 = trem_lut;	// tremolo enabled, use table
+					// else tremval2 = tremval_const;
 
 					// calculate channel output
 					for (i=0;i<endsamples;i++) {
@@ -1097,8 +1097,8 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 						vibval3[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval3 = vibval_const;
 
-				if (cptr[0].tremolo) tremval3 = trem_lut;	// tremolo enabled, use table
-				else tremval3 = tremval_const;
+				// if (cptr[0].tremolo) tremval3 = trem_lut;	// tremolo enabled, use table
+				// else tremval3 = tremval_const;
 
 				// calculate channel output
 				for (i=0;i<endsamples;i++) {
@@ -1125,10 +1125,10 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 						vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval2 = vibval_const;
 
-				if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
-				else tremval1 = tremval_const;
-				if (cptr[9].tremolo) tremval2 = trem_lut;	// tremolo enabled, use table
-				else tremval2 = tremval_const;
+				// if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
+				// else tremval1 = tremval_const;
+				// if (cptr[9].tremolo) tremval2 = trem_lut;	// tremolo enabled, use table
+				// else tremval2 = tremval_const;
 
 				cptr = &op[8];
 				if ((cptr[9].vibrato) && (cptr[9].op_state == OF_TYPE_OFF)) {
@@ -1137,8 +1137,8 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 						vibval4[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval4 = vibval_const;
 
-				if (cptr[9].tremolo) tremval4 = trem_lut;	// tremolo enabled, use table
-				else tremval4 = tremval_const;
+				// if (cptr[9].tremolo) tremval4 = trem_lut;	// tremolo enabled, use table
+				// else tremval4 = tremval_const;
 
 				// calculate channel output
 				for (i=0;i<endsamples;i++) {
@@ -1316,10 +1316,10 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 					for (i=0;i<endsamples;i++)
 						vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval2 = vibval_const;
-				if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
-				else tremval1 = tremval_const;
-				if (cptr[9].tremolo) tremval2 = trem_lut;	// tremolo enabled, use table
-				else tremval2 = tremval_const;
+				// if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
+				// else tremval1 = tremval_const;
+				// if (cptr[9].tremolo) tremval2 = trem_lut;	// tremolo enabled, use table
+				// else tremval2 = tremval_const;
 
 				// calculate channel output
 				for (i=0;i<endsamples;i++) {
@@ -1454,10 +1454,10 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 					for (i=0;i<endsamples;i++)
 						vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval2 = vibval_const;
-				if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
-				else tremval1 = tremval_const;
-				if (cptr[9].tremolo) tremval2 = trem_lut;	// tremolo enabled, use table
-				else tremval2 = tremval_const;
+				// if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
+				// else tremval1 = tremval_const;
+				// if (cptr[9].tremolo) tremval2 = trem_lut;	// tremolo enabled, use table
+				// else tremval2 = tremval_const;
 
 				// calculate channel output
 				for (i=0;i<endsamples;i++) {

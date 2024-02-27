@@ -44,11 +44,11 @@ void load_sprites_file( unsigned int table, const char *filename )
 
 void load_sprites( unsigned int table, FILE *f )
 {
-	if(sprite_table == NULL)
-	{
-		printf("sprite_table malloc: %d\n", sizeof(Sprite_array));
+	// if(sprite_table == NULL)
+	// {
+		// printf("sprite_table malloc: %d\n", sizeof(Sprite_array));
 		//sprite_table = heap_caps_malloc(SPRITE_TABLES_MAX*sizeof(Sprite_array), MALLOC_CAP_SPIRAM);
-	}
+	// }
 	free_sprites(table);
 
 	Uint16 temp;

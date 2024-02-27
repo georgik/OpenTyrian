@@ -53,7 +53,7 @@ SDL_Keymod SDL_GetModState(void)
 {
     return (SDL_Keymod)0;
 }
-
+#include "esp_timer.h"
 IRAM_ATTR Uint32 SDL_GetTicks(void)
 {
     return esp_timer_get_time() / 1000;    
@@ -199,7 +199,7 @@ void SDL_LockDisplay()
         }
     }
 
-    if (!xSemaphoreTake(display_mutex, 60000 / portTICK_RATE_MS))
+    if (!xSemaphoreTake(display_mutex, 60000 / portTICK_PERIOD_MS))
     {
         printf("Timeout waiting for display lock.\n");
         abort();
