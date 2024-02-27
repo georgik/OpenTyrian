@@ -25,13 +25,21 @@
 #include "SDL.h"
 
 #if 1
+// Wrover kit
+// #define PIN_NUM_MISO -1
+// #define PIN_NUM_MOSI 23
+// #define PIN_NUM_CLK  19
+// #define PIN_NUM_CS   22
+// #define PIN_NUM_DC   21
+// #define PIN_NUM_RST  18
+// #define PIN_NUM_BCKL 5
 #define PIN_NUM_MISO -1
-#define PIN_NUM_MOSI 23
-#define PIN_NUM_CLK  19
-#define PIN_NUM_CS   22
-#define PIN_NUM_DC   21
-#define PIN_NUM_RST  18
-#define PIN_NUM_BCKL 5
+#define PIN_NUM_MOSI 6
+#define PIN_NUM_CLK  7
+#define PIN_NUM_CS   5
+#define PIN_NUM_DC   4
+#define PIN_NUM_RST  48
+#define PIN_NUM_BCKL 47
 #else
 #define PIN_NUM_MOSI CONFIG_HW_LCD_MOSI_GPIO
 #define PIN_NUM_MISO CONFIG_HW_LCD_MISO_GPIO
@@ -46,7 +54,7 @@
 #define DOUBLE_BUFFER
 const int DUTY_MAX = 0x1fff;
 bool isBackLightIntialized = false;
-const int LCD_BACKLIGHT_ON_VALUE = 0;
+const int LCD_BACKLIGHT_ON_VALUE = 1;
 
 /*
  The LCD needs a bunch of command/argument values to be initialized. They are stored in this struct.
@@ -360,12 +368,13 @@ void IRAM_ATTR displayTask(void *arg) {
     //heap_caps_print_heap_info(MALLOC_CAP_DMA);
 
     SDL_LockDisplay();
-    //Initialize the SPI bus
-    ret=spi_bus_initialize(CONFIG_HW_LCD_MISO_GPIO == 0 ? SPI3_HOST : SPI3_HOST, &buscfg, 1);  // DMA Channel
-    //assert(ret==ESP_OK);
-    //Attach the LCD to the SPI bus
-    ret=spi_bus_add_device(CONFIG_HW_LCD_MISO_GPIO == 0 ? SPI3_HOST : SPI3_HOST, &devcfg, &spi);
-    assert(ret==ESP_OK);
+    // Initialize the SPI bus
+    ret = spi_bus_initialize(SPI3_HOST, &buscfg, SPI_DMA_CH_AUTO);
+    assert(ret == ESP_OK);
+
+    // Add a device to the SPI bus
+    ret = spi_bus_add_device(SPI3_HOST, &devcfg, &spi);
+    assert(ret == ESP_OK);
     //Initialize the LCD
     ili_init(spi);
     SDL_UnlockDisplay();   

@@ -55,7 +55,7 @@ void SDL_InitSD(void)
 
 #else
 	sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-	host.flags = SDMMC_HOST_FLAG_1BIT;
+	// host.flags = SDMMC_HOST_FLAG_1BIT;
 	//host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
 	host.command_timeout_ms=1500;
 	sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
