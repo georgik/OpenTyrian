@@ -1,3 +1,3 @@
 idf_component_register(SRCS "app_main.c"
                     INCLUDE_DIRS "."
-                    REQUIRES OpenTyrian)
+                    REQUIRES OpenTyrian SDL esp_lcd)

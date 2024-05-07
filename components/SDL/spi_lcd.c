@@ -110,7 +110,8 @@ static const ili_init_cmd_t ili_init_cmds[]={
     {0xC5, {0x32, 0x3C}, 2},    //VCM control
     {0xC7, {0x91}, 1},    //VCM control2
     //{0x36, {(MADCTL_MV | MADCTL_MX | TFT_RGB_BGR)}, 1},    // Memory Access Control
-    {0x36, {(MADCTL_MV | MADCTL_MY | TFT_RGB_BGR)}, 1},    // Memory Access Control
+    // {0x36, {(MADCTL_MV | MADCTL_MY | TFT_RGB_BGR)}, 1},    // Memory Access Control
+    {0x36, {(MADCTL_MV  | TFT_RGB_BGR)}, 1}, 
     {0x3A, {0x55}, 1},
     {0xB1, {0x00, 0x1B}, 2},  // Frame Rate Control (1B=70, 1F=61, 10=119)
     {0xB6, {0x0A, 0xA2}, 2},    // Display Function Control
@@ -222,40 +223,45 @@ void backlight_percentage_set(int value)
     ledc_fade_start(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, LEDC_FADE_NO_WAIT);
 }
 
+#include "bsp/esp-bsp.h"
+
 //Initialize the display
 void ili_init(spi_device_handle_t spi)
 {
-    int cmd=0;
-    //Initialize non-SPI GPIOs
-    gpio_set_direction(PIN_NUM_DC, GPIO_MODE_OUTPUT);
-    gpio_set_direction(PIN_NUM_RST, GPIO_MODE_OUTPUT);
-    if(PIN_NUM_BCKL != -1)
-        gpio_set_direction(PIN_NUM_BCKL, GPIO_MODE_OUTPUT);
+    bsp_display_new();
+    // bsp_display_start();
+    // bsp_display_backlight_on();
+    // int cmd=0;
+    // //Initialize non-SPI GPIOs
+    // gpio_set_direction(PIN_NUM_DC, GPIO_MODE_OUTPUT);
+    // gpio_set_direction(PIN_NUM_RST, GPIO_MODE_OUTPUT);
+    // if(PIN_NUM_BCKL != -1)
+    //     gpio_set_direction(PIN_NUM_BCKL, GPIO_MODE_OUTPUT);
 
-    backlight_init();
-    //Reset the display
-    gpio_set_level(PIN_NUM_RST, 0);
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-    gpio_set_level(PIN_NUM_RST, 1);
-    vTaskDelay(120);
+    // backlight_init();
+    // //Reset the display
+    // gpio_set_level(PIN_NUM_RST, 0);
+    // vTaskDelay(100 / portTICK_PERIOD_MS);
+    // gpio_set_level(PIN_NUM_RST, 1);
+    // vTaskDelay(120);
 
-    //Send all the commands
-    while (ili_init_cmds[cmd].databytes!=0xff) {
-        uint8_t dmdata[16];
-        ili_cmd(spi, ili_init_cmds[cmd].cmd);
-        //Need to copy from flash to DMA'able memory
-        memcpy(dmdata, ili_init_cmds[cmd].data, 16);
-        ili_data(spi, dmdata, ili_init_cmds[cmd].databytes&0x1F);
-        if (ili_init_cmds[cmd].databytes&0x80) {
-            vTaskDelay(140);
-            printf("ili_init_cmds: delay\n");
-        }
-        cmd++;
-    }
+    // //Send all the commands
+    // while (ili_init_cmds[cmd].databytes!=0xff) {
+    //     uint8_t dmdata[16];
+    //     ili_cmd(spi, ili_init_cmds[cmd].cmd);
+    //     //Need to copy from flash to DMA'able memory
+    //     memcpy(dmdata, ili_init_cmds[cmd].data, 16);
+    //     ili_data(spi, dmdata, ili_init_cmds[cmd].databytes&0x1F);
+    //     if (ili_init_cmds[cmd].databytes&0x80) {
+    //         vTaskDelay(140);
+    //         printf("ili_init_cmds: delay\n");
+    //     }
+    //     cmd++;
+    // }
 
-    ///Enable backlight
-    if(PIN_NUM_BCKL != -1)
-        gpio_set_level(PIN_NUM_BCKL, 1);
+    // ///Enable backlight
+    // if(PIN_NUM_BCKL != -1)
+    //     gpio_set_level(PIN_NUM_BCKL, 1);
 
 
     vTaskDelay(140);
@@ -362,6 +368,7 @@ void IRAM_ATTR displayTask(void *arg) {
     devcfg.queue_size=NO_SIM_TRANS;               //We want to be able to queue this many transfers
     devcfg.pre_cb=ili_spi_pre_transfer_callback;  //Specify pre-transfer callback to handle D/C line
     devcfg.flags = SPI_DEVICE_NO_DUMMY;
+
 
 	printf("*** Display task starting.\n");
 

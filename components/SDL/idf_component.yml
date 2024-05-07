@@ -1,0 +1,5 @@
+dependencies:
+  espressif/m5stack_core_s3_noglib: "*"
+  ## Required IDF version
+  idf:
+    version: ">=4.1.0"
