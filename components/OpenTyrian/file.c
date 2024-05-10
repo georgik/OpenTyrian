@@ -41,7 +41,7 @@ static bool init_SD = false;
 
 void Init_SD()
 {
-	SDL_InitSD();
+	SDL_InitFS();
 	//sdmmc_card_print_info(stdout, card);
 	init_SD = true;
 }

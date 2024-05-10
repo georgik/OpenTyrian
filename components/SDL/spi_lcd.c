@@ -232,7 +232,7 @@ static esp_lcd_panel_handle_t panel_handle = NULL;
 
 #define CONFIG_BSP_LCD_DRAW_BUF_HEIGHT 240
 //Initialize the display
-void ili_init(spi_device_handle_t spi)
+void ili_init()
 {
     // Initialize ESP-BSP display
     bsp_display_config_t cfg = {
@@ -394,17 +394,17 @@ void IRAM_ATTR displayTask(void *arg) {
 
     //heap_caps_print_heap_info(MALLOC_CAP_DMA);
 
-    SDL_LockDisplay();
+    // SDL_LockDisplay();
     // Initialize the SPI bus
-    ret = spi_bus_initialize(SPI3_HOST, &buscfg, SPI_DMA_CH_AUTO);
-    assert(ret == ESP_OK);
+    // ret = spi_bus_initialize(SPI3_HOST, &buscfg, SPI_DMA_CH_AUTO);
+    // assert(ret == ESP_OK);
 
     // Add a device to the SPI bus
-    ret = spi_bus_add_device(SPI3_HOST, &devcfg, &spi);
-    assert(ret == ESP_OK);
+    // ret = spi_bus_add_device(SPI3_HOST, &devcfg, &spi);
+    // assert(ret == ESP_OK);
     //Initialize the LCD
-    ili_init(spi);
-    SDL_UnlockDisplay();
+    ili_init();
+    // SDL_UnlockDisplay();
 
 	//We're going to do a fair few transfers in parallel. Set them all up.
 	for (x=0; x<NO_SIM_TRANS; x++) {

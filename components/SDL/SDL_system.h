@@ -9,6 +9,9 @@
 #include "esp_vfs_fat.h"
 #include "driver/sdmmc_host.h"
 #include "driver/sdspi_host.h"
+#include "esp_vfs.h"
+#include "esp_littlefs.h"
+
 
 typedef struct {
     Uint8 major;
@@ -49,6 +52,7 @@ int SDL_LockMutex(SDL_mutex* mutex);
 int SDL_UnlockMutex(SDL_mutex* mutex);
 
 #define MODE_SPI 1
-void SDL_InitSD(void);
+// void SDL_InitSD(void);
+void SDL_InitFS(void);
 
 #endif
