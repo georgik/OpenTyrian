@@ -2,7 +2,7 @@
 #define SDL_audio_h_
 #include "SDL.h"
 #include "freertos/FreeRTOS.h"
-#include "driver/i2s.h"
+#include "driver/i2s_std.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
