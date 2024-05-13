@@ -237,6 +237,9 @@ void fillBufferWithRed(uint16_t *buffer, int width, int height) {
         buffer[i] = redColor;
     }
 }
+
+uint16_t *rgb565_buffer = NULL;
+
 void IRAM_ATTR displayTask(void *arg) {
 // 	int x, i;
 // 	int idx=0;
@@ -302,23 +305,57 @@ void IRAM_ATTR displayTask(void *arg) {
 	// }
 	//xSemaphoreGive(dispDoneSem);
 
-    printf("Entering display loop.\n");
-	while(1) {
-		xSemaphoreTake(dispSem, portMAX_DELAY);
-
-#ifndef DOUBLE_BUFFER
-		uint8_t *myData=(uint8_t*)currFbPtr;
-#endif
     int screen_x = 0;
     int screen_y = screen_boarder;
     int screen_width = 320;
     int screen_height = (240-screen_boarder*2);
 
+    // uint32_t *rgb565_buffer = heap_caps_malloc(screen_width * screen_height * sizeof(uint16_t), MALLOC_CAP_32BIT);
+    // if (rgb565_buffer == NULL) {
+    //     printf("Failed to allocate rgb565 buffer\n");
+    //     return;
+    // }
+    printf("Entering display loop.\n");
+	while(1) {
+		xSemaphoreTake(dispSem, portMAX_DELAY);
+
+
     // Drawing bitmap
     // printf("Drawing bitmap %d %d %d %d\n", screen_x, screen_y, screen_width, screen_height);
     // fillBufferWithRed(currFbPtr, screen_width, screen_height);
 
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, screen_x, screen_y, screen_width, screen_height, currFbPtr));
+    // Upsample 8-bit graphics from currFbPtr to 16 bit RGB565 to rgb565_buffer and send to screen using esp_lcd_panel_draw_bitmap
+    // for (int y=0; y<screen_height; y++) {
+    //     for (int x=0; x<screen_width; x++) {
+    //         uint32_t d=currFbPtr[x+y*screen_width];
+    //         rgb565_buffer[x] = lcdpal[(d>>0)&0xff];
+    //     }
+    //     ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, screen_x, screen_y+y, screen_width, screen_y+y+1, rgb565_buffer));
+    // }
+
+
+    for (uint32_t y=0; y<screen_height; y++) {
+
+			for (uint16_t i=0; i<320; i+=4) {
+				uint32_t d=currFbPtr[(320*y+i)/4];
+				rgb565_buffer[i+0]=lcdpal[(d>>0)&0xff];
+				rgb565_buffer[i+1]=lcdpal[(d>>8)&0xff];
+				rgb565_buffer[i+2]=lcdpal[(d>>16)&0xff];
+				rgb565_buffer[i+3]=lcdpal[(d>>24)&0xff];
+			}
+        ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, y, screen_width, y+1, rgb565_buffer));
+    }
+
+    // uint32_t index = 0;
+    // for (uint32_t y=0; y<10; y++) {
+    //     for (uint32_t x=0; x<320; x++) {
+    //         uint32_t d=currFbPtr[x+index];
+    //         // rgb565_buffer[x] = lcdpal[(d>>0)&0xff];
+    //         // rgb565_buffer[x+1] = lcdpal[(d>>8)&0xff];
+    //     }
+    //     index += 320;
+    //     ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, y, screen_width, y+1, rgb565_buffer));
+    // }
 //         SDL_LockDisplay();
 // 		send_header_start(spi, 0, screen_boarder, 320, 240-screen_boarder*2);
 // 		send_header_cleanup(spi);
@@ -417,6 +454,9 @@ void spi_lcd_init() {
         printf("Failed to allocate framebuffer\n");
         return;
     }
+    rgb565_buffer = heap_caps_malloc(320 * sizeof(uint16_t), MALLOC_CAP_32BIT);
+    assert(rgb565_buffer != NULL); // Ensure DMA buffer allocation succeeded
+
     memset(currFbPtr,0,(320*240));
 #endif
 
