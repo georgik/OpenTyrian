@@ -68,27 +68,6 @@ typedef struct {
     uint8_t databytes; //No of data in data; bit 7 = delay after set; 0xFF = end of cmds.
 } ili_init_cmd_t;
 
-#if (CONFIG_HW_LCD_TYPE == 1)
-// static const ili_init_cmd_t ili_init_cmds[]={
-//     {0x36, {(1<<5)|(1<<6)}, 1},
-//     {0x3A, {0x55}, 1},
-//     {0xB2, {0x0c, 0x0c, 0x00, 0x33, 0x33}, 5},
-//     {0xB7, {0x45}, 1},
-//     {0xBB, {0x2B}, 1},
-//     {0xC0, {0x2C}, 1},
-//     {0xC2, {0x01, 0xff}, 2},
-//     {0xC3, {0x11}, 1},
-//     {0xC4, {0x20}, 1},
-//     {0xC6, {0x0f}, 1},
-//     {0xD0, {0xA4, 0xA1}, 1},
-//     {0xE0, {0xD0, 0x00, 0x05, 0x0E, 0x15, 0x0D, 0x37, 0x43, 0x47, 0x09, 0x15, 0x12, 0x16, 0x19}, 14},
-//     {0xE1, {0xD0, 0x00, 0x05, 0x0D, 0x0C, 0x06, 0x2D, 0x44, 0x40, 0x0E, 0x1C, 0x18, 0x16, 0x19}, 14},
-//     {0x11, {0}, 0x80},
-//     {0x29, {0}, 0x80},
-//     {0, {0}, 0xff}
-// };
-#endif
-
 #if (CONFIG_HW_LCD_TYPE == 0)
 #define TFT_CMD_SWRESET	0x01
 #define TFT_CMD_SLEEP 0x10
@@ -100,68 +79,10 @@ typedef struct {
 #define MADCTL_ML  0x10
 #define MADCTL_MH 0x04
 #define TFT_RGB_BGR 0x08
-// static const ili_init_cmd_t ili_init_cmds[]={
-//     {TFT_CMD_SWRESET, {0}, 0x80},
-//     {0xCF, {0x00, 0xc3, 0x30}, 3},
-//     {0xED, {0x64, 0x03, 0x12, 0x81}, 4},
-//     {0xE8, {0x85, 0x00, 0x78}, 3},
-//     {0xCB, {0x39, 0x2c, 0x00, 0x34, 0x02}, 5},
-//     {0xF7, {0x20}, 1},
-//     {0xEA, {0x00, 0x00}, 2},
-//     {0xC0, {0x1B}, 1},    //Power control   //VRH[5:0]
-//     {0xC1, {0x12}, 1},    //Power control   //SAP[2:0];BT[3:0]
-//     {0xC5, {0x32, 0x3C}, 2},    //VCM control
-//     {0xC7, {0x91}, 1},    //VCM control2
-//     //{0x36, {(MADCTL_MV | MADCTL_MX | TFT_RGB_BGR)}, 1},    // Memory Access Control
-//     // {0x36, {(MADCTL_MV | MADCTL_MY | TFT_RGB_BGR)}, 1},    // Memory Access Control
-//     {0x36, {(MADCTL_MV  | TFT_RGB_BGR)}, 1}, 
-//     {0x3A, {0x55}, 1},
-//     {0xB1, {0x00, 0x1B}, 2},  // Frame Rate Control (1B=70, 1F=61, 10=119)
-//     {0xB6, {0x0A, 0xA2}, 2},    // Display Function Control
-//     {0xF6, {0x01, 0x30}, 2},
-//     {0xF2, {0x00}, 1},    // 3Gamma Function Disable
-//     {0x26, {0x01}, 1},     //Gamma curve selected
-
-//     //Set Gamma
-//     {0xE0, {0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, 0x4E, 0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00}, 15},
-//     {0XE1, {0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, 0x31, 0xC1, 0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F}, 15},
-//     {0x11, {0}, 0x80},    //Exit Sleep
-//     {0x29, {0}, 0x80},    //Display on
-    // {0, {0}, 0xff},
-// };
 #endif
 
 static spi_device_handle_t spi;
 short screen_boarder = 0;
-
-//Send a command to the ILI9341. Uses spi_device_transmit, which waits until the transfer is complete.
-void ili_cmd(spi_device_handle_t spi, const uint8_t cmd)
-{
-    esp_err_t ret;
-    spi_transaction_t t;
-    memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.length=8;                     //Command is 8 bits
-    t.tx_buffer=&cmd;               //The data is the cmd itself
-    t.user=(void*)0;                //D/C needs to be set to 0
-    printf("ili_cmd: 0x%x\n", cmd);
-    ret=spi_device_transmit(spi, &t);  //Transmit!
-    assert(ret==ESP_OK);            //Should have had no issues.
-}
-
-//Send data to the ILI9341. Uses spi_device_transmit, which waits until the transfer is complete.
-void ili_data(spi_device_handle_t spi, const uint8_t *data, int len)
-{
-    esp_err_t ret;
-    spi_transaction_t t;
-    if (len==0) return;             //no need to send anything
-    memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.length=len*8;                 //Len is in bytes, transaction length is in bits.
-    t.tx_buffer=data;               //Data
-    t.user=(void*)1;                //D/C needs to be set to 1
-    printf("ili_data: 0x%x\n", *data);
-    ret=spi_device_transmit(spi, &t);  //Transmit!
-    assert(ret==ESP_OK);            //Should have had no issues.
-}
 
 //This function is called (in irq context!) just before a transmission starts. It will
 //set the D/C line to the value indicated in the user field.
@@ -171,64 +92,53 @@ void ili_spi_pre_transfer_callback(spi_transaction_t *t)
     gpio_set_level(PIN_NUM_DC, dc);
 }
 
-static void backlight_init()
-{
-    // Note: In esp-idf v3.0, settings flash speed to 80Mhz causes the LCD controller
-    // to malfunction after a soft-reset.
-
-    // (duty range is 0 ~ ((2**bit_num)-1)
-
-    //configure timer0
-    ledc_timer_config_t ledc_timer;
-    memset(&ledc_timer, 0, sizeof(ledc_timer));
-
-    ledc_timer.duty_resolution = LEDC_TIMER_13_BIT; //set timer counter bit number
-    ledc_timer.freq_hz = 5000;              //set frequency of pwm
-    ledc_timer.speed_mode = LEDC_LOW_SPEED_MODE;   //timer mode,
-    ledc_timer.timer_num = LEDC_TIMER_0;    //timer index
-
-    ledc_timer_config(&ledc_timer);
-
-    //set the configuration
-    ledc_channel_config_t ledc_channel;
-    memset(&ledc_channel, 0, sizeof(ledc_channel));
-
-    //set LEDC channel 0
-    ledc_channel.channel = LEDC_CHANNEL_0;
-    //set the duty for initialization.(duty range is 0 ~ ((2**bit_num)-1)
-    ledc_channel.duty = (LCD_BACKLIGHT_ON_VALUE) ? 0 : DUTY_MAX;
-    //GPIO number
-    ledc_channel.gpio_num = PIN_NUM_BCKL;
-    //GPIO INTR TYPE, as an example, we enable fade_end interrupt here.
-    ledc_channel.intr_type = LEDC_INTR_FADE_END;
-    //set LEDC mode, from ledc_mode_t
-    ledc_channel.speed_mode = LEDC_LOW_SPEED_MODE;
-    //set LEDC timer source, if different channel use one timer,
-    //the frequency and bit_num of these channels should be the same
-    ledc_channel.timer_sel = LEDC_TIMER_0;
-
-    ledc_channel_config(&ledc_channel);
-
-    //initialize fade service.
-    ledc_fade_func_install(0);
-
-    // duty range is 0 ~ ((2**bit_num)-1)
-    ledc_set_fade_with_time(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, (LCD_BACKLIGHT_ON_VALUE) ? DUTY_MAX : 0, 500);
-    ledc_fade_start(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, LEDC_FADE_NO_WAIT);
-
-    isBackLightIntialized = true;
-}
 
 void backlight_percentage_set(int value)
 {
-    int duty = DUTY_MAX * (value * 0.01f);
-    ledc_set_fade_with_time(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty, 500);
-    ledc_fade_start(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, LEDC_FADE_NO_WAIT);
+    // int duty = DUTY_MAX * (value * 0.01f);
+    // ledc_set_fade_with_time(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty, 500);
+    // ledc_fade_start(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, LEDC_FADE_NO_WAIT);
 }
 
 #include "bsp/esp-bsp.h"
 #include "bsp/display.h"
+#include "bsp/touch.h"
+#include "esp_lcd_touch_ft5x06.h"
+
 static esp_lcd_panel_handle_t panel_handle = NULL;
+static esp_lcd_panel_io_handle_t io_handle = NULL;
+static esp_lcd_touch_handle_t touch_handle = NULL;
+#define BSP_AXP2101_ADDR    0x34
+#define BSP_AW9523_ADDR     0x58
+
+static esp_err_t bsp_display_brightness_init(void)
+{
+    /* Initilize I2C */
+    bsp_i2c_init();
+
+    const uint8_t lcd_bl_en[] = { 0x90, 0xBF }; // AXP DLDO1 Enable
+    i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, lcd_bl_en, sizeof(lcd_bl_en), 1000 / portTICK_PERIOD_MS);
+    const uint8_t lcd_bl_val[] = { 0x99, 0b00011000 };  // AXP DLDO1 voltage
+    i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, lcd_bl_val, sizeof(lcd_bl_val), 1000 / portTICK_PERIOD_MS);
+
+    return ESP_OK;
+}
+// esp_err_t bsp_display_brightness_set(int brightness_percent)
+// {
+//     if (brightness_percent > 100) {
+//         brightness_percent = 100;
+//     }
+//     if (brightness_percent < 0) {
+//         brightness_percent = 0;
+//     }
+
+//     printf("Setting LCD backlight: %d%%", brightness_percent);
+//     const uint8_t reg_val = 20 + ((8 * brightness_percent) / 100); // 0b00000 ~ 0b11100; under 20, it is too dark
+//     const uint8_t lcd_bl_val[] = { 0x99, reg_val }; // AXP DLDO1 voltage
+//     i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, lcd_bl_val, sizeof(lcd_bl_val), 1000 / portTICK_PERIOD_MS);
+
+//     return ESP_OK;
+// }
 
 #define CONFIG_BSP_LCD_DRAW_BUF_HEIGHT 240
 //Initialize the display
@@ -242,12 +152,19 @@ void ili_init()
         //     .buff_spiram = false,
         // }
     };
-    esp_lcd_panel_io_handle_t io_handle = NULL;
+    
     const bsp_display_config_t bsp_disp_cfg = {
         .max_transfer_sz = (BSP_LCD_H_RES * CONFIG_BSP_LCD_DRAW_BUF_HEIGHT) * sizeof(uint16_t),
     };
-    bsp_display_new(&bsp_disp_cfg, &panel_handle, &io_handle);
 
+    ESP_ERROR_CHECK(bsp_display_new(&bsp_disp_cfg, &panel_handle, &io_handle));
+    printf("panel_handle: %p\n", panel_handle);
+
+    // Initializa the touch
+    bsp_touch_new(NULL, &touch_handle);
+    printf("touch_handle: %p\n", touch_handle);
+
+    bsp_display_brightness_init();
     
     // bsp_display_start();
     // bsp_display_backlight_on();
@@ -285,67 +202,16 @@ void ili_init()
 
 
     vTaskDelay(140);
-    bsp_display_backlight_on();
 }
 
 static void IRAM_ATTR send_header_start(spi_device_handle_t spi, int xpos, int ypos, int w, int h)
 {
-    esp_err_t ret;
-    int x;
-    //Transaction descriptors. Declared static so they're not allocated on the stack; we need this memory even when this
-    //function is finished because the SPI driver needs access to it even while we're already calculating the next line.
-    static spi_transaction_t trans[5];
-
-    //In theory, it's better to initialize trans and data only once and hang on to the initialized
-    //variables. We allocate them on the stack, so we need to re-init them each call.
-    for (x=0; x<5; x++) {
-        memset(&trans[x], 0, sizeof(spi_transaction_t));
-        if ((x&1)==0) {
-            //Even transfers are commands
-            trans[x].length=8;
-            trans[x].user=(void*)0;
-        } else {
-            //Odd transfers are data
-            trans[x].length=8*4;
-            trans[x].user=(void*)1;
-        }
-        trans[x].flags=SPI_TRANS_USE_TXDATA;
-    }
-    trans[0].tx_data[0]=0x2A;           //Column Address Set
-    trans[1].tx_data[0]=xpos>>8;              //Start Col High
-    trans[1].tx_data[1]=xpos;              //Start Col Low
-    trans[1].tx_data[2]=(xpos+w-1)>>8;       //End Col High
-    trans[1].tx_data[3]=(xpos+w-1)&0xff;     //End Col Low
-    trans[2].tx_data[0]=0x2B;           //Page address set
-    trans[3].tx_data[0]=ypos>>8;        //Start page high
-    trans[3].tx_data[1]=ypos&0xff;      //start page low
-    trans[3].tx_data[2]=(ypos+h-1)>>8;    //end page high
-    trans[3].tx_data[3]=(ypos+h-1)&0xff;  //end page low
-    trans[4].tx_data[0]=0x2C;           //memory write
-
-    //Queue all transactions.
-    for (x=0; x<5; x++) {
-        ret=spi_device_queue_trans(spi, &trans[x], portMAX_DELAY);
-        assert(ret==ESP_OK);
-    }
-
-    //When we are here, the SPI driver is busy (in the background) getting the transactions sent. That happens
-    //mostly using DMA, so the CPU doesn't have much to do here. We're not going to wait for the transaction to
-    //finish because we may as well spend the time calculating the next line. When that is done, we can call
-    //send_line_finish, which will wait for the transfers to be done and check their status.
 }
 
 
 void IRAM_ATTR send_header_cleanup(spi_device_handle_t spi)
 {
-    spi_transaction_t *rtrans;
-    esp_err_t ret;
-    //Wait for all 5 transactions to be done and get back the results.
-    for (int x=0; x<5; x++) {
-        ret=spi_device_get_trans_result(spi, &rtrans, portMAX_DELAY);
-        assert(ret==ESP_OK);
-        //We could inspect rtrans now if we received any info back. The LCD is treated as write-only, though.
-    }
+
 }
 
 #include "esp_lcd_panel_io.h"
@@ -365,32 +231,38 @@ SemaphoreHandle_t dispDoneSem = NULL;
 
 int16_t lcdpal[256];
 
+void fillBufferWithRed(uint16_t *buffer, int width, int height) {
+    uint16_t redColor = 0xF800;  // Full red in RGB565
+    for (int i = 0; i < 50*50; i++) {
+        buffer[i] = redColor;
+    }
+}
 void IRAM_ATTR displayTask(void *arg) {
-	int x, i;
-	int idx=0;
-	int inProgress=0;
-	static uint16_t *dmamem[NO_SIM_TRANS];
-	spi_transaction_t trans[NO_SIM_TRANS];
-	spi_transaction_t *rtrans;
+// 	int x, i;
+// 	int idx=0;
+// 	int inProgress=0;
+// 	static uint16_t *dmamem[NO_SIM_TRANS];
+// 	spi_transaction_t trans[NO_SIM_TRANS];
+// 	spi_transaction_t *rtrans;
 
-    esp_err_t ret;
-    spi_bus_config_t buscfg;
-    memset(&buscfg, 0, sizeof(buscfg));
-    buscfg.miso_io_num=PIN_NUM_MISO;
-    buscfg.mosi_io_num=PIN_NUM_MOSI;
-    buscfg.sclk_io_num=PIN_NUM_CLK;
-    buscfg.quadwp_io_num=-1;
-    buscfg.quadhd_io_num=-1;
-//        .max_transfer_sz=(MEM_PER_TRANS*2)+16
+//     esp_err_t ret;
+//     spi_bus_config_t buscfg;
+//     memset(&buscfg, 0, sizeof(buscfg));
+//     buscfg.miso_io_num=PIN_NUM_MISO;
+//     buscfg.mosi_io_num=PIN_NUM_MOSI;
+//     buscfg.sclk_io_num=PIN_NUM_CLK;
+//     buscfg.quadwp_io_num=-1;
+//     buscfg.quadhd_io_num=-1;
+// //        .max_transfer_sz=(MEM_PER_TRANS*2)+16
 
-    spi_device_interface_config_t devcfg;
-    memset(&devcfg, 0, sizeof(devcfg));
-    devcfg.clock_speed_hz=40000000;               //Clock out at 26 MHz. Yes, that's heavily overclocked.
-    devcfg.mode=0;                                //SPI mode 0
-    devcfg.spics_io_num=PIN_NUM_CS;               //CS pin
-    devcfg.queue_size=NO_SIM_TRANS;               //We want to be able to queue this many transfers
-    devcfg.pre_cb=ili_spi_pre_transfer_callback;  //Specify pre-transfer callback to handle D/C line
-    devcfg.flags = SPI_DEVICE_NO_DUMMY;
+//     spi_device_interface_config_t devcfg;
+//     memset(&devcfg, 0, sizeof(devcfg));
+//     devcfg.clock_speed_hz=40000000;               //Clock out at 26 MHz. Yes, that's heavily overclocked.
+//     devcfg.mode=0;                                //SPI mode 0
+//     devcfg.spics_io_num=PIN_NUM_CS;               //CS pin
+//     devcfg.queue_size=NO_SIM_TRANS;               //We want to be able to queue this many transfers
+//     devcfg.pre_cb=ili_spi_pre_transfer_callback;  //Specify pre-transfer callback to handle D/C line
+//     devcfg.flags = SPI_DEVICE_NO_DUMMY;
 
 
 	printf("*** Display task starting.\n");
@@ -406,33 +278,47 @@ void IRAM_ATTR displayTask(void *arg) {
     // ret = spi_bus_add_device(SPI3_HOST, &devcfg, &spi);
     // assert(ret == ESP_OK);
     //Initialize the LCD
+    bsp_i2c_init();
+    printf("Turn on backlight\n");
+    bsp_display_backlight_on();
+    bsp_display_brightness_set(80);
+    isBackLightIntialized = true;
+
+
     ili_init();
+    esp_lcd_panel_disp_on_off(panel_handle, true);
+
     // SDL_UnlockDisplay();
 
-	//We're going to do a fair few transfers in parallel. Set them all up.
-	for (x=0; x<NO_SIM_TRANS; x++) {
-		//dmamem[x]=pvPortMallocCaps(MEM_PER_TRANS*2, MALLOC_CAP_DMA);
-        dmamem[x]=heap_caps_malloc(MEM_PER_TRANS*2, MALLOC_CAP_DMA);
-		assert(dmamem[x]);
-		memset(&trans[x], 0, sizeof(spi_transaction_t));
-		trans[x].length=MEM_PER_TRANS*2;
-		trans[x].user=(void*)1;
-		trans[x].tx_buffer=&dmamem[x];
-	}
+	// We're going to do a fair few transfers in parallel. Set them all up.
+	// for (x=0; x<NO_SIM_TRANS; x++) {
+	// 	//dmamem[x]=pvPortMallocCaps(MEM_PER_TRANS*2, MALLOC_CAP_DMA);
+    //     dmamem[x]=heap_caps_malloc(MEM_PER_TRANS*2, MALLOC_CAP_DMA);
+	// 	assert(dmamem[x]);
+	// 	memset(&trans[x], 0, sizeof(spi_transaction_t));
+	// 	trans[x].length=MEM_PER_TRANS*2;
+	// 	trans[x].user=(void*)1;
+	// 	trans[x].tx_buffer=&dmamem[x];
+	// }
 	//xSemaphoreGive(dispDoneSem);
 
+    printf("Entering display loop.\n");
 	while(1) {
 		xSemaphoreTake(dispSem, portMAX_DELAY);
 
 #ifndef DOUBLE_BUFFER
 		uint8_t *myData=(uint8_t*)currFbPtr;
 #endif
-    int bX = 0;
-    int bY = 0;
-    int bWidth = 320;
-    int bHeight = 240;
+    int screen_x = 0;
+    int screen_y = screen_boarder;
+    int screen_width = 320;
+    int screen_height = (240-screen_boarder*2);
 
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, bX, bY, (bWidth + bX), (bHeight + bY), trans));
+    // Drawing bitmap
+    // printf("Drawing bitmap %d %d %d %d\n", screen_x, screen_y, screen_width, screen_height);
+    // fillBufferWithRed(currFbPtr, screen_width, screen_height);
+
+    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, screen_x, screen_y, screen_width, screen_height, currFbPtr));
 //         SDL_LockDisplay();
 // 		send_header_start(spi, 0, screen_boarder, 320, 240-screen_boarder*2);
 // 		send_header_cleanup(spi);
@@ -527,11 +413,12 @@ void spi_lcd_init() {
 #ifdef DOUBLE_BUFFER
     screen_boarder = 0;
     currFbPtr=heap_caps_malloc(320*240, MALLOC_CAP_32BIT);
+    if (currFbPtr==NULL) {
+        printf("Failed to allocate framebuffer\n");
+        return;
+    }
     memset(currFbPtr,0,(320*240));
 #endif
-#if CONFIG_FREERTOS_UNICORE
-	xTaskCreatePinnedToCore(&displayTask, "display", 6000, NULL, 6, NULL, 0);
-#else
+
 	xTaskCreatePinnedToCore(&displayTask, "display", 10000, NULL, 6, NULL, 1);
-#endif
 }

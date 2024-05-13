@@ -32,13 +32,13 @@ static Uint32 rgb_to_yuv( int r, int g, int b );
 #define PALETTE_COUNT 23
 #endif
 
-EXT_RAM_ATTR Palette palettes[PALETTE_COUNT];
+EXT_RAM_BSS_ATTR Palette palettes[PALETTE_COUNT];
 int palette_count;
 
-EXT_RAM_ATTR static Palette palette;
-EXT_RAM_ATTR Uint32 rgb_palette[256], yuv_palette[256];
+EXT_RAM_BSS_ATTR static Palette palette;
+EXT_RAM_BSS_ATTR Uint32 rgb_palette[256], yuv_palette[256];
 
-EXT_RAM_ATTR Palette colors;
+EXT_RAM_BSS_ATTR Palette colors;
 
 void JE_loadPals( void )
 {

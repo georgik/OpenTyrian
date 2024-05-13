@@ -36,7 +36,7 @@ struct JE_StarType
 
 static int tempX, tempY;
 static JE_boolean run;
-EXT_RAM_ATTR static struct JE_StarType star[starlib_MAX_STARS];
+EXT_RAM_BSS_ATTR static struct JE_StarType star[starlib_MAX_STARS];
 
 static JE_byte setupByte;
 static JE_word stepCounter;

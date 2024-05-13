@@ -25,7 +25,7 @@
 #include <ctype.h>
 #include "esp_heap_caps.h"
 
-EXT_RAM_ATTR Sprite_array sprite_table[SPRITE_TABLES_MAX];
+EXT_RAM_BSS_ATTR Sprite_array sprite_table[SPRITE_TABLES_MAX];
 
 Sprite2_array eShapes[6];
 Sprite2_array shapesC1, shapes6, shapes9, shapesW2;
@@ -42,13 +42,10 @@ void load_sprites_file( unsigned int table, const char *filename )
 	efclose(f);
 }
 
+#include "esp_heap_caps.h"
 void load_sprites( unsigned int table, FILE *f )
 {
-	// if(sprite_table == NULL)
-	// {
-		// printf("sprite_table malloc: %d\n", sizeof(Sprite_array));
-		//sprite_table = heap_caps_malloc(SPRITE_TABLES_MAX*sizeof(Sprite_array), MALLOC_CAP_SPIRAM);
-	// }
+    printf("Loading Sprites - Table: %d\n", table);
 	free_sprites(table);
 
 	Uint16 temp;
@@ -69,10 +66,17 @@ void load_sprites( unsigned int table, FILE *f )
 		efread(&cur_sprite->height, sizeof(Uint16), 1, f);
 		efread(&cur_sprite->size,   sizeof(Uint16), 1, f);
 
-		cur_sprite->data = (Uint8 *)malloc(cur_sprite->size);
+        cur_sprite->data = (Uint8 *)heap_caps_malloc(cur_sprite->size, MALLOC_CAP_8BIT);
+
+        if (cur_sprite->data == NULL) {
+            printf("Failed to allocate memory for sprite %d\n", i);
+            return;
+        }
+
 
 		efread(cur_sprite->data, sizeof(Uint8), cur_sprite->size, f);
 	}
+    printf("Loading Sprites - Table: %d - Done\n", table);
 }
 
 void free_sprites( unsigned int table )
@@ -493,7 +497,11 @@ void JE_loadCompShapesB( Sprite2_array *sprite2s, FILE *f )
 {
 	free_sprite2s(sprite2s);
 
-	sprite2s->data = (Uint8 *)malloc(sizeof(Uint8) * sprite2s->size);
+	sprite2s->data = (Uint8 *)heap_caps_malloc(sizeof(Uint8) * sprite2s->size, MALLOC_CAP_8BIT);
+    if (sprite2s->data == NULL) {
+        printf("Failed to allocate memory for sprite2s\n");
+        return;
+    }
 	efread(sprite2s->data, sizeof(Uint8), sprite2s->size, f);
 }
 

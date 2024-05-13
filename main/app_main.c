@@ -14,7 +14,7 @@
 void tyrianTask(void *pvParameters)
 {
 //    heap_caps_print_heap_info(MALLOC_CAP_SPIRAM);
-   spi_lcd_init();
+//    spi_lcd_init();
 
     char *argv[]={"opentyrian", NULL};
     main(1, argv);

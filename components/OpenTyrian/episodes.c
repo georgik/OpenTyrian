@@ -25,18 +25,18 @@
 
 
 /* MAIN Weapons Data */
-EXT_RAM_ATTR JE_WeaponPortType weaponPort;
-EXT_RAM_ATTR JE_WeaponType     weapons[WEAP_NUM + 1]; /* [0..weapnum] */
+EXT_RAM_BSS_ATTR JE_WeaponPortType weaponPort;
+EXT_RAM_BSS_ATTR JE_WeaponType     weapons[WEAP_NUM + 1]; /* [0..weapnum] */
 
 /* Items */
 JE_PowerType   powerSys;
 JE_ShipType    ships;
-EXT_RAM_ATTR JE_OptionType  options[OPTION_NUM + 1]; /* [0..optionnum] */
+EXT_RAM_BSS_ATTR JE_OptionType  options[OPTION_NUM + 1]; /* [0..optionnum] */
 JE_ShieldType  shields;
 JE_SpecialType special;
 
 /* Enemy data */
-EXT_RAM_ATTR JE_EnemyDatType enemyDat;
+EXT_RAM_BSS_ATTR JE_EnemyDatType enemyDat;
 
 /* EPISODE variables */
 JE_byte    initial_episode_num, episodeNum = 0;

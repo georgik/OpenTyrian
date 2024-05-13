@@ -29,7 +29,7 @@
 #include "sprite.h"
 #include "video.h"
 
-EXT_RAM_ATTR char episode_name[6][31], difficulty_name[7][21], gameplay_name[GAMEPLAY_NAME_COUNT][26];
+EXT_RAM_BSS_ATTR char episode_name[6][31], difficulty_name[7][21], gameplay_name[GAMEPLAY_NAME_COUNT][26];
 
 bool select_gameplay( void )
 {

@@ -166,14 +166,14 @@ int SDL_PollEvent(SDL_Event * event)
 
 #ifndef CONFIG_HW_ODROID_GO
     GPIOEvent ev;
-    if(xQueueReceive(gpio_evt_queue, &ev, 0)) {
-        event->key.keysym.sym = ev.keycode;
-        event->key.keysym.scancode = ev.scancode;
-        event->key.type = ev.type;
-        event->key.keysym.mod = 0;
-        event->key.state = ev.type == SDL_KEYDOWN ? SDL_PRESSED : SDL_RELEASED;     //< ::SDL_PRESSED or ::SDL_RELEASED 
-        return 1;
-    }
+    // if(xQueueReceive(gpio_evt_queue, &ev, 0)) {
+    //     event->key.keysym.sym = ev.keycode;
+    //     event->key.keysym.scancode = ev.scancode;
+    //     event->key.type = ev.type;
+    //     event->key.keysym.mod = 0;
+    //     event->key.state = ev.type == SDL_KEYDOWN ? SDL_PRESSED : SDL_RELEASED;     //< ::SDL_PRESSED or ::SDL_RELEASED 
+    //     return 1;
+    // }
 #else
     return readOdroidXY(event);
 #endif
@@ -207,22 +207,22 @@ void gpioTask(void *arg) {
 */
 void inputInit()
 {
-	gpio_config_t io_conf;
-    io_conf.pull_down_en = 0;
+	// gpio_config_t io_conf;
+    // io_conf.pull_down_en = 0;
 
-    //interrupt of rising edge
-    io_conf.intr_type = GPIO_INTR_ANYEDGE;
+    // //interrupt of rising edge
+    // io_conf.intr_type = GPIO_INTR_ANYEDGE;
 
-    //bit mask of the pins, use GPIO... here
-	for (int i=0; i < NELEMS(keymap[0]); i++)
-    	if(i==0)
-			io_conf.pin_bit_mask = (1ULL<<keymap[0][i].gpio);
-		else
-			io_conf.pin_bit_mask |= (1ULL<<keymap[0][i].gpio);
+    // //bit mask of the pins, use GPIO... here
+	// for (int i=0; i < NELEMS(keymap[0]); i++)
+    // 	if(i==0)
+	// 		io_conf.pin_bit_mask = (1ULL<<keymap[0][i].gpio);
+	// 	else
+	// 		io_conf.pin_bit_mask |= (1ULL<<keymap[0][i].gpio);
 
-	io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pull_up_en = 1;
-    gpio_config(&io_conf);
+	// io_conf.mode = GPIO_MODE_INPUT;
+    // io_conf.pull_up_en = 1;
+    // gpio_config(&io_conf);
     
 // #ifndef CONFIG_HW_ODROID_GO
 //     //create a queue to handle gpio event from isr

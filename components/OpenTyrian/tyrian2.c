@@ -65,7 +65,7 @@ boss_bar_t boss_bar[2];
 /* Level Event Data */
 JE_boolean quit, loadLevelOk;
 
-EXT_RAM_ATTR struct JE_EventRecType eventRec[EVENT_MAXIMUM]; /* [1..eventMaximum] */
+EXT_RAM_BSS_ATTR struct JE_EventRecType eventRec[EVENT_MAXIMUM]; /* [1..eventMaximum] */
 JE_word levelEnemyMax;
 JE_word levelEnemyFrequency;
 JE_word levelEnemy[40]; /* [1..40] */
