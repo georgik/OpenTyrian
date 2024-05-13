@@ -285,6 +285,7 @@ void ili_init()
 
 
     vTaskDelay(140);
+    bsp_display_backlight_on();
 }
 
 static void IRAM_ATTR send_header_start(spi_device_handle_t spi, int xpos, int ypos, int w, int h)
@@ -347,6 +348,8 @@ void IRAM_ATTR send_header_cleanup(spi_device_handle_t spi)
     }
 }
 
+#include "esp_lcd_panel_io.h"
+#include "esp_lcd_panel_ops.h"
 
 #ifndef DOUBLE_BUFFER
 volatile static uint16_t *currFbPtr=NULL;
@@ -424,51 +427,57 @@ void IRAM_ATTR displayTask(void *arg) {
 #ifndef DOUBLE_BUFFER
 		uint8_t *myData=(uint8_t*)currFbPtr;
 #endif
-        SDL_LockDisplay();
-		send_header_start(spi, 0, screen_boarder, 320, 240-screen_boarder*2);
-		send_header_cleanup(spi);
+    int bX = 0;
+    int bY = 0;
+    int bWidth = 320;
+    int bHeight = 240;
 
-		for (x=0; x<320*(240-screen_boarder*2); x+=MEM_PER_TRANS) {
-#ifdef DOUBLE_BUFFER
-			for (i=0; i<MEM_PER_TRANS; i+=4) {
-				uint32_t d=currFbPtr[(x+i)/4];
-				dmamem[idx][i+0]=lcdpal[(d>>0)&0xff];
-				dmamem[idx][i+1]=lcdpal[(d>>8)&0xff];
-				dmamem[idx][i+2]=lcdpal[(d>>16)&0xff];
-				dmamem[idx][i+3]=lcdpal[(d>>24)&0xff];
-			}
-#else
-			for (i=0; i<MEM_PER_TRANS; i++) {
-				dmamem[idx][i]=lcdpal[myData[i]];
-			}
-			myData+=MEM_PER_TRANS;
-#endif
-			trans[idx].length=MEM_PER_TRANS*16;
-			trans[idx].user=(void*)1;
-			trans[idx].tx_buffer=dmamem[idx];
+    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, bX, bY, (bWidth + bX), (bHeight + bY), trans));
+//         SDL_LockDisplay();
+// 		send_header_start(spi, 0, screen_boarder, 320, 240-screen_boarder*2);
+// 		send_header_cleanup(spi);
 
-			ret=spi_device_queue_trans(spi, &trans[idx], portMAX_DELAY);
-			assert(ret==ESP_OK);
+// 		for (x=0; x<320*(240-screen_boarder*2); x+=MEM_PER_TRANS) {
+// #ifdef DOUBLE_BUFFER
+// 			for (i=0; i<MEM_PER_TRANS; i+=4) {
+// 				uint32_t d=currFbPtr[(x+i)/4];
+// 				dmamem[idx][i+0]=lcdpal[(d>>0)&0xff];
+// 				dmamem[idx][i+1]=lcdpal[(d>>8)&0xff];
+// 				dmamem[idx][i+2]=lcdpal[(d>>16)&0xff];
+// 				dmamem[idx][i+3]=lcdpal[(d>>24)&0xff];
+// 			}
+// #else
+// 			for (i=0; i<MEM_PER_TRANS; i++) {
+// 				dmamem[idx][i]=lcdpal[myData[i]];
+// 			}
+// 			myData+=MEM_PER_TRANS;
+// #endif
+// 			trans[idx].length=MEM_PER_TRANS*16;
+// 			trans[idx].user=(void*)1;
+// 			trans[idx].tx_buffer=dmamem[idx];
 
-			idx++;
-			if (idx>=NO_SIM_TRANS) idx=0;
+// 			ret=spi_device_queue_trans(spi, &trans[idx], portMAX_DELAY);
+// 			assert(ret==ESP_OK);
 
-			if (inProgress==NO_SIM_TRANS-1) {
-				ret=spi_device_get_trans_result(spi, &rtrans, portMAX_DELAY);
-				assert(ret==ESP_OK);
-			} else {
-				inProgress++;
-			}
-		}
-#ifndef DOUBLE_BUFFER
-		//xSemaphoreGive(dispDoneSem);
-#endif
-		while(inProgress) {
-			ret=spi_device_get_trans_result(spi, &rtrans, portMAX_DELAY);
-			assert(ret==ESP_OK);
-			inProgress--;
-		}
-        SDL_UnlockDisplay();
+// 			idx++;
+// 			if (idx>=NO_SIM_TRANS) idx=0;
+
+// 			if (inProgress==NO_SIM_TRANS-1) {
+// 				ret=spi_device_get_trans_result(spi, &rtrans, portMAX_DELAY);
+// 				assert(ret==ESP_OK);
+// 			} else {
+// 				inProgress++;
+// 			}
+// 		}
+// #ifndef DOUBLE_BUFFER
+// 		//xSemaphoreGive(dispDoneSem);
+// #endif
+// 		while(inProgress) {
+// 			ret=spi_device_get_trans_result(spi, &rtrans, portMAX_DELAY);
+// 			assert(ret==ESP_OK);
+// 			inProgress--;
+// 		}
+//         SDL_UnlockDisplay();
 	}
 }
 
