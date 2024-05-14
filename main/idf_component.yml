@@ -1,7 +1,8 @@
 ## IDF Component Manager Manifest File
 dependencies:
   joltwallet/littlefs: "==1.14.4"
-  espressif/m5stack_core_s3_noglib: "*"
+  espressif/esp-box: "^3.0.5"
+  #espressif/m5stack_core_s3_noglib: "*"
   ## Required IDF version
   idf:
     version: ">=4.1.0"
