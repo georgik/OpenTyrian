@@ -103,7 +103,8 @@ void backlight_percentage_set(int value)
 #include "bsp/esp-bsp.h"
 #include "bsp/display.h"
 #include "bsp/touch.h"
-#include "esp_lcd_touch_ft5x06.h"
+//#include "esp_lcd_touch_ft5x06.h"
+#include "esp_lcd_touch_tt21100.h"
 
 static esp_lcd_panel_handle_t panel_handle = NULL;
 static esp_lcd_panel_io_handle_t io_handle = NULL;

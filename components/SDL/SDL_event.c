@@ -106,7 +106,7 @@ int checkPinStruct(int i, uint8_t *lastState, SDL_Event *event)
 
 int readOdroidXY(SDL_Event * event)
 {
-    int joyX = adc1_get_raw(ODROID_GAMEPAD_IO_X);
+    /*int joyX = adc1_get_raw(ODROID_GAMEPAD_IO_X);
     int joyY = adc1_get_raw(ODROID_GAMEPAD_IO_Y);
     
     JoystickState state;
@@ -155,7 +155,7 @@ int readOdroidXY(SDL_Event * event)
     for(int i = 0; i < 6; i++)
         if(checkPinStruct(i, &lastState.buttons[i], event))
             return 1;
-
+*/
     return 0;
 }
 
