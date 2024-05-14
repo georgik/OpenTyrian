@@ -283,13 +283,15 @@ void IRAM_ATTR displayTask(void *arg) {
     // assert(ret == ESP_OK);
     //Initialize the LCD
     bsp_i2c_init();
+
+
+    ili_init();
     printf("Turn on backlight\n");
+    bsp_display_brightness_init();
     bsp_display_backlight_on();
     bsp_display_brightness_set(80);
     isBackLightIntialized = true;
 
-
-    ili_init();
     esp_lcd_panel_disp_on_off(panel_handle, true);
 
     // SDL_UnlockDisplay();
