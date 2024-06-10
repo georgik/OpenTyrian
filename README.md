@@ -1,7 +1,11 @@
 # OpenTyrian - ESP32 Port
 
 This is a port of OpenTyrian (ported to ESP32 by Gadget Workbench).
-It's based on OpenTyrian (https://bitbucket.org/opentyrian/opentyrian/wiki/Home)
+It's based on OpenTyrian (https://bitbucket.org/opentyrian/opentyrian/wiki/Home).
+
+This is update fork from https://github.com/jkirsons/OpenTyrian addopted to new hardware with support of [Board Support Packages](https://components.espressif.com/components?q=Board+Support+Package).
+
+The fork was also updated to use all the data from flash, since SD cards have tendency to be unreliable.
 
 ## Storyline
 
@@ -13,31 +17,17 @@ to fight MicroSol and save the galaxy.
 
 ## Requirements
 It requires:
- - An ESP32 WROVER 
- - An ILI9341 LCD - connected by SPI
- - SD Card with the tyrian files in a "data" folder
- - Amplifier and speaker
- - Some input buttons (Up/Down/Left/Right + two buttons)
+ - [ESP32-S3-BOX](https://components.espressif.com/components/espressif/esp-box)
 
 
-
-## Video
+## Original video
 
 [![Alt text](https://img.youtube.com/vi/UL5eTUv7SZE/0.jpg)](https://www.youtube.com/watch?v=UL5eTUv7SZE)
 
 
 ## Installation
 
-"make menuconfig"
-
-under the section "ESP32-TYRIAN platform-specific configuration:
-![config_image](https://github.com/jkirsons/OpenTyrian/raw/master/documents/config_1.png)
-
-### LCD / SD Card
-Set up the pins used for your LCD and SD Card.  This is the default configuration:
-![config_image](https://github.com/jkirsons/OpenTyrian/raw/master/documents/config_2.png)
-
-The LCD is connected to VSPI, and the SD Card to HSPI.
+`./prepare-data.sh`
 
 ### Input / Controls
 The default button input is configured in keyboard.c
@@ -48,8 +38,16 @@ The default button input is configured in keyboard.c
 - GPIO33 ESCAPE (quit)
 - GPIO35 SPACE (fire/select)
 
-### Sound
-Sound is output using I2S connected to the DAC on GPIO25 this is configured in SDL_audio.c.  You will need an amplifier+speaker and coupling capacitor on this pin (the capacitor to bring the DAC's DC signal back to AC).
 
 ### Compiling
-"make flash"
+
+`idf.py build flash monitor`
+
+### Simulation with Wokwi
+
+Build UF2 file:
+`idf.py uf2`
+
+Open VS Code or JetBrains IDE with Wokwi Plugin.
+Start the simulation.
+
