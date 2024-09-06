@@ -46,149 +46,144 @@ Uint8 channel_vol[SFX_CHANNELS];
 int sound_init_state = false;
 int freq = 11025 * OUTPUT_QUALITY;
 
-static SDL_AudioCVT audio_cvt; // used for format conversion
+SDL_AudioStream *audio_stream = NULL;
 
 void audio_cb( void *userdata, unsigned char *feedme, int howmuch );
 
 void load_song( unsigned int song_num );
+SDL_AudioDeviceID dev_id;
 
-bool init_audio( void )
-{
-	if (audio_disabled)
-		return false;
-	
-	SDL_AudioSpec ask, got;
-	
-	ask.freq = freq;
-	ask.format = (BYTES_PER_SAMPLE == 2) ? AUDIO_S16SYS : AUDIO_S8;
-	ask.channels = 1;
-	ask.samples = 2048;
-	ask.callback = audio_cb;
-	
-	printf("\trequested %d Hz, %d channels, %d samples\n", ask.freq, ask.channels, ask.samples);
-	
-	if (SDL_OpenAudio(&ask, &got) == -1)
-	{
-		fprintf(stderr, "error: failed to initialize SDL audio: %s\n", SDL_GetError());
-		audio_disabled = true;
-		return false;
-	}
-	
-	printf("\tobtained  %d Hz, %d channels, %d samples\n", got.freq, got.channels, got.samples);
-	
-	SDL_BuildAudioCVT(&audio_cvt, ask.format, ask.channels, ask.freq, got.format, got.channels, got.freq);
-	
-	opl_init();
-	
-	SDL_PauseAudio(0); // unpause
-	
-	return true;
+bool init_audio(void) {
+    if (audio_disabled)
+        return false;
+
+    SDL_AudioSpec ask, got;
+
+    ask.freq = freq;
+    ask.format = (BYTES_PER_SAMPLE == 2) ? SDL_AUDIO_S16 : SDL_AUDIO_S8;
+    ask.channels = 1;
+
+    printf("\trequested %d Hz, %d channels\n", ask.freq, ask.channels);
+
+    // Update to SDL3 OpenAudioDevice
+    dev_id = SDL_OpenAudioDevice(0, &ask);
+    if (dev_id == 0) {
+        fprintf(stderr, "error: failed to initialize SDL audio: %s\n", SDL_GetError());
+        audio_disabled = true;
+        return false;
+    }
+
+    printf("\tobtained  %d Hz, %d channels\n", got.freq, got.channels);
+
+    // Create Audio Stream
+    audio_stream = SDL_CreateAudioStream(&ask, &got);
+    if (!audio_stream) {
+        fprintf(stderr, "error: failed to create SDL_AudioStream: %s\n", SDL_GetError());
+        audio_disabled = true;
+        return false;
+    }
+
+    opl_init();
+
+    SDL_PauseAudioDevice(dev_id);  // Start playing audio
+
+    return true;
 }
 
-IRAM_ATTR void audio_cb( void *user_data, unsigned char *sdl_buffer, int howmuch )
+IRAM_ATTR void audio_cb(void *user_data, unsigned char *sdl_buffer, int howmuch)
 {
-	(void)user_data;
-	
-	// prepare for conversion
-	howmuch /= audio_cvt.len_mult;
-	audio_cvt.buf = sdl_buffer;
-	audio_cvt.len = howmuch;
-	
-	static long ct = 0;
+    (void)user_data;
 
-	SAMPLE_TYPE *feedme = (SAMPLE_TYPE *)sdl_buffer;
-	music_disabled = true;
-	if (!music_disabled && !music_stopped)
-	{
-		/* SYN: Simulate the fm synth chip */
-		SAMPLE_TYPE *music_pos = feedme;
-		long remaining = howmuch / BYTES_PER_SAMPLE;
-		while (remaining > 0)
-		{
-			while (ct < 0)
-			{
-				ct += freq;
-				lds_update(); /* SYN: Do I need to use the return value for anything here? */
-			}
-			/* SYN: Okay, about the calculations below. I still don't 100% get what's going on, but...
-			- freq is samples/time as output by SDL.
-			- REFRESH is how often the play proc would have been called in Tyrian. Standard speed is
-			70Hz, which is the default value of 70.0f
-			- ct represents the margin between play time (representing # of samples) and tick speed of
-			the songs (70Hz by default). It keeps track of which one is ahead, because they don't
-			synch perfectly. */
-			
-			/* set i to smaller of data requested by SDL and a value calculated from the refresh rate */
-			long i = (long)((ct / REFRESH) + 4) & ~3;
-			i = (i > remaining) ? remaining : i; /* i should now equal the number of samples we get */
-			opl_update((SAMPLE_TYPE *)music_pos, i);
-			music_pos += i;
-			remaining -= i;
-			ct -= (long)(REFRESH * i);
-		}
-		
-		/* Reduce the music volume. */
-		int qu = howmuch / BYTES_PER_SAMPLE;
-		for (int smp = 0; smp < qu; smp++)
-		{
-			feedme[smp] *= music_volume;
-		}
-	}
-	samples_disabled = false;
-	if (!samples_disabled)
-	{
-		/* SYN: Mix sound channels and shove into audio buffer */
-		for (int ch = 0; ch < SFX_CHANNELS; ch++)
-		{
+    static long ct = 0;
 
-			volume = sample_volume * (channel_vol[ch] / (float)SFX_CHANNELS);
-			
-			/* SYN: Don't copy more data than is in the channel! */
-			unsigned int qu = ((unsigned)howmuch > channel_len[ch] ? channel_len[ch] : (unsigned)howmuch) / BYTES_PER_SAMPLE;
-			for (unsigned int smp = 0; smp < qu; smp++)
-			{
+    SAMPLE_TYPE *feedme = (SAMPLE_TYPE *)sdl_buffer;
+    music_disabled = true;
+    if (!music_disabled && !music_stopped)
+    {
+        SAMPLE_TYPE *music_pos = feedme;
+        long remaining = howmuch / BYTES_PER_SAMPLE;
+        while (remaining > 0)
+        {
+            while (ct < 0)
+            {
+                ct += freq;
+                lds_update();
+            }
+
+            long i = (long)((ct / REFRESH) + 4) & ~3;
+            i = (i > remaining) ? remaining : i;
+            opl_update((SAMPLE_TYPE *)music_pos, i);
+            music_pos += i;
+            remaining -= i;
+            ct -= (long)(REFRESH * i);
+        }
+
+        int qu = howmuch / BYTES_PER_SAMPLE;
+        for (int smp = 0; smp < qu; smp++)
+        {
+            feedme[smp] *= music_volume;
+        }
+    }
+    samples_disabled = false;
+    if (!samples_disabled)
+    {
+        for (int ch = 0; ch < SFX_CHANNELS; ch++)
+        {
+            volume = sample_volume * (channel_vol[ch] / (float)SFX_CHANNELS);
+
+            unsigned int qu = ((unsigned)howmuch > channel_len[ch] ? channel_len[ch] : (unsigned)howmuch) / BYTES_PER_SAMPLE;
+            for (unsigned int smp = 0; smp < qu; smp++)
+            {
 #if (BYTES_PER_SAMPLE == 2)
-				Sint64 clip = (Sint32)feedme[smp] + (Sint32)(channel_pos[ch][smp] * volume);
-				feedme[smp] = (clip > 0x7fff) ? 0x7fff : (clip <= -0x8000) ? -0x8000 : (Sint16)clip;
-#else  /* BYTES_PER_SAMPLE */
-				Sint16 clip = (Sint16)feedme[smp] + (Sint16)(channel_pos[ch][smp] * volume);
-				feedme[smp] = (clip > 0x7f) ? 0x7f : (clip <= -0x80) ? -0x80 : (Sint8)clip;
-#endif  /* BYTES_PER_SAMPLE */
-			}
-			
-			channel_pos[ch] += qu;
-			channel_len[ch] -= qu * BYTES_PER_SAMPLE;
-			
-			/* SYN: If we've emptied a channel buffer, let's free the memory and clear the channel. */
-			if (channel_len[ch] == 0)
-			{
-				free(channel_buffer[ch]);
-				channel_buffer[ch] = channel_pos[ch] = NULL;
-			}
-		}
-	}
-	
-	// do conversion
-	SDL_ConvertAudio(&audio_cvt);
+                Sint64 clip = (Sint32)feedme[smp] + (Sint32)(channel_pos[ch][smp] * volume);
+                feedme[smp] = (clip > 0x7fff) ? 0x7fff : (clip <= -0x8000) ? -0x8000 : (Sint16)clip;
+#else
+                Sint16 clip = (Sint16)feedme[smp] + (Sint16)(channel_pos[ch][smp] * volume);
+                feedme[smp] = (clip > 0x7f) ? 0x7f : (clip <= -0x80) ? -0x80 : (Sint8)clip;
+#endif
+            }
+
+            channel_pos[ch] += qu;
+            channel_len[ch] -= qu * BYTES_PER_SAMPLE;
+
+            if (channel_len[ch] == 0)
+            {
+                free(channel_buffer[ch]);
+                channel_buffer[ch] = channel_pos[ch] = NULL;
+            }
+        }
+    }
+
+    // Use SDL_AudioStream for conversion
+    if (audio_stream) {
+        SDL_AudioStreamPut(audio_stream, sdl_buffer, howmuch);
+        int converted_size = SDL_AudioStreamGet(audio_stream, sdl_buffer, howmuch);
+        if (converted_size < 0) {
+            fprintf(stderr, "error: SDL_AudioStreamGet failed: %s\n", SDL_GetError());
+        }
+    }
 }
 
-void deinit_audio( void )
-{
-	if (audio_disabled)
-		return;
-	
-	SDL_PauseAudio(1); // pause
-	
-	SDL_CloseAudio();
-	
-	for (unsigned int i = 0; i < SFX_CHANNELS; i++)
-	{
-		free(channel_buffer[i]);
-		channel_buffer[i] = channel_pos[i] = NULL;
-		channel_len[i] = 0;
-	}
-	
-	lds_free();
+void deinit_audio(void) {
+    if (audio_disabled)
+        return;
+
+    SDL_PauseAudioDevice(dev_id);  // Pause audio
+
+    SDL_CloseAudioDevice(dev_id);  // Close audio device
+
+    if (audio_stream) {
+        SDL_DestroyAudioStream(audio_stream);  // Destroy the audio stream
+        audio_stream = NULL;
+    }
+
+    for (unsigned int i = 0; i < SFX_CHANNELS; i++) {
+        free(channel_buffer[i]);
+        channel_buffer[i] = channel_pos[i] = NULL;
+        channel_len[i] = 0;
+    }
+
+    lds_free();
 }
 
 

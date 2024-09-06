@@ -20,12 +20,14 @@
 #include "opentyr.h"
 #include "varz.h"
 
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "esp_vfs_fat.h"
+// #include "esp_vfs_fat.h"
+#include "esp_vfs.h"
+#include "esp_littlefs.h"
 #include "driver/sdmmc_host.h"
 #include "driver/sdspi_host.h"
 
@@ -38,6 +40,28 @@
 const char *custom_data_dir = NULL;
 
 static bool init_SD = false;
+
+void SDL_InitFS(void) {
+    printf("Initialising File System\n");
+
+    // Define the LittleFS configuration
+    esp_vfs_littlefs_conf_t conf = {
+        .base_path = "/sd",
+        .partition_label = "storage",
+        .format_if_mount_failed = false,
+        .dont_mount = false,
+    };
+
+    // Use the API to mount and possibly format the file system
+    esp_err_t err = esp_vfs_littlefs_register(&conf);
+    if (err != ESP_OK) {
+        printf("Failed to mount or format filesystem\n");
+    } else {
+        printf("Filesystem mounted\n");
+        printf("Listing files in /:\n");
+        listFiles("/sd");
+    }
+}
 
 void Init_SD()
 {
@@ -96,9 +120,9 @@ FILE *dir_fopen( const char *dir, const char *file, const char *mode )
 	//char *path = (char *)malloc(strlen(dir) + 1 + strlen(file) + 1);
 	sprintf(path, "%s/%s", dir, file);
 	
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	FILE *f = fopen(path, mode);
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 	
 	//free(path);
 	
@@ -146,79 +170,79 @@ bool dir_file_exists( const char *dir, const char *file )
 // returns end-of-file position
 long ftell_eof( FILE *f )
 {
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	long pos = ftell(f);
 	
 	fseek(f, 0, SEEK_END);
 	long size = ftell(f);
 	
 	fseek(f, pos, SEEK_SET);
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 	return size;
 }
 
 int efeof ( FILE * stream )
 {
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	int ret = feof ( stream );
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 	return ret;	
 }
 
 int efputc ( int character, FILE * stream )
 {
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	int ret = fputc ( character, stream );
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 	return ret;	
 }
 
 int efgetc ( FILE * stream )
 {
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	int ret = fgetc ( stream );
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 	return ret;	
 }
 
 size_t eefwrite ( const void * ptr, size_t size, size_t count, FILE * stream )
 {
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	size_t ret = fwrite ( ptr, size, count, stream );
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 	return ret;		
 }
 
 int efclose ( FILE * stream )
 {
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	int ret = fclose ( stream );
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 	return ret;	
 }
 
 long int eftell ( FILE * stream )
 {
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	long int ret = ftell ( stream );
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 	return ret;
 }
 
 int efseek( FILE * stream, long int offset, int origin )
 {
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	int ret = fseek ( stream, offset, origin );
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 	return ret;
 }
 
 // endian-swapping fread that dies if the expected amount cannot be read
 size_t efread( void *buffer, size_t size, size_t num, FILE *stream )
 {
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	size_t num_read = fread(buffer, size, num, stream);
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 
 	switch (size)
 	{
@@ -261,13 +285,13 @@ size_t efwrite( const void *buffer, size_t size, size_t num, FILE *stream )
 		case 2:
 			swap_buffer = malloc(size * num);
 			for (size_t i = 0; i < num; i++)
-				((Uint16 *)swap_buffer)[i] = SDL_SwapLE16(((Uint16 *)buffer)[i]);
+				((Uint16 *)swap_buffer)[i] = SDL_Swap16LE(((Uint16 *)buffer)[i]);
 			buffer = swap_buffer;
 			break;
 		case 4:
 			swap_buffer = malloc(size * num);
 			for (size_t i = 0; i < num; i++)
-				((Uint32 *)swap_buffer)[i] = SDL_SwapLE32(((Uint32 *)buffer)[i]);
+				((Uint32 *)swap_buffer)[i] = SDL_Swap32LE(((Uint32 *)buffer)[i]);
 			buffer = swap_buffer;
 			break;
 		case 8:
@@ -281,9 +305,9 @@ size_t efwrite( const void *buffer, size_t size, size_t num, FILE *stream )
 			break;
 	}
 	
-	SDL_LockDisplay();
+	// SDL_LockDisplay();
 	size_t num_written = fwrite(buffer, size, num, stream);
-	SDL_UnlockDisplay();
+	// SDL_UnlockDisplay();
 
 	if (swap_buffer != NULL)
 		free(swap_buffer);

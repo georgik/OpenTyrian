@@ -33,7 +33,7 @@ void JE_barBright( SDL_Surface *surface, int a, int b, int c, int d );
 static inline void fill_rectangle_hw( SDL_Surface *surface, int x, int y, uint h, uint w, Uint8 color )
 {
 	SDL_Rect rect = { (Sint16)x, (Sint16)y, (Uint16)h, (Uint16)w };
-	SDL_FillRect(surface, &rect, color);
+	SDL_FillSurfaceRect(surface, &rect, color);
 }
 
 void draw_segmented_gauge( SDL_Surface *surface, int x, int y, Uint8 color, uint segment_width, uint segment_height, uint segment_value, uint value );

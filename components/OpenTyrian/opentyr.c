@@ -48,7 +48,7 @@
 #include "video.h"
 #include "video_scale.h"
 
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -145,7 +145,7 @@ void opentyrian_menu( void )
 		{
 			switch (lastkey_sym)
 			{
-			case SDLK_UP:
+			case SDL_SCANCODE_UP:
 				do
 				{
 					if ((int)sel-1 == 0)
@@ -157,7 +157,7 @@ void opentyrian_menu( void )
 				
 				JE_playSampleNum(S_CURSOR);
 				break;
-			case SDLK_DOWN:
+			case SDL_SCANCODE_DOWN:
 				do
 				{
 					if ((int)sel+1 >= MenuOptions_MAX)
@@ -170,7 +170,7 @@ void opentyrian_menu( void )
 				JE_playSampleNum(S_CURSOR);
 				break;
 				
-			case SDLK_LEFT:
+			case SDL_SCANCODE_LEFT:
 				if (sel == MENU_SCALER)
 				{
 					do
@@ -184,7 +184,7 @@ void opentyrian_menu( void )
 					JE_playSampleNum(S_CURSOR);
 				}
 				break;
-			case SDLK_RIGHT:
+			case SDL_SCANCODE_RIGHT:
 				if (sel == MENU_SCALER)
 				{
 					do
@@ -199,7 +199,7 @@ void opentyrian_menu( void )
 				}
 				break;
 				
-			case SDLK_RETURN:
+			case SDL_SCANCODE_RETURN:
 				switch (sel)
 				{
 				case MENU_ABOUT:
@@ -261,7 +261,7 @@ void opentyrian_menu( void )
 				}
 				break;
 				
-			case SDLK_ESCAPE:
+			case SDL_SCANCODE_ESCAPE:
 				quit = true;
 				JE_playSampleNum(S_SPRING);
 				break;

@@ -23,7 +23,7 @@
 #include "video.h"
 #include "video_scale.h"
 
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <stdio.h>
 
 #include "freertos/FreeRTOS.h"
@@ -34,15 +34,15 @@
 JE_boolean ESCPressed;
 
 JE_boolean newkey, newmouse, keydown, mousedown;
-SDLKey lastkey_sym;
-SDLMod lastkey_mod;
+SDL_Keycode lastkey_sym;
+SDL_Keymod lastkey_mod;
 unsigned char lastkey_char;
 Uint8 lastmouse_but;
 Uint16 lastmouse_x, lastmouse_y;
 JE_boolean mouse_pressed[3] = {false, false, false};
 Uint16 mouse_x, mouse_y;
 
-Uint8 keysactive[SDLK_LAST];
+Uint8 keysactive[SDL_NUM_SCANCODES];
 
 #ifdef NDEBUG
 bool input_grab_enabled = true;
@@ -67,7 +67,7 @@ void init_keyboard( void )
 {
 	newkey = newmouse = false;
 	keydown = mousedown = false;
-	inputInit();
+	// inputInit();
 }
 
 void input_grab( bool enable )
@@ -96,17 +96,27 @@ void service_SDL_events( JE_boolean clear_new )
 	
 	if (clear_new)
 		newkey = newmouse = false;
-	
+
 	SDL_Event event;
-	while(SDL_PollEvent(&event))
+	while (SDL_PollEvent(&event))
 	{
-		keysactive[event.key.keysym.sym] = event.key.state;
-		if(event.key.state)
-			lastkey_sym = event.key.keysym.sym;
-		keydown = event.key.state;
-		newkey = event.key.state;
-		lastkey_char = event.key.keysym.sym;
+		if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP)
+		{
+			// Update key state using scancode
+			keysactive[event.key.scancode] = (event.key.state == SDL_PRESSED);
+
+			// if (event.key.state == SDL_PRESSED)
+			// {
+			// 	// Use event.key.keysym.sym for symbolic keycode
+			// 	lastkey_sym = event.key.keysym.sym;
+			// 	lastkey_char = event.key.keysym.sym;
+			// }
+
+			// keydown = (event.key.state == SDL_PRESSED);  // Update keydown state
+			// newkey = event.key.state;  // Record new key state
+		}
 	}
+
 
 	/*
 	case SDL_QUIT:

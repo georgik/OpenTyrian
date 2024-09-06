@@ -5,3 +5,5 @@
 .vscode/launch.json
 build/*
 data/*
+managed_components/
+

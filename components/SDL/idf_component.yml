@@ -1,7 +1,0 @@
-dependencies:
-  espressif/esp-box: "^3.0.5"
-  espressif/esp_lcd_touch_tt21100: "*"
-  #espressif/esp_lcd_touch_ft5x06: "*"
-  ## Required IDF version
-  idf:
-    version: ">=4.1.0"

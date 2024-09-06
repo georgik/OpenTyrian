@@ -45,14 +45,15 @@ void init_video( void )
 		exit(1);
 	}
 
-	SDL_WM_SetCaption("OpenTyrian", NULL);
+	// SDL_WM_SetCaption("OpenTyrian", NULL);
 //heap_caps_check_integrity_all(true);
-	VGAScreen = VGAScreenSeg = SDL_CreateRGBSurface(SDL_SWSURFACE, vga_width, vga_height, 8, 0, 0, 0, 0);
-	VGAScreen2 = SDL_CreateRGBSurface(SDL_SWSURFACE, vga_width, vga_height, 8, 0, 0, 0, 0);
-	game_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, vga_width, vga_height, 8, 0, 0, 0, 0);
-printf("BPP: %d\n", VGAScreen->format->BitsPerPixel);
-	spi_lcd_clear();
-	SDL_FillRect(VGAScreen, NULL, 0);
+	VGAScreen = VGAScreenSeg = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
+	VGAScreen2 = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
+	game_screen = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
+
+// printf("BPP: %d\n", VGAScreen->format->BitsPerPixel);
+	// spi_lcd_clear();
+	SDL_FillSurfaceRect(VGAScreen, NULL, 0);
 //heap_caps_check_integrity_all(true);	
 /*
 	if (!init_scaler(scaler, fullscreen_enabled) &&  // try desired scaler and desired fullscreen state
@@ -72,8 +73,9 @@ int can_init_scaler( unsigned int new_scaler, bool fullscreen )
 	
 	int w = scalers[new_scaler].width,
 	    h = scalers[new_scaler].height;
-	int flags = SDL_SWSURFACE | SDL_HWPALETTE | (fullscreen ? SDL_FULLSCREEN : 0);
-	
+	// int flags = SDL_SWSURFACE | SDL_HWPALETTE | (fullscreen ? SDL_FULLSCREEN : 0);
+
+	int flags = 0;	
 	// test each bitdepth
 	for (uint bpp = 32; bpp > 0; bpp -= 8)
 	{
@@ -101,7 +103,8 @@ bool init_scaler( unsigned int new_scaler, bool fullscreen )
 	int w = scalers[new_scaler].width,
 	    h = scalers[new_scaler].height;
 	int bpp = can_init_scaler(new_scaler, fullscreen);
-	int flags = SDL_SWSURFACE | SDL_HWPALETTE | (fullscreen ? SDL_FULLSCREEN : 0);
+	// int flags = SDL_SWSURFACE | SDL_HWPALETTE | (fullscreen ? SDL_FULLSCREEN : 0);
+	int flags = 0;
 	
 	if (bpp == 0)
 		return false;
@@ -116,7 +119,8 @@ bool init_scaler( unsigned int new_scaler, bool fullscreen )
 	
 	w = surface->w;
 	h = surface->h;
-	bpp = surface->format->BitsPerPixel;
+	// bpp = surface->BitsPerPixel;
+	bpp = 8;
 	
 	printf("initialized video: %dx%dx%d %s\n", w, h, bpp, fullscreen ? "fullscreen" : "windowed");
 	
@@ -173,9 +177,9 @@ bool init_any_scaler( bool fullscreen )
 
 void deinit_video( void )
 {
-	SDL_FreeSurface(VGAScreenSeg);
-	SDL_FreeSurface(VGAScreen2);
-	SDL_FreeSurface(game_screen);
+	SDL_DestroySurface(VGAScreenSeg);
+	SDL_DestroySurface(VGAScreen2);
+	SDL_DestroySurface(game_screen);
 	
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
@@ -188,7 +192,7 @@ void JE_showVGA( void ) { scale_and_flip(VGAScreen); }
 
 void scale_and_flip( SDL_Surface *src_surface )
 {
-	//assert(src_surface->format->BitsPerPixel == 8);
+	//assert(src_surface->BitsPerPixel == 8);
 	
 	//SDL_Surface *dst_surface = SDL_GetVideoSurface();
 	
