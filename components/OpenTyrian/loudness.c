@@ -57,7 +57,7 @@ bool init_audio(void) {
     if (audio_disabled)
         return false;
 
-    SDL_AudioSpec ask, got;
+ /*   SDL_AudioSpec ask, got;
 
     ask.freq = freq;
     ask.format = (BYTES_PER_SAMPLE == 2) ? SDL_AUDIO_S16 : SDL_AUDIO_S8;
@@ -86,7 +86,7 @@ bool init_audio(void) {
     opl_init();
 
     SDL_PauseAudioDevice(dev_id);  // Start playing audio
-
+*/
     return true;
 }
 
@@ -167,7 +167,7 @@ IRAM_ATTR void audio_cb(void *user_data, unsigned char *sdl_buffer, int howmuch)
 void deinit_audio(void) {
     if (audio_disabled)
         return;
-
+/*
     SDL_PauseAudioDevice(dev_id);  // Pause audio
 
     SDL_CloseAudioDevice(dev_id);  // Close audio device
@@ -184,6 +184,7 @@ void deinit_audio(void) {
     }
 
     lds_free();
+	*/
 }
 
 
@@ -208,7 +209,7 @@ void load_song( unsigned int song_num )
 	if (audio_disabled)
 		return;
 	
-	SDL_LockAudio();
+	/*SDL_LockAudio();
 	
 	if (song_num < song_count)
 	{
@@ -221,6 +222,7 @@ void load_song( unsigned int song_num )
 	}
 	
 	SDL_UnlockAudio();
+	*/
 }
 
 void play_song( unsigned int song_num )
@@ -262,27 +264,27 @@ void JE_multiSamplePlay(JE_byte *buffer, JE_word size, JE_byte chan, JE_byte vol
 	if (audio_disabled || samples_disabled)
 		return;
 	
-	SDL_LockAudio();
+// 	SDL_LockAudio();
 	
-	free(channel_buffer[chan]);
+// 	free(channel_buffer[chan]);
 	
-	channel_len[chan] = size * BYTES_PER_SAMPLE * SAMPLE_SCALING;
-	channel_buffer[chan] = malloc(channel_len[chan]);
-	channel_pos[chan] = channel_buffer[chan];
-	channel_vol[chan] = vol + 1;
+// 	channel_len[chan] = size * BYTES_PER_SAMPLE * SAMPLE_SCALING;
+// 	channel_buffer[chan] = malloc(channel_len[chan]);
+// 	channel_pos[chan] = channel_buffer[chan];
+// 	channel_vol[chan] = vol + 1;
 
-	for (int i = 0; i < size; i++)
-	{
-		for (int ex = 0; ex < SAMPLE_SCALING; ex++)
-		{
-#if (BYTES_PER_SAMPLE == 2)
-			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i] << 8;
-#else  /* BYTES_PER_SAMPLE */
-			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i];
-#endif  /* BYTES_PER_SAMPLE */
-		}
-	}
+// 	for (int i = 0; i < size; i++)
+// 	{
+// 		for (int ex = 0; ex < SAMPLE_SCALING; ex++)
+// 		{
+// #if (BYTES_PER_SAMPLE == 2)
+// 			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i] << 8;
+// #else  /* BYTES_PER_SAMPLE */
+// 			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i];
+// #endif  /* BYTES_PER_SAMPLE */
+// 		}
+// 	}
 
-	SDL_UnlockAudio();
+// 	SDL_UnlockAudio();
 }
 

@@ -79,7 +79,8 @@ int can_init_scaler( unsigned int new_scaler, bool fullscreen )
 	// test each bitdepth
 	for (uint bpp = 32; bpp > 0; bpp -= 8)
 	{
-		uint temp_bpp = SDL_VideoModeOK(w, h, bpp, flags);
+		// uint temp_bpp = SDL_VideoModeOK(w, h, bpp, flags);
+		uint temp_bpp = 8;
 		
 		if ((temp_bpp == 32 && scalers[new_scaler].scaler32) ||
 		    (temp_bpp == 16 && scalers[new_scaler].scaler16) ||
@@ -98,6 +99,8 @@ int can_init_scaler( unsigned int new_scaler, bool fullscreen )
 	return 0;
 }
 
+SDL_Window *window;
+SDL_Renderer *renderer;
 bool init_scaler( unsigned int new_scaler, bool fullscreen )
 {
 	int w = scalers[new_scaler].width,
@@ -109,20 +112,33 @@ bool init_scaler( unsigned int new_scaler, bool fullscreen )
 	if (bpp == 0)
 		return false;
 	
-	SDL_Surface *const surface = SDL_SetVideoMode(w, h, bpp, flags);
+	// SDL_Surface *const surface = SDL_SetVideoMode(w, h, bpp, flags);
+
+    window = SDL_CreateWindow("SDL on ESP32", 320, 240, 0);
+    if (!window) {
+        printf("Failed to create window: %s\n", SDL_GetError());
+        return;
+    }
+
+    renderer = SDL_CreateRenderer(window, NULL);
+    if (!renderer) {
+        printf("Failed to create renderer: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        return;
+    }
 	
-	if (surface == NULL)
-	{
-		fprintf(stderr, "error: failed to initialize %s video mode %dx%dx%d: %s\n", fullscreen ? "fullscreen" : "windowed", w, h, bpp, SDL_GetError());
-		return false;
-	}
+	// if (surface == NULL)
+	// {
+	// 	fprintf(stderr, "error: failed to initialize %s video mode %dx%dx%d: %s\n", fullscreen ? "fullscreen" : "windowed", w, h, bpp, SDL_GetError());
+	// 	return false;
+	// }
 	
-	w = surface->w;
-	h = surface->h;
-	// bpp = surface->BitsPerPixel;
-	bpp = 8;
+	// w = surface->w;
+	// h = surface->h;
+	// // bpp = surface->BitsPerPixel;
+	// bpp = 8;
 	
-	printf("initialized video: %dx%dx%d %s\n", w, h, bpp, fullscreen ? "fullscreen" : "windowed");
+	// printf("initialized video: %dx%dx%d %s\n", w, h, bpp, fullscreen ? "fullscreen" : "windowed");
 	
 	scaler = new_scaler;
 	fullscreen_enabled = fullscreen;
@@ -190,15 +206,32 @@ void JE_clr256( SDL_Surface * screen)
 }
 void JE_showVGA( void ) { scale_and_flip(VGAScreen); }
 
-void scale_and_flip( SDL_Surface *src_surface )
-{
-	//assert(src_surface->BitsPerPixel == 8);
-	
-	//SDL_Surface *dst_surface = SDL_GetVideoSurface();
-	
-	//assert(scaler_function != NULL);
-	//scaler_function(src_surface, dst_surface);
-	//dst_surface = src_surface;
-	SDL_Flip(src_surface);
-}
 
+void scale_and_flip(SDL_Surface *src_surface)
+{
+    // Convert the SDL_Surface to an SDL_Texture
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, src_surface);
+    if (!texture) {
+        SDL_Log("Failed to create texture: %s", SDL_GetError());
+        return;
+    }
+
+    // Clear the renderer
+    SDL_RenderClear(renderer);
+
+    // Get the window dimensions
+    int window_width, window_height;
+    SDL_GetWindowSize(window, &window_width, &window_height);
+
+    // Define the destination rectangle for scaling
+    SDL_FRect dst_rect = { 0, 0, window_width, window_height };
+
+    // Copy the texture to the renderer, scaling it to fit the window
+    SDL_RenderTexture(renderer, texture, NULL, &dst_rect);
+
+    // Present the renderer (equivalent to SDL_Flip in SDL2)
+    SDL_RenderPresent(renderer);
+
+    // Cleanup: destroy the texture after rendering
+    SDL_DestroyTexture(texture);
+}

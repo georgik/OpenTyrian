@@ -53,7 +53,7 @@ idf_component_register(
         "std_support.c"
         "loudness.c"
     INCLUDE_DIRS "."
-    REQUIRES "georgik__sdl" fatfs littlefs
+    REQUIRES georgik__sdl fatfs littlefs
 )
 
 # Reduce warning level for now

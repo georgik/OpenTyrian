@@ -41,6 +41,47 @@ const char *custom_data_dir = NULL;
 
 static bool init_SD = false;
 
+
+// Function to list files in a directory
+void listFiles(const char *dirname) {
+    DIR *dir;
+    struct dirent *entry;
+
+    // Open the directory
+    dir = opendir(dirname);
+    if (!dir) {
+        printf("Failed to open directory: %s\n", dirname);
+        return;
+    }
+
+    // Read directory entries
+    while ((entry = readdir(dir)) != NULL) {
+        struct stat entry_stat;
+        char path[1024];
+
+        // Build full path for stat
+        snprintf(path, sizeof(path), "%s/%s", dirname, entry->d_name);
+
+        // Get entry status
+        if (stat(path, &entry_stat) == -1) {
+            printf("Failed to stat %s\n", path);
+            continue;
+        }
+
+        // Check if it's a directory or a file
+        if (S_ISDIR(entry_stat.st_mode)) {
+            printf("[DIR]  %s\n", entry->d_name);
+        } else if (S_ISREG(entry_stat.st_mode)) {
+            printf("[FILE] %s (Size: %ld bytes)\n", entry->d_name, entry_stat.st_size);
+        }
+    }
+
+    // Close the directory
+    closedir(dir);
+}
+
+
+
 void SDL_InitFS(void) {
     printf("Initialising File System\n");
 
