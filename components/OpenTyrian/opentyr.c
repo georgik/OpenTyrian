@@ -291,7 +291,11 @@ int main( int argc, char *argv[] )
 	printf("This is free software, and you are welcome to redistribute it\n");
 	printf("under certain conditions.  See the file GPL.txt for details.\n\n");
 
+	init_keyboard();
+
 	init_video();
+
+
 	JE_loadConfiguration();
 
 	xmas = xmas_time();  // arg handler may override
@@ -300,8 +304,6 @@ int main( int argc, char *argv[] )
 
 	JE_scanForEpisodes();
 
-//	init_video();
-	init_keyboard();
 	init_joysticks();
 	printf("assuming mouse detected\n"); // SDL can't tell us if there isn't one
 
