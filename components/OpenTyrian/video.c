@@ -26,30 +26,60 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 bool fullscreen_enabled = false;
 
 SDL_Surface *VGAScreen, *VGAScreenSeg;
 SDL_Surface *VGAScreen2;
 SDL_Surface *game_screen;
 
+SDL_Window *window = NULL;
+SDL_Renderer *renderer= NULL;
+
 static ScalerFunction scaler_function;
+
+void clear_screen(SDL_Renderer *renderer) {
+    SDL_SetRenderDrawColor(renderer, 88, 66, 255, 255);
+    SDL_RenderClear(renderer);
+}
 
 void init_video( void )
 {
-	if (SDL_WasInit(SDL_INIT_VIDEO))
-		return;
+    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
+        printf("Unable to initialize SDL: %s\n", SDL_GetError());
+        return;
+    }
+    printf("SDL initialized successfully\n");
 
-	if (SDL_InitSubSystem(SDL_INIT_VIDEO) == -1)
-	{
-		fprintf(stderr, "error: failed to initialize SDL video: %s\n", SDL_GetError());
-		exit(1);
+	window = SDL_CreateWindow("SDL on ESP32", 320, 240, 0);
+	if (!window) {
+		printf("Failed to create window: %s\n", SDL_GetError());
+		return;
 	}
+
+	renderer = SDL_CreateRenderer(window, NULL);
+	if (!renderer) {
+		printf("Failed to create renderer: %s\n", SDL_GetError());
+		SDL_DestroyWindow(window);
+		return;
+	}
+
+	clear_screen(renderer);
+	SDL_RenderPresent(renderer);
+
+	vTaskDelay(pdMS_TO_TICKS(2000));
 
 	// SDL_WM_SetCaption("OpenTyrian", NULL);
 //heap_caps_check_integrity_all(true);
-	VGAScreen = VGAScreenSeg = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
-	VGAScreen2 = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
-	game_screen = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
+	VGAScreen = VGAScreenSeg = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_RGB565);
+	VGAScreen2 = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_RGB565);
+	game_screen = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_RGB565);
+
+	// VGAScreen = VGAScreenSeg = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
+	// VGAScreen2 = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
+	// game_screen = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
 
 // printf("BPP: %d\n", VGAScreen->format->BitsPerPixel);
 	// spi_lcd_clear();
@@ -99,13 +129,13 @@ int can_init_scaler( unsigned int new_scaler, bool fullscreen )
 	return 0;
 }
 
-SDL_Window *window;
-SDL_Renderer *renderer;
+
 bool init_scaler( unsigned int new_scaler, bool fullscreen )
 {
 	int w = scalers[new_scaler].width,
 	    h = scalers[new_scaler].height;
-	int bpp = can_init_scaler(new_scaler, fullscreen);
+	// int bpp = can_init_scaler(new_scaler, fullscreen);
+	int bpp = 8;
 	// int flags = SDL_SWSURFACE | SDL_HWPALETTE | (fullscreen ? SDL_FULLSCREEN : 0);
 	int flags = 0;
 	
@@ -114,18 +144,7 @@ bool init_scaler( unsigned int new_scaler, bool fullscreen )
 	
 	// SDL_Surface *const surface = SDL_SetVideoMode(w, h, bpp, flags);
 
-    window = SDL_CreateWindow("SDL on ESP32", 320, 240, 0);
-    if (!window) {
-        printf("Failed to create window: %s\n", SDL_GetError());
-        return;
-    }
 
-    renderer = SDL_CreateRenderer(window, NULL);
-    if (!renderer) {
-        printf("Failed to create renderer: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
-        return;
-    }
 	
 	// if (surface == NULL)
 	// {
@@ -209,6 +228,11 @@ void JE_showVGA( void ) { scale_and_flip(VGAScreen); }
 
 void scale_and_flip(SDL_Surface *src_surface)
 {
+	if (renderer == NULL) {
+		printf("Renderer is NULL, unable to draw\n");
+		return;
+	}
+
     // Convert the SDL_Surface to an SDL_Texture
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, src_surface);
     if (!texture) {

@@ -22,8 +22,18 @@
 #include "pcxmast.h"
 #include "picload.h"
 #include "video.h"
+#include "esp_heap_caps.h"
+
 
 #include <string.h>
+
+void check_memory() {
+    size_t free_psram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    size_t free_dram = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+
+    printf("Available PSRAM: %zu bytes\n", free_psram);
+    printf("Available DRAM: %zu bytes\n", free_dram);
+}
 
 void JE_loadPic(SDL_Surface *screen, JE_byte PCXnumber, JE_boolean storepal )
 {
@@ -49,7 +59,20 @@ void JE_loadPic(SDL_Surface *screen, JE_byte PCXnumber, JE_boolean storepal )
 	unsigned int size = pcxpos[PCXnumber + 1] - pcxpos[PCXnumber];
 	printf("size: %d\n", size);
 
-	Uint8 *buffer = (Uint8 *)malloc(size);
+	check_memory();
+
+	Uint8 *buffer = (Uint8 *)heap_caps_malloc(size, MALLOC_CAP_SPIRAM);
+	if (buffer == NULL) {
+		printf("Unable to allocate memory in PSRAM for reading file: %i\n", size);
+		return;
+	} else {
+		printf("Allocated: %i\n", size);
+	}
+	// Uint8 *buffer = (Uint8 *)malloc(size);
+	// if (buffer == NULL) {
+	// 	printf("Unable to allocate memory for reading file: %i\n", size);
+	// 	return;
+	// }
 	efseek(f, pcxpos[PCXnumber], SEEK_SET);
 	efread(buffer, sizeof(Uint8), size, f);
 	efclose(f);

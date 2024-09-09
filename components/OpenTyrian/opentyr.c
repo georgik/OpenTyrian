@@ -291,11 +291,6 @@ int main( int argc, char *argv[] )
 	printf("This is free software, and you are welcome to redistribute it\n");
 	printf("under certain conditions.  See the file GPL.txt for details.\n\n");
 
-	if (SDL_Init(0))
-	{
-		printf("Failed to initialize SDL: %s\n", SDL_GetError());
-		return -1;
-	}
 	init_video();
 	JE_loadConfiguration();
 

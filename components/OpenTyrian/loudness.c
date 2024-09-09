@@ -190,18 +190,18 @@ void deinit_audio(void) {
 
 void load_music( void )
 {
-	if (music_file == NULL)
-	{
-		music_file = dir_fopen_die(data_dir(), "music.mus", "rb");
+	// if (music_file == NULL)
+	// {
+	// 	music_file = dir_fopen_die(data_dir(), "music.mus", "rb");
 		
-		efread(&song_count, sizeof(song_count), 1, music_file);
+	// 	efread(&song_count, sizeof(song_count), 1, music_file);
 		
-		song_offset = malloc((song_count + 1) * sizeof(*song_offset));
+	// 	song_offset = malloc((song_count + 1) * sizeof(*song_offset));
 		
-		efread(song_offset, 4, song_count, music_file);
-		song_offset[song_count] = ftell_eof(music_file);
+	// 	efread(song_offset, 4, song_count, music_file);
+	// 	song_offset[song_count] = ftell_eof(music_file);
 
-	}
+	// }
 }
 
 void load_song( unsigned int song_num )
