@@ -73,13 +73,19 @@ void init_video( void )
 
 	// SDL_WM_SetCaption("OpenTyrian", NULL);
 //heap_caps_check_integrity_all(true);
-	VGAScreen = VGAScreenSeg = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_RGB565);
-	VGAScreen2 = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_RGB565);
-	game_screen = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_RGB565);
+	// VGAScreen = VGAScreenSeg = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_RGB565);
+	// VGAScreen2 = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_RGB565);
+	// game_screen = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_RGB565);
 
-	// VGAScreen = VGAScreenSeg = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
-	// VGAScreen2 = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
-	// game_screen = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
+	VGAScreen = VGAScreenSeg = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
+	VGAScreen2 = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
+	game_screen = SDL_CreateSurface(vga_width, vga_height, SDL_PIXELFORMAT_INDEX8);
+
+	palette = SDL_CreatePalette(256);
+
+	SDL_SetSurfacePalette(VGAScreen, palette);      // Set the palette for VGAScreen
+	SDL_SetSurfacePalette(VGAScreen2, palette);     // Set the same palette for VGAScreen2
+	SDL_SetSurfacePalette(game_screen, palette);
 
 // printf("BPP: %d\n", VGAScreen->format->BitsPerPixel);
 	// spi_lcd_clear();

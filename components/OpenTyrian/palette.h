@@ -31,6 +31,7 @@ extern int palette_count;
 EXT_RAM_BSS_ATTR extern Uint32 rgb_palette[256], yuv_palette[256];
 
 EXT_RAM_BSS_ATTR extern Palette colors; // TODO: get rid of this
+extern SDL_Palette *palette;
 
 void JE_loadPals( void );
 
