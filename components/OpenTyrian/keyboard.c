@@ -596,41 +596,49 @@ void set_mouse_position( int x, int y )
 	}
 }
 
-void service_SDL_events( JE_boolean clear_new )
+void service_SDL_events(JE_boolean clear_new)
 {
-	
-	if (clear_new)
-		newkey = newmouse = false;
+    // Clear flags if requested
+    if (clear_new) {
+        newkey = newmouse = false;
+    }
 
-	SDL_Event event;
-	while (SDL_PollEvent(&event))
-	{
-        
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type)
+        {
+            // Keyboard events
+            case SDL_EVENT_KEY_DOWN:
+                lastkey_sym = event.key.key;   // Record the last key symbol
+                lastkey_mod = SDL_GetModState();   // Record the last key modifiers
+                // lastkey_char = (unsigned char)event.key.keysym.sym; // Optionally store it as char
 
-		if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP)
-		{
-			// Update key state using scancode
-			keysactive[event.key.scancode] = (event.key.state == SDL_PRESSED);
+                keydown = true;    // Key is pressed
+                newkey = true;     // Mark new key event
+                // keysactive[event.key.keysym.scancode] = SDL_PRESSED;  // Update key state
+                break;
 
-			// if (event.key.state == SDL_PRESSED)
-			// {
-			// 	// Use event.key.keysym.sym for symbolic keycode
-			// 	lastkey_sym = event.key.keysym.sym;
-			// 	lastkey_char = event.key.keysym.sym;
-			// }
+            case SDL_EVENT_KEY_UP:
+                lastkey_sym = event.key.key;   // Record the last key symbol
+                lastkey_mod = SDL_GetModState();   // Record the last key modifiers
+                // lastkey_char = (unsigned char)event.key.keysym.sym; // Optionally store it as char
 
-			// keydown = (event.key.state == SDL_PRESSED);  // Update keydown state
-			// newkey = event.key.state;  // Record new key state
-		}
-	}
+                keydown = false;   // Key is released
+                newkey = true;     // Mark new key event
+                // keysactive[event.key.keysym.scancode] = SDL_RELEASED;  // Update key state
+                break;
 
+            case SDL_EVENT_QUIT:
+                // Handle quit event (if needed)
+                break;
 
-	/*
-	case SDL_QUIT:
-		exit(0);
-	*/
-
+            default:
+                break;
+        }
+    }
 }
+
 
 void JE_clearKeyboard( void )
 {
