@@ -197,22 +197,73 @@ static inline void hid_keyboard_print_char(unsigned int key_char)
         fflush(stdout);
     }
 }
+#include "SDL_keyboard.h"
 
+SDL_Scancode convert_hid_to_sdl_scancode(uint8_t hid_code) {
+    switch (hid_code) {
+        case HID_KEY_A: return SDL_SCANCODE_A;
+        case HID_KEY_S: return SDL_SCANCODE_S;
+        case HID_KEY_D: return SDL_SCANCODE_D;
+        case HID_KEY_W: return SDL_SCANCODE_W;
+
+        case HID_KEY_ENTER: return SDL_SCANCODE_RETURN;  // Enter key
+        case HID_KEY_ESC: return SDL_SCANCODE_ESCAPE;    // Escape key
+        case HID_KEY_SPACE: return SDL_SCANCODE_SPACE;  // Space key
+
+        // Arrow keys
+        case HID_KEY_UP: return SDL_SCANCODE_UP;
+        case HID_KEY_DOWN: return SDL_SCANCODE_DOWN;
+        case HID_KEY_LEFT: return SDL_SCANCODE_LEFT;
+        case HID_KEY_RIGHT: return SDL_SCANCODE_RIGHT;
+
+        default: return SDL_SCANCODE_UNKNOWN;
+    }
+}
 
 static void key_event_callback(key_event_t *key_event)
 {
     unsigned char key_char;
+    SDL_Scancode scancode;
 
     hid_print_new_device_report_header(HID_PROTOCOL_KEYBOARD);
 
+    // Get the keyboard ID (assuming there's only one for simplicity)
+    int num_keyboards;
+    SDL_KeyboardID *keyboard_ids = SDL_GetKeyboards(&num_keyboards);
+
+    if (num_keyboards == 0) {
+        printf("No SDL_keyboard registered, please add at least virtual keayboad by SDL_AddKeyboard\n");
+        return;
+    }
+
+    SDL_KeyboardID keyboardID = keyboard_ids[0];  // Use the first available keyboard ID
+
     if (KEY_STATE_PRESSED == key_event->state) {
-        if (hid_keyboard_get_char(key_event->modifier,
-                                  key_event->key_code, &key_char)) {
+        // Get ASCII character from keycode2ascii array
+        uint8_t mod = (hid_keyboard_is_modifier_shift(key_event->modifier)) ? 1 : 0;
+        if (key_event->key_code < sizeof(keycode2ascii) / sizeof(keycode2ascii[0])) {
+            key_char = keycode2ascii[key_event->key_code][mod];
+            if (key_char) {
+                printf("%c\n", key_char);  // Print to console for testing
+            }
+        }
 
-            hid_keyboard_print_char(key_char);
-
+        // Get corresponding SDL scancode
+        scancode = convert_hid_to_sdl_scancode(key_event->key_code);
+        if (scancode != SDL_SCANCODE_UNKNOWN) {
+            // Send key press event to SDL
+            SDL_SendKeyboardKey(SDL_GetTicks(), keyboardID, key_event->key_code, scancode, SDL_PRESSED);
         }
     }
+
+    if (KEY_STATE_RELEASED == key_event->state) {
+        scancode = convert_hid_to_sdl_scancode(key_event->key_code);
+        if (scancode != SDL_SCANCODE_UNKNOWN) {
+            // Send key release event to SDL
+            SDL_SendKeyboardKey(SDL_GetTicks(), keyboardID, key_event->key_code, scancode, SDL_RELEASED);
+        }
+    }
+
 }
 
 static inline bool key_found(const uint8_t *const src,
@@ -302,7 +353,6 @@ void hid_host_interface_callback(hid_host_device_handle_t hid_device_handle,
                                  const hid_host_interface_event_t event,
                                  void *arg)
 {
-	ESP_LOGI(TAG, "HID Host Interface Callback");
     uint8_t data[64] = { 0 };
     size_t data_length = 0;
     hid_host_dev_params_t dev_params;
@@ -462,6 +512,8 @@ void hid_host_device_callback(hid_host_device_handle_t hid_device_handle,
 
 void init_keyboard( void )
 {
+    SDL_AddKeyboard(1, "Virtual Keyboard", SDL_TRUE);
+
 	newkey = newmouse = false;
 	keydown = mousedown = false;
 
