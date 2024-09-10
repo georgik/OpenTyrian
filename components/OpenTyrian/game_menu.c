@@ -1010,7 +1010,7 @@ void JE_itemScreen( void )
 							yChg = 1;
 						}
 					}
-/*
+
 					if (keysactive[SDL_SCANCODE_PAGEUP])
 					{
 						yChg = -2;
@@ -1021,7 +1021,7 @@ void JE_itemScreen( void )
 						yChg = 2;
 						inputDetected = false;
 					}
-*/
+
 					bool joystick_up = false, joystick_down = false;
 					for (int j = 0; j < joysticks; j++)
 					{
@@ -1029,17 +1029,17 @@ void JE_itemScreen( void )
 						joystick_down |= joystick[j].direction[2];
 					}
 
-					// if (keysactive[SDL_SCANCODE_UP] || joystick_up)
-					// {
-					// 	yChg = -1;
-					// 	inputDetected = false;
-					// }
+					if (keysactive[SDL_SCANCODE_UP] || joystick_up)
+					{
+						yChg = -1;
+						inputDetected = false;
+					}
 
-					// if (keysactive[SDL_SCANCODE_DOWN] || joystick_down)
-					// {
-					// 	yChg = 1;
-					// 	inputDetected = false;
-					// }
+					if (keysactive[SDL_SCANCODE_DOWN] || joystick_down)
+					{
+						yChg = 1;
+						inputDetected = false;
+					}
 
 					if (yChg < 0 && yLoc == 0)
 					{

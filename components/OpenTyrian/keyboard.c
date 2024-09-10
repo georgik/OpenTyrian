@@ -183,38 +183,83 @@ static inline bool hid_keyboard_get_char(uint8_t modifier,
     return true;
 }
 
-
-static inline void hid_keyboard_print_char(unsigned int key_char)
-{
-    if (!!key_char) {
-		// println("Char detected... \n");
-        putchar(key_char);
-#if (KEYBOARD_ENTER_LF_EXTEND)
-        if (KEYBOARD_ENTER_MAIN_CHAR == key_char) {
-            putchar('\n');
-        }
-#endif // KEYBOARD_ENTER_LF_EXTEND
-        fflush(stdout);
-    }
-}
 #include "SDL_keyboard.h"
 
 SDL_Scancode convert_hid_to_sdl_scancode(uint8_t hid_code) {
     switch (hid_code) {
+        // Alphabet (A-Z)
         case HID_KEY_A: return SDL_SCANCODE_A;
-        case HID_KEY_S: return SDL_SCANCODE_S;
+        case HID_KEY_B: return SDL_SCANCODE_B;
+        case HID_KEY_C: return SDL_SCANCODE_C;
         case HID_KEY_D: return SDL_SCANCODE_D;
+        case HID_KEY_E: return SDL_SCANCODE_E;
+        case HID_KEY_F: return SDL_SCANCODE_F;
+        case HID_KEY_G: return SDL_SCANCODE_G;
+        case HID_KEY_H: return SDL_SCANCODE_H;
+        case HID_KEY_I: return SDL_SCANCODE_I;
+        case HID_KEY_J: return SDL_SCANCODE_J;
+        case HID_KEY_K: return SDL_SCANCODE_K;
+        case HID_KEY_L: return SDL_SCANCODE_L;
+        case HID_KEY_M: return SDL_SCANCODE_M;
+        case HID_KEY_N: return SDL_SCANCODE_N;
+        case HID_KEY_O: return SDL_SCANCODE_O;
+        case HID_KEY_P: return SDL_SCANCODE_P;
+        case HID_KEY_Q: return SDL_SCANCODE_Q;
+        case HID_KEY_R: return SDL_SCANCODE_R;
+        case HID_KEY_S: return SDL_SCANCODE_S;
+        case HID_KEY_T: return SDL_SCANCODE_T;
+        case HID_KEY_U: return SDL_SCANCODE_U;
+        case HID_KEY_V: return SDL_SCANCODE_V;
         case HID_KEY_W: return SDL_SCANCODE_W;
+        case HID_KEY_X: return SDL_SCANCODE_X;
+        case HID_KEY_Y: return SDL_SCANCODE_Y;
+        case HID_KEY_Z: return SDL_SCANCODE_Z;
 
+        // Numbers (0-9)
+        case HID_KEY_1: return SDL_SCANCODE_1;
+        case HID_KEY_2: return SDL_SCANCODE_2;
+        case HID_KEY_3: return SDL_SCANCODE_3;
+        case HID_KEY_4: return SDL_SCANCODE_4;
+        case HID_KEY_5: return SDL_SCANCODE_5;
+        case HID_KEY_6: return SDL_SCANCODE_6;
+        case HID_KEY_7: return SDL_SCANCODE_7;
+        case HID_KEY_8: return SDL_SCANCODE_8;
+        case HID_KEY_9: return SDL_SCANCODE_9;
+        case HID_KEY_0: return SDL_SCANCODE_0;
+
+        // Special keys
         case HID_KEY_ENTER: return SDL_SCANCODE_RETURN;  // Enter key
         case HID_KEY_ESC: return SDL_SCANCODE_ESCAPE;    // Escape key
-        case HID_KEY_SPACE: return SDL_SCANCODE_SPACE;  // Space key
+        case HID_KEY_SPACE: return SDL_SCANCODE_SPACE;   // Space key
+        case HID_KEY_KEYPAD_BACKSPACE: return SDL_SCANCODE_BACKSPACE;
+        case HID_KEY_TAB: return SDL_SCANCODE_TAB;
+        case HID_KEY_MINUS: return SDL_SCANCODE_MINUS;
+        case HID_KEY_EQUAL: return SDL_SCANCODE_EQUALS;
+        case HID_KEY_KEYPAD_OPEN_BRACE: return SDL_SCANCODE_LEFTBRACKET;
+        case HID_KEY_KEYPAD_CLOSE_BRACE: return SDL_SCANCODE_RIGHTBRACKET;
+        case HID_KEY_BACK_SLASH: return SDL_SCANCODE_BACKSLASH;
+        case HID_KEY_KEYPAD_COMMA: return SDL_SCANCODE_COMMA;
+        case HID_KEY_SLASH: return SDL_SCANCODE_SLASH;
 
         // Arrow keys
         case HID_KEY_UP: return SDL_SCANCODE_UP;
         case HID_KEY_DOWN: return SDL_SCANCODE_DOWN;
         case HID_KEY_LEFT: return SDL_SCANCODE_LEFT;
         case HID_KEY_RIGHT: return SDL_SCANCODE_RIGHT;
+
+        // Function keys (F1-F12)
+        case HID_KEY_F1: return SDL_SCANCODE_F1;
+        case HID_KEY_F2: return SDL_SCANCODE_F2;
+        case HID_KEY_F3: return SDL_SCANCODE_F3;
+        case HID_KEY_F4: return SDL_SCANCODE_F4;
+        case HID_KEY_F5: return SDL_SCANCODE_F5;
+        case HID_KEY_F6: return SDL_SCANCODE_F6;
+        case HID_KEY_F7: return SDL_SCANCODE_F7;
+        case HID_KEY_F8: return SDL_SCANCODE_F8;
+        case HID_KEY_F9: return SDL_SCANCODE_F9;
+        case HID_KEY_F10: return SDL_SCANCODE_F10;
+        case HID_KEY_F11: return SDL_SCANCODE_F11;
+        case HID_KEY_F12: return SDL_SCANCODE_F12;
 
         default: return SDL_SCANCODE_UNKNOWN;
     }
@@ -240,13 +285,13 @@ static void key_event_callback(key_event_t *key_event)
 
     if (KEY_STATE_PRESSED == key_event->state) {
         // Get ASCII character from keycode2ascii array
-        uint8_t mod = (hid_keyboard_is_modifier_shift(key_event->modifier)) ? 1 : 0;
-        if (key_event->key_code < sizeof(keycode2ascii) / sizeof(keycode2ascii[0])) {
-            key_char = keycode2ascii[key_event->key_code][mod];
-            if (key_char) {
-                printf("%c\n", key_char);  // Print to console for testing
-            }
-        }
+        // uint8_t mod = (hid_keyboard_is_modifier_shift(key_event->modifier)) ? 1 : 0;
+        // if (key_event->key_code < sizeof(keycode2ascii) / sizeof(keycode2ascii[0])) {
+        //     key_char = keycode2ascii[key_event->key_code][mod];
+        //     if (key_char) {
+        //         printf("%c\n", key_char);  // Print to console for testing
+        //     }
+        // }
 
         // Get corresponding SDL scancode
         scancode = convert_hid_to_sdl_scancode(key_event->key_code);
@@ -609,26 +654,27 @@ void service_SDL_events(JE_boolean clear_new)
         switch (event.type)
         {
             // Keyboard events
-            case SDL_EVENT_KEY_DOWN:
-                lastkey_sym = event.key.key;   // Record the last key symbol
+            case SDL_EVENT_KEY_DOWN: {
+                printf("Scan code: %i\n", event.key.scancode);
+                lastkey_sym = event.key.scancode;   // Record the last key symbol
                 lastkey_mod = SDL_GetModState();   // Record the last key modifiers
                 // lastkey_char = (unsigned char)event.key.keysym.sym; // Optionally store it as char
 
                 keydown = true;    // Key is pressed
                 newkey = true;     // Mark new key event
-                // keysactive[event.key.keysym.scancode] = SDL_PRESSED;  // Update key state
+                keysactive[event.key.key] = SDL_PRESSED;  // Update key state
                 break;
-
-            case SDL_EVENT_KEY_UP:
-                lastkey_sym = event.key.key;   // Record the last key symbol
+            }
+            case SDL_EVENT_KEY_UP: {
+                lastkey_sym = event.key.scancode;   // Record the last key symbol
                 lastkey_mod = SDL_GetModState();   // Record the last key modifiers
                 // lastkey_char = (unsigned char)event.key.keysym.sym; // Optionally store it as char
 
                 keydown = false;   // Key is released
-                newkey = true;     // Mark new key event
-                // keysactive[event.key.keysym.scancode] = SDL_RELEASED;  // Update key state
+                newkey = false;     // Mark new key event
+                keysactive[event.key.key] = SDL_RELEASED;  // Update key state
                 break;
-
+            }
             case SDL_EVENT_QUIT:
                 // Handle quit event (if needed)
                 break;

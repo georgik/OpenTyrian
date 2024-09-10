@@ -39,7 +39,7 @@ void keyboardTask(void *pvParameters)
 {
     while (1) {
         process_keyboard();
-        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 1000 ms (1 second)
+        vTaskDelay(pdMS_TO_TICKS(50));  // Delay for 1000 ms (1 second)
     }
 }
 
