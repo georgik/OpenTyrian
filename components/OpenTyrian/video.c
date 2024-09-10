@@ -69,7 +69,6 @@ void init_video( void )
 	clear_screen(renderer);
 	SDL_RenderPresent(renderer);
 
-	vTaskDelay(pdMS_TO_TICKS(2000));
 
 	// SDL_WM_SetCaption("OpenTyrian", NULL);
 //heap_caps_check_integrity_all(true);

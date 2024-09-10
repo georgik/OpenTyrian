@@ -1,4 +1,3 @@
-
 #include "opentyr.h"
 
 #include <assert.h>
@@ -10,20 +9,55 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include "keyboard.h"
 
+// Task to run Tyrian
 void tyrianTask(void *pvParameters)
 {
-//    heap_caps_print_heap_info(MALLOC_CAP_SPIRAM);
-//    spi_lcd_init();
-
-    char *argv[]={"opentyrian", NULL};
+    char *argv[] = {"opentyrian", NULL};
     main(1, argv);
 }
 
+// Function to check and print memory usage
+void check_memory_main() {
+    size_t free_psram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    size_t free_dram = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
 
-//extern "C"
+    printf("Available PSRAM: %zu, DRAM: %zu\n", free_psram, free_dram);
+}
+
+// Task to periodically check memory usage
+void memoryCheckTask(void *pvParameters)
+{
+    while (1) {
+        check_memory_main();
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 1000 ms (1 second)
+    }
+}
+
+void keyboardTask(void *pvParameters)
+{
+    while (1) {
+        process_keyboard();
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 1000 ms (1 second)
+    }
+}
+
+
+// Application main entry point
 void app_main(void)
 {
     printf("OpenTyrian initialization...\n");
-	xTaskCreatePinnedToCore(&tyrianTask, "tyrianTask", 34000, NULL, 5, NULL, 0);
+
+    // Create a task to check memory every second
+    // xTaskCreatePinnedToCore(&memoryCheckTask, "memoryCheckTask", 2048, NULL, 1, NULL, 0);
+
+    init_keyboard();
+
+    xTaskCreatePinnedToCore(&keyboardTask, "keyboardTask", 2048, NULL, 1, NULL, 0);
+
+    // Create a task for the Tyrian game
+    xTaskCreatePinnedToCore(&tyrianTask, "tyrianTask", 32000, NULL, 5, NULL, 0);
+
+
 }

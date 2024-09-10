@@ -39,6 +39,7 @@ extern Uint8 keysactive[SDL_NUM_SCANCODES];
 
 extern bool input_grab_enabled;
 
+void process_keyboard();
 void flush_events_buffer( void );
 void wait_input( JE_boolean keyboard, JE_boolean mouse, JE_boolean joystick );
 void wait_noinput( JE_boolean keyboard, JE_boolean mouse, JE_boolean joystick );

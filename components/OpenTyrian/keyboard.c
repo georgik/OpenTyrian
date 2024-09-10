@@ -95,6 +95,7 @@ const uint8_t keycode2ascii [57][2] = {
 };
 
 
+
 void flush_events_buffer( void )
 {
 }
@@ -137,6 +138,7 @@ typedef struct {
     uint8_t key_code;
 } key_event_t;
 
+app_event_queue_t evt_queue;
 
 static void hid_print_new_device_report_header(hid_protocol_t proto)
 {
@@ -185,6 +187,7 @@ static inline bool hid_keyboard_get_char(uint8_t modifier,
 static inline void hid_keyboard_print_char(unsigned int key_char)
 {
     if (!!key_char) {
+		// println("Char detected... \n");
         putchar(key_char);
 #if (KEYBOARD_ENTER_LF_EXTEND)
         if (KEYBOARD_ENTER_MAIN_CHAR == key_char) {
@@ -286,6 +289,7 @@ static void hid_host_mouse_report_callback(const uint8_t *const data, const int 
 
 static void hid_host_generic_report_callback(const uint8_t *const data, const int length)
 {
+	ESP_LOGI(TAG, "HID Host Generic Report Callback");
     hid_print_new_device_report_header(HID_PROTOCOL_NONE);
     for (int i = 0; i < length; i++) {
         printf("%02X", data[i]);
@@ -298,6 +302,7 @@ void hid_host_interface_callback(hid_host_device_handle_t hid_device_handle,
                                  const hid_host_interface_event_t event,
                                  void *arg)
 {
+	ESP_LOGI(TAG, "HID Host Interface Callback");
     uint8_t data[64] = { 0 };
     size_t data_length = 0;
     hid_host_dev_params_t dev_params;
@@ -378,6 +383,7 @@ static void usb_lib_task(void *arg)
     ESP_ERROR_CHECK(usb_host_install(&host_config));
     xTaskNotifyGive(arg);
 
+	ESP_LOGI(TAG, "USB main loop");
     while (true) {
         uint32_t event_flags;
         usb_host_lib_handle_events(portMAX_DELAY, &event_flags);
@@ -394,6 +400,30 @@ static void usb_lib_task(void *arg)
     vTaskDelay(10); // Short delay to allow clients clean-up
     ESP_ERROR_CHECK(usb_host_uninstall());
     vTaskDelete(NULL);
+}
+
+void process_keyboard()
+{
+	if (xQueueReceive(app_event_queue, &evt_queue, portMAX_DELAY)) {
+            if (APP_EVENT == evt_queue.event_group) {
+                // User pressed button
+                usb_host_lib_info_t lib_info;
+                ESP_ERROR_CHECK(usb_host_lib_info(&lib_info));
+                if (lib_info.num_devices == 0) {
+                    // End while cycle
+                    return;
+                } else {
+                    ESP_LOGW(TAG, "To shutdown example, remove all USB devices and press button again.");
+                    // Keep polling
+                }
+            }
+
+            if (APP_EVENT_HID_HOST ==  evt_queue.event_group) {
+                hid_host_device_event(evt_queue.hid_host_device.handle,
+                                      evt_queue.hid_host_device.event,
+                                      evt_queue.hid_host_device.arg);
+            }
+        }
 }
 
 static void gpio_isr_cb(void *arg)
@@ -429,16 +459,15 @@ void hid_host_device_callback(hid_host_device_handle_t hid_device_handle,
         xQueueSend(app_event_queue, &evt_queue, 0);
     }
 }
-app_event_queue_t evt_queue;
 
 void init_keyboard( void )
 {
 	newkey = newmouse = false;
 	keydown = mousedown = false;
 
-	   BaseType_t task_created;
+	BaseType_t task_created;
     
-    ESP_LOGI(TAG, "HID Host example");
+    ESP_LOGI(TAG, "HID Keyboard");
 
     // Init BOOT button: Pressing the button simulates app request to exit
     // It will disconnect the USB device and uninstall the HID driver and USB Host Lib
@@ -481,13 +510,17 @@ void init_keyboard( void )
         .callback_arg = NULL
     };
 
-  ESP_ERROR_CHECK(hid_host_install(&hid_host_driver_config));
+  	ESP_ERROR_CHECK(hid_host_install(&hid_host_driver_config));
 
     // Create queue
     app_event_queue = xQueueCreate(10, sizeof(app_event_queue_t));
 
     ESP_LOGI(TAG, "Waiting for HID Device to be connected");
 	// inputInit();
+
+
+    // process_keyboard();
+
 }
 
 void input_grab( bool enable )
@@ -520,26 +553,7 @@ void service_SDL_events( JE_boolean clear_new )
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
-		//  if (xQueueReceive(app_event_queue, &evt_queue, portMAX_DELAY)) {
-        //     if (APP_EVENT == evt_queue.event_group) {
-        //         // User pressed button
-        //         usb_host_lib_info_t lib_info;
-        //         ESP_ERROR_CHECK(usb_host_lib_info(&lib_info));
-        //         if (lib_info.num_devices == 0) {
-        //             // End while cycle
-        //             break;
-        //         } else {
-        //             ESP_LOGW(TAG, "To shutdown example, remove all USB devices and press button again.");
-        //             // Keep polling
-        //         }
-        //     }
-
-        //     if (APP_EVENT_HID_HOST ==  evt_queue.event_group) {
-        //         hid_host_device_event(evt_queue.hid_host_device.handle,
-        //                               evt_queue.hid_host_device.event,
-        //                               evt_queue.hid_host_device.arg);
-        //     }
-        // }
+        
 
 		if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP)
 		{

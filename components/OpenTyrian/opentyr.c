@@ -274,9 +274,19 @@ void opentyrian_menu( void )
 }
 
 #include "esp_heap_trace.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_log.h"
+
+static const char *TAG = "opentyr";
 
 #define NUM_RECORDS 100
 static heap_trace_record_t trace_record[NUM_RECORDS]; // This buffer must be in internal RAM
+
+void log_free_dma(void) {
+    size_t free_dma = heap_caps_get_free_size(MALLOC_CAP_DMA);
+    ESP_LOGI(TAG, "Free DMA memory: %d bytes", free_dma);
+}
 
 int main( int argc, char *argv[] )
 {
@@ -291,10 +301,14 @@ int main( int argc, char *argv[] )
 	printf("This is free software, and you are welcome to redistribute it\n");
 	printf("under certain conditions.  See the file GPL.txt for details.\n\n");
 
-	init_keyboard();
+	// init_keyboard();
+	// vTaskDelay(pdMS_TO_TICKS(4000));
+
+	log_free_dma();
 
 	init_video();
 
+	log_free_dma();
 
 	JE_loadConfiguration();
 
@@ -305,7 +319,6 @@ int main( int argc, char *argv[] )
 	JE_scanForEpisodes();
 
 	init_joysticks();
-	printf("assuming mouse detected\n"); // SDL can't tell us if there isn't one
 
 	if (xmas && (!dir_file_exists(data_dir(), "tyrianc.shp") || !dir_file_exists(data_dir(), "voicesc.snd")))
 	{
