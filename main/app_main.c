@@ -47,15 +47,16 @@ void keyboardTask(void *pvParameters)
 // Application main entry point
 void app_main(void)
 {
-    printf("OpenTyrian initialization...\n");
-
     // Create a task to check memory every second
     // xTaskCreatePinnedToCore(&memoryCheckTask, "memoryCheckTask", 2048, NULL, 1, NULL, 0);
 
+    printf("USB - Keyboard initialization\n");
     init_keyboard();
 
     xTaskCreatePinnedToCore(&keyboardTask, "keyboardTask", 2048, NULL, 1, NULL, 0);
+    vTaskDelay(pdMS_TO_TICKS(2000));
 
+    printf("OpenTyrian initialization...\n");
     // Create a task for the Tyrian game
     xTaskCreatePinnedToCore(&tyrianTask, "tyrianTask", 32000, NULL, 5, NULL, 0);
 
