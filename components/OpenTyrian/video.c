@@ -29,6 +29,12 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include <time.h>  // Include for time functions
+
+// Define variables for FPS calculation
+static uint32_t frame_count = 0;
+static uint32_t start_time = 0;
+
 bool fullscreen_enabled = false;
 
 SDL_Surface *VGAScreen, *VGAScreenSeg;
@@ -39,6 +45,8 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer= NULL;
 
 static ScalerFunction scaler_function;
+
+int scale_factor = 1;
 
 void clear_screen(SDL_Renderer *renderer) {
     SDL_SetRenderDrawColor(renderer, 88, 66, 255, 255);
@@ -53,7 +61,7 @@ void init_video( void )
     }
     printf("SDL initialized successfully\n");
 
-	window = SDL_CreateWindow("SDL on ESP32", 320, 240, 0);
+	window = SDL_CreateWindow("SDL on ESP32", 320*scale_factor, 200*scale_factor, 0);
 	if (!window) {
 		printf("Failed to create window: %s\n", SDL_GetError());
 		return;
@@ -230,13 +238,12 @@ void JE_clr256( SDL_Surface * screen)
 }
 void JE_showVGA( void ) { scale_and_flip(VGAScreen); }
 
-
 void scale_and_flip(SDL_Surface *src_surface)
 {
-	if (renderer == NULL) {
-		printf("Renderer is NULL, unable to draw\n");
-		return;
-	}
+    if (renderer == NULL) {
+        printf("Renderer is NULL, unable to draw\n");
+        return;
+    }
 
     // Convert the SDL_Surface to an SDL_Texture
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, src_surface);
@@ -263,4 +270,24 @@ void scale_and_flip(SDL_Surface *src_surface)
 
     // Cleanup: destroy the texture after rendering
     SDL_DestroyTexture(texture);
+
+    // --- FPS Calculation ---
+    frame_count++;  // Increment the frame count
+    uint32_t current_time = SDL_GetTicks();  // Get current time in milliseconds
+
+    if (start_time == 0) {
+        // Initialize the start time for the first frame
+        start_time = current_time;
+    }
+
+    uint32_t elapsed_time = current_time - start_time;  // Calculate elapsed time in milliseconds
+
+    if (elapsed_time >= 5000) {  // If 5 seconds have passed
+        float fps = (frame_count / (elapsed_time / 1000.0f));  // Calculate FPS
+        printf("FPS: %.2f\n", fps);  // Print FPS to console
+
+        // Reset for next interval
+        frame_count = 0;
+        start_time = current_time;
+    }
 }
