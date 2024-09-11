@@ -585,7 +585,7 @@ void init_keyboard( void )
     */
     task_created = xTaskCreatePinnedToCore(usb_lib_task,
                                            "usb_events",
-                                           4096,
+                                           8912,
                                            xTaskGetCurrentTaskHandle(),
                                            2, NULL, 0);
     assert(task_created == pdTRUE);
@@ -601,7 +601,7 @@ void init_keyboard( void )
     const hid_host_driver_config_t hid_host_driver_config = {
         .create_background_task = true,
         .task_priority = 5,
-        .stack_size = 4096,
+        .stack_size = 8912,
         .core_id = 0,
 		.callback = hid_host_device_callback,
         .callback_arg = NULL

@@ -53,8 +53,9 @@ void app_main(void)
     printf("USB - Keyboard initialization\n");
     init_keyboard();
 
-    xTaskCreatePinnedToCore(&keyboardTask, "keyboardTask", 2048, NULL, 1, NULL, 0);
-    vTaskDelay(pdMS_TO_TICKS(2000));
+    xTaskCreatePinnedToCore(&keyboardTask, "keyboardTask", 8912, NULL, 1, NULL, 0);
+    // Delay required for the keyboard to initialize and allocate the DMA capable memory
+    vTaskDelay(pdMS_TO_TICKS(500));
 
     printf("OpenTyrian initialization...\n");
     // Create a task for the Tyrian game
