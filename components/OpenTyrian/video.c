@@ -46,7 +46,7 @@ SDL_Renderer *renderer= NULL;
 
 static ScalerFunction scaler_function;
 
-int scale_factor = 1;
+// int scale_factor = 1;
 
 void clear_screen(SDL_Renderer *renderer) {
     SDL_SetRenderDrawColor(renderer, 88, 66, 255, 255);
@@ -61,7 +61,7 @@ void init_video( void )
     }
     printf("SDL initialized successfully\n");
 
-	window = SDL_CreateWindow("SDL on ESP32", 320*scale_factor, 200*scale_factor, 0);
+	window = SDL_CreateWindow("SDL on ESP32", 320, 200, 0);
 	if (!window) {
 		printf("Failed to create window: %s\n", SDL_GetError());
 		return;

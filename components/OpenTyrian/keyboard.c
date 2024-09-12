@@ -24,6 +24,8 @@
 #include "video_scale.h"
 
 #include "SDL3/SDL.h"
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_keyboard.h"
 #include <stdio.h>
 
 #include "freertos/FreeRTOS.h"
@@ -264,6 +266,7 @@ SDL_Scancode convert_hid_to_sdl_scancode(uint8_t hid_code) {
         default: return SDL_SCANCODE_UNKNOWN;
     }
 }
+#include "../src/events/SDL_keyboard_c.h"
 
 static void key_event_callback(key_event_t *key_event)
 {
