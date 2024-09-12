@@ -53,7 +53,7 @@ idf_component_register(
         "std_support.c"
         "loudness.c"
     INCLUDE_DIRS "."
-    REQUIRES georgik__sdl fatfs littlefs
+    REQUIRES georgik__sdl fatfs littlefs usb usb_host_hid
 )
 
 # Reduce warning level for now

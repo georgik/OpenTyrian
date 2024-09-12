@@ -156,10 +156,10 @@ IRAM_ATTR void audio_cb(void *user_data, unsigned char *sdl_buffer, int howmuch)
 
     // Use SDL_AudioStream for conversion
     if (audio_stream) {
-        SDL_AudioStreamPut(audio_stream, sdl_buffer, howmuch);
-        int converted_size = SDL_AudioStreamGet(audio_stream, sdl_buffer, howmuch);
+        SDL_PutAudioStreamData(audio_stream, sdl_buffer, howmuch);
+        int converted_size = SDL_GetAudioStreamData(audio_stream, sdl_buffer, howmuch);
         if (converted_size < 0) {
-            fprintf(stderr, "error: SDL_AudioStreamGet failed: %s\n", SDL_GetError());
+            fprintf(stderr, "error: SDL_GetAudioStreamData failed: %s\n", SDL_GetError());
         }
     }
 }
