@@ -10,6 +10,7 @@
 #include "freertos/task.h"
 
 #include "keyboard.h"
+#include "SDL3/SDL_esp-idf.h"
 
 // Task to run Tyrian
 void tyrianTask(void *pvParameters)
@@ -53,6 +54,9 @@ void app_main(void)
     printf("USB - Keyboard initialization\n");
 
 #ifdef CONFIG_IDF_TARGET_ESP32P4
+    // Temporary solution to transport scaling factor directly to framebuffer
+    // This will invoke PPA
+    set_scale_factor(3, 3.0);
     init_keyboard();
 
     xTaskCreatePinnedToCore(&keyboardTask, "keyboardTask", 8912, NULL, 1, NULL, 0);

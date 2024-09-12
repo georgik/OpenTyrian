@@ -26,6 +26,8 @@
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_keyboard.h"
+#include "SDL_internal.h"
+#include "events/SDL_keyboard_c.h"
 #include <stdio.h>
 
 #include "freertos/FreeRTOS.h"
