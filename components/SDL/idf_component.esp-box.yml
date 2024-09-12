@@ -1,6 +1,0 @@
-dependencies:
-  # espressif/m5stack_core_s3_noglib: "*"
-  espressif/esp-box: "^3.0.5"
-  ## Required IDF version
-  idf:
-    version: ">=4.1.0"

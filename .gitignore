@@ -4,4 +4,9 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 build/*
+build.*/
 data/*
+managed_components/
+sdkconfig
+dependencies.lock
+

@@ -299,7 +299,7 @@ int JE_loadAnim( const char *filename )
 		efread(&colors[i].b,      1, 1, InFile);
 		efread(&colors[i].g,      1, 1, InFile);
 		efread(&colors[i].r,      1, 1, InFile);
-		efread(&colors[i].unused, 1, 1, InFile);
+		efread(&colors[i].a,      1, 1, InFile);
 	}
 	set_palette(colors, 0, 255);
 

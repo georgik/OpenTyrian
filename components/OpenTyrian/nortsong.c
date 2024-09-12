@@ -27,7 +27,7 @@
 #include "sndmast.h"
 #include "vga256d.h"
 
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 Uint32 target, target2;
 
@@ -101,6 +101,8 @@ void wait_delayorinput( JE_boolean keyboard, JE_boolean mouse, JE_boolean joysti
 
 void JE_loadSndFile( const char *effects_sndfile, const char *voices_sndfile )
 {
+	notYetLoadedSound = false;
+	return;
 	JE_byte y, z;
 	JE_word x;
 	JE_longint templ;

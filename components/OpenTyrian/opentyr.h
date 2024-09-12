@@ -19,7 +19,7 @@
 #ifndef OPENTYR_H
 #define OPENTYR_H
 
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <math.h>
 #include <stdbool.h>
 #include "esp_attr.h"

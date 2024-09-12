@@ -272,7 +272,7 @@ void JE_helpSystem( JE_byte startTopic )
 					{
 						switch (lastkey_sym)
 						{
-							case SDLK_UP:
+							case SDL_SCANCODE_UP:
 								menu--;
 								if (menu < 2)
 								{
@@ -280,7 +280,7 @@ void JE_helpSystem( JE_byte startTopic )
 								}
 								JE_playSampleNum(S_CURSOR);
 								break;
-							case SDLK_DOWN:
+							case SDL_SCANCODE_DOWN:
 								menu++;
 								if (menu > TOPICS)
 								{
@@ -292,9 +292,9 @@ void JE_helpSystem( JE_byte startTopic )
 								break;
 						}
 					}
-				} while (!(lastkey_sym == SDLK_ESCAPE || lastkey_sym == SDLK_RETURN));
+				} while (!(lastkey_sym == SDL_SCANCODE_ESCAPE || lastkey_sym == SDL_SCANCODE_RETURN));
 
-				if (lastkey_sym == SDLK_RETURN)
+				if (lastkey_sym == SDL_SCANCODE_RETURN)
 				{
 					page = topicStart[menu-1];
 					JE_playSampleNum(S_CLICK);
@@ -376,13 +376,13 @@ void JE_helpSystem( JE_byte startTopic )
 				switch (lastmouse_but)
 				{
 					case SDL_BUTTON_LEFT:
-						lastkey_sym = SDLK_RIGHT;
+						lastkey_sym = SDL_SCANCODE_RIGHT;
 						break;
 					case SDL_BUTTON_RIGHT:
-						lastkey_sym = SDLK_LEFT;
+						lastkey_sym = SDL_SCANCODE_LEFT;
 						break;
 					case SDL_BUTTON_MIDDLE:
-						lastkey_sym = SDLK_ESCAPE;
+						lastkey_sym = SDL_SCANCODE_ESCAPE;
 						break;
 				}
 				do
@@ -396,17 +396,17 @@ void JE_helpSystem( JE_byte startTopic )
 			{
 				switch (lastkey_sym)
 				{
-					case SDLK_LEFT:
-					case SDLK_UP:
-					case SDLK_PAGEUP:
+					case SDL_SCANCODE_LEFT:
+					case SDL_SCANCODE_UP:
+					case SDL_SCANCODE_PAGEUP:
 						page--;
 						JE_playSampleNum(S_CURSOR);
 						break;
-					case SDLK_RIGHT:
-					case SDLK_DOWN:
-					case SDLK_PAGEDOWN:
-					case SDLK_RETURN:
-					case SDLK_SPACE:
+					case SDL_SCANCODE_RIGHT:
+					case SDL_SCANCODE_DOWN:
+					case SDL_SCANCODE_PAGEDOWN:
+					case SDL_SCANCODE_RETURN:
+					case SDL_SCANCODE_SPACE:
 						if (page == MAX_PAGE)
 						{
 							page = 0;
@@ -415,7 +415,7 @@ void JE_helpSystem( JE_byte startTopic )
 						}
 						JE_playSampleNum(S_CURSOR);
 						break;
-					case SDLK_F1:
+					case SDL_SCANCODE_F1:
 						page = 0;
 						JE_playSampleNum(S_CURSOR);
 						break;
@@ -427,9 +427,9 @@ void JE_helpSystem( JE_byte startTopic )
 
 		if (page == 255)
 		{
-			lastkey_sym = SDLK_ESCAPE;
+			lastkey_sym = SDL_SCANCODE_ESCAPE;
 		}
-	} while (lastkey_sym != SDLK_ESCAPE);
+	} while (lastkey_sym != SDL_SCANCODE_ESCAPE);
 }
 
 // cost to upgrade a weapon power from power-1 (where power == 0 indicates an unupgraded weapon)
@@ -637,7 +637,7 @@ void JE_loadScreen( void )
 		{
 			switch (lastkey_sym)
 			{
-			case SDLK_UP:
+			case SDL_SCANCODE_UP:
 				sel--;
 				if (sel < min)
 				{
@@ -645,7 +645,7 @@ void JE_loadScreen( void )
 				}
 				JE_playSampleNum(S_CURSOR);
 				break;
-			case SDLK_DOWN:
+			case SDL_SCANCODE_DOWN:
 				sel++;
 				if (sel > max)
 				{
@@ -653,8 +653,8 @@ void JE_loadScreen( void )
 				}
 				JE_playSampleNum(S_CURSOR);
 				break;
-			case SDLK_LEFT:
-			case SDLK_RIGHT:
+			case SDL_SCANCODE_LEFT:
+			case SDL_SCANCODE_RIGHT:
 				if (screen == 1)
 				{
 					screen = 2;
@@ -664,7 +664,7 @@ void JE_loadScreen( void )
 					sel -= 11;
 				}
 				break;
-			case SDLK_RETURN:
+			case SDL_SCANCODE_RETURN:
 				if (sel < max)
 				{
 					if (saveFiles[sel - 1].level > 0)
@@ -682,7 +682,7 @@ void JE_loadScreen( void )
 
 
 				break;
-			case SDLK_ESCAPE:
+			case SDL_SCANCODE_ESCAPE:
 				quit = true;
 				break;
 			default:
@@ -986,11 +986,11 @@ void JE_highScoreScreen( void )
 			{
 				switch (lastkey_sym)
 				{
-				case SDLK_LEFT:
+				case SDL_SCANCODE_LEFT:
 					x--;
 					chg = -1;
 					break;
-				case SDLK_RIGHT:
+				case SDL_SCANCODE_RIGHT:
 					x++;
 					chg = 1;
 					break;
@@ -1009,8 +1009,8 @@ void JE_highScoreScreen( void )
 		{
 			switch (lastkey_sym)
 			{
-			case SDLK_RETURN:
-			case SDLK_ESCAPE:
+			case SDL_SCANCODE_RETURN:
+			case SDL_SCANCODE_ESCAPE:
 				quit = true;
 				break;
 			default:
@@ -1047,10 +1047,10 @@ void JE_gammaCorrect( Palette *colorBuffer, JE_byte gamma )
 
 JE_boolean JE_gammaCheck( void )
 {
-	bool temp = keysactive[SDLK_F11] != 0;
+	bool temp = keysactive[SDL_SCANCODE_F11] != 0;
 	if (temp)
 	{
-		keysactive[SDLK_F11] = false;
+		keysactive[SDL_SCANCODE_F11] = false;
 		newkey = false;
 		gammaCorrection = (gammaCorrection + 1) % 4;
 		memcpy(colors, palettes[pcxpal[3-1]], sizeof(colors));
@@ -1097,7 +1097,7 @@ void JE_doInGameSetup( void )
 		}
 		quitRequested = false;
 
-		keysactive[SDLK_ESCAPE] = false;
+		keysactive[SDL_SCANCODE_ESCAPE] = false;
 
 #ifdef WITH_NETWORK
 		if (isNetworkGame)
@@ -1236,7 +1236,7 @@ JE_boolean JE_inGameSetup( void )
 		{
 			switch (lastkey_sym)
 			{
-				case SDLK_RETURN:
+				case SDL_SCANCODE_RETURN:
 					JE_playSampleNum(S_SELECT);
 					switch (sel)
 					{
@@ -1269,25 +1269,25 @@ JE_boolean JE_inGameSetup( void )
 							break;
 					}
 					break;
-				case SDLK_ESCAPE:
+				case SDL_SCANCODE_ESCAPE:
 					quit = true;
 					JE_playSampleNum(S_SPRING);
 					break;
-				case SDLK_UP:
+				case SDL_SCANCODE_UP:
 					if (--sel < 1)
 					{
 						sel = 6;
 					}
 					JE_playSampleNum(S_CURSOR);
 					break;
-				case SDLK_DOWN:
+				case SDL_SCANCODE_DOWN:
 					if (++sel > 6)
 					{
 						sel = 1;
 					}
 					JE_playSampleNum(S_CURSOR);
 					break;
-				case SDLK_LEFT:
+				case SDL_SCANCODE_LEFT:
 					switch (sel)
 					{
 						case 1:
@@ -1324,7 +1324,7 @@ JE_boolean JE_inGameSetup( void )
 						JE_playSampleNum(S_CURSOR);
 					}
 					break;
-				case SDLK_RIGHT:
+				case SDL_SCANCODE_RIGHT:
 					switch (sel)
 					{
 						case 1:
@@ -1361,7 +1361,7 @@ JE_boolean JE_inGameSetup( void )
 						JE_playSampleNum(S_CURSOR);
 					}
 					break;
-				case SDLK_w:
+				case SDL_SCANCODE_W:
 					if (sel == 3)
 					{
 						processorType = 6;
@@ -1646,27 +1646,27 @@ void JE_highScoreCheck( void )
 							case '"':
 							case '\'':
 								validkey = true;
+							// case SDL_SCANCODE_BACKSPACE:
+							// case SDL_SCANCODE_DELETE:
+							// 	if (temp)
+							// 	{
+							// 		temp--;
+							// 		stemp[temp] = ' ';
+							// 	}
+							// 	break;
+							// case SDL_SCANCODE_ESCAPE:
+							// 	quit = true;
+							// 	cancel = true;
+							// 	break;
+							// case SDL_SCANCODE_RETURN:
+							// 	quit = true;
+							// 	break;
 							default:
 								if (temp < 28 && (validkey || (lastkey_char >= 'A' && lastkey_char <= 'Z') || (lastkey_char >= '0' && lastkey_char <= '9')))
 								{
 									stemp[temp] = lastkey_char;
 									temp++;
 								}
-								break;
-							case SDLK_BACKSPACE:
-							case SDLK_DELETE:
-								if (temp)
-								{
-									temp--;
-									stemp[temp] = ' ';
-								}
-								break;
-							case SDLK_ESCAPE:
-								quit = true;
-								cancel = true;
-								break;
-							case SDLK_RETURN:
-								quit = true;
 								break;
 						}
 					}
@@ -2480,25 +2480,25 @@ void JE_operation( JE_byte slot )
 					case '"':
 					case '\'':
 						validkey = true;
-					case SDLK_BACKSPACE:
-					case SDLK_DELETE:
-						if (temp)
-						{
-							temp--;
-							stemp[temp] = ' ';
-							JE_playSampleNum(S_CLICK);
-						}
-						break;
-					case SDLK_ESCAPE:
-						quit = true;
-						JE_playSampleNum(S_SPRING);
-						break;
-					case SDLK_RETURN:
-					case SDLK_SPACE:
-						quit = true;
-						JE_saveGame(slot, stemp);
-						JE_playSampleNum(S_SELECT);
-						break;
+					// case SDL_SCANCODE_BACKSPACE:
+					// case SDL_SCANCODE_DELETE:
+					// 	if (temp)
+					// 	{
+					// 		temp--;
+					// 		stemp[temp] = ' ';
+					// 		JE_playSampleNum(S_CLICK);
+					// 	}
+					// 	break;
+					// case SDL_SCANCODE_ESCAPE:
+					// 	quit = true;
+					// 	JE_playSampleNum(S_SPRING);
+					// 	break;
+					// case SDL_SCANCODE_RETURN:
+					// case SDL_SCANCODE_SPACE:
+					// 	quit = true;
+					// 	JE_saveGame(slot, stemp);
+					// 	JE_playSampleNum(S_SELECT);
+					// 	break;
 					default:
 						if (temp < 14 && (validkey || (lastkey_char >= 'A' && lastkey_char <= 'Z') || (lastkey_char >= '0' && lastkey_char <= '9')))
 						{
@@ -2596,13 +2596,13 @@ void JE_mainKeyboardInput( void )
 	if (!isNetworkGame)
 	{
 		/* { Edited Ships } for Player 1 */
-		if (extraAvail && keysactive[SDLK_TAB] && !isNetworkGame && !superTyrian)
+		if (extraAvail && keysactive[SDL_SCANCODE_TAB] && !isNetworkGame && !superTyrian)
 		{
-			for (x = SDLK_0; x <= SDLK_9; x++)
+			for (x = SDL_SCANCODE_0; x <= SDL_SCANCODE_9; x++)
 			{
 				if (keysactive[x])
 				{
-					int z = x == SDLK_0 ? 10 : x - SDLK_0;
+					int z = x == SDL_SCANCODE_0 ? 10 : x - SDL_SCANCODE_0;
 					player[0].items.ship = 90 + z;                     /*Ships*/
 					z = (z - 1) * 15;
 					player[0].items.weapon[FRONT_WEAPON].id = extraShips[z + 1];
@@ -2639,13 +2639,13 @@ void JE_mainKeyboardInput( void )
 		}
 
 		/* for Player 2 */
-		if (extraAvail && keysactive[SDLK_CAPSLOCK] && !isNetworkGame && !superTyrian)
+		if (extraAvail && keysactive[SDL_SCANCODE_CAPSLOCK] && !isNetworkGame && !superTyrian)
 		{
-			for (x = SDLK_0; x <= SDLK_9; x++)
+			for (x = SDL_SCANCODE_0; x <= SDL_SCANCODE_9; x++)
 			{
 				if (keysactive[x])
 				{
-					int z = x == SDLK_0 ? 10 : x - SDLK_0;
+					int z = x == SDL_SCANCODE_0 ? 10 : x - SDL_SCANCODE_0;
 					player[1].items.ship = 90 + z;
 					z = (z - 1) * 15;
 					player[1].items.weapon[FRONT_WEAPON].id = extraShips[z + 1];
@@ -2683,7 +2683,7 @@ void JE_mainKeyboardInput( void )
 	}
 
 	/* { In-Game Help } */
-	if (keysactive[SDLK_F1])
+	if (keysactive[SDL_SCANCODE_F1])
 	{
 		if (isNetworkGame)
 		{
@@ -2695,8 +2695,8 @@ void JE_mainKeyboardInput( void )
 	}
 
 	/* {!Activate Nort Ship!} */
-	if (keysactive[SDLK_F2] && keysactive[SDLK_F4] && keysactive[SDLK_F6] && keysactive[SDLK_F7] &&
-	    keysactive[SDLK_F9] && keysactive[SDLK_BACKSLASH] && keysactive[SDLK_SLASH])
+	if (keysactive[SDL_SCANCODE_F2] && keysactive[SDL_SCANCODE_F4] && keysactive[SDL_SCANCODE_F6] && keysactive[SDL_SCANCODE_F7] &&
+	    keysactive[SDL_SCANCODE_F9] && keysactive[SDL_SCANCODE_BACKSLASH] && keysactive[SDL_SCANCODE_SLASH])
 	{
 		if (isNetworkGame)
 		{
@@ -2715,13 +2715,13 @@ void JE_mainKeyboardInput( void )
 	/* {Cheating} */
 	if (!isNetworkGame && !twoPlayerMode && !superTyrian && superArcadeMode == SA_NONE)
 	{
-		if (keysactive[SDLK_F2] && keysactive[SDLK_F3] && keysactive[SDLK_F6])
+		if (keysactive[SDL_SCANCODE_F2] && keysactive[SDL_SCANCODE_F3] && keysactive[SDL_SCANCODE_F6])
 		{
 			youAreCheating = !youAreCheating;
-			keysactive[SDLK_F2] = false;
+			keysactive[SDL_SCANCODE_F2] = false;
 		}
 
-		if (keysactive[SDLK_F2] && keysactive[SDLK_F3] && (keysactive[SDLK_F4] || keysactive[SDLK_F5]))
+		if (keysactive[SDL_SCANCODE_F2] && keysactive[SDL_SCANCODE_F3] && (keysactive[SDL_SCANCODE_F4] || keysactive[SDL_SCANCODE_F5]))
 		{
 			for (uint i = 0; i < COUNTOF(player); ++i)
 				player[i].armor = 0;
@@ -2730,10 +2730,10 @@ void JE_mainKeyboardInput( void )
 			JE_drawTextWindow(miscText[63-1]);
 		}
 
-		if (constantPlay && keysactive[SDLK_c])
+		if (constantPlay && keysactive[SDL_SCANCODE_C])
 		{
 			youAreCheating = !youAreCheating;
-			keysactive[SDLK_c] = false;
+			keysactive[SDL_SCANCODE_C] = false;
 		}
 	}
 
@@ -2745,9 +2745,9 @@ void JE_mainKeyboardInput( void )
 	/* {Personal Commands} */
 
 	/* {DEBUG} */
-	if (keysactive[SDLK_F10] && keysactive[SDLK_BACKSPACE])
+	if (keysactive[SDL_SCANCODE_F10] && keysactive[SDL_SCANCODE_BACKSPACE])
 	{
-		keysactive[SDLK_F10] = false;
+		keysactive[SDL_SCANCODE_F10] = false;
 		debug = !debug;
 
 		debugHist = 1;
@@ -2758,7 +2758,7 @@ void JE_mainKeyboardInput( void )
 	}
 
 	/* {CHEAT-SKIP LEVEL} */
-	if (keysactive[SDLK_F2] && keysactive[SDLK_F6] && (keysactive[SDLK_F7] || keysactive[SDLK_F8]) && !keysactive[SDLK_F9]
+	if (keysactive[SDL_SCANCODE_F2] && keysactive[SDL_SCANCODE_F6] && (keysactive[SDL_SCANCODE_F7] || keysactive[SDL_SCANCODE_F8]) && !keysactive[SDL_SCANCODE_F9]
 	    && !superTyrian && superArcadeMode == SA_NONE)
 	{
 		if (isNetworkGame)
@@ -2773,37 +2773,37 @@ void JE_mainKeyboardInput( void )
 	}
 
 	/* pause game */
-	pause_pressed = pause_pressed || keysactive[SDLK_p];
+	pause_pressed = pause_pressed || keysactive[SDL_SCANCODE_P];
 
 	/* in-game setup */
-	ingamemenu_pressed = ingamemenu_pressed || keysactive[SDLK_ESCAPE];
+	ingamemenu_pressed = ingamemenu_pressed || keysactive[SDL_SCANCODE_ESCAPE];
 
-	if (keysactive[SDLK_BACKSPACE])
+	if (keysactive[SDL_SCANCODE_BACKSPACE])
 	{
 		/* toggle screenshot pause */
-		if (keysactive[SDLK_NUMLOCK])
-		{
-			superPause = !superPause;
-		}
+		// if (keysactive[SDL_SCANCODE_NUMLOCK])
+		// {
+		// 	superPause = !superPause;
+		// }
 
 		/* {SMOOTHIES} */
-		if (keysactive[SDLK_F12] && keysactive[SDLK_SCROLLOCK])
+		if (keysactive[SDL_SCANCODE_F12] && keysactive[SDL_SCANCODE_SCROLLLOCK])
 		{
-			for (temp = SDLK_2; temp <= SDLK_9; temp++)
+			for (temp = SDL_SCANCODE_2; temp <= SDL_SCANCODE_9; temp++)
 			{
 				if (keysactive[temp])
 				{
-					smoothies[temp-SDLK_2] = !smoothies[temp-SDLK_2];
+					smoothies[temp-SDL_SCANCODE_2] = !smoothies[temp-SDL_SCANCODE_2];
 				}
 			}
-			if (keysactive[SDLK_0])
+			if (keysactive[SDL_SCANCODE_0])
 			{
 				smoothies[8] = !smoothies[8];
 			}
 		} else
 
 		/* {CYCLE THROUGH FILTER COLORS} */
-		if (keysactive[SDLK_MINUS])
+		if (keysactive[SDL_SCANCODE_MINUS])
 		{
 			if (levelFilter == -99)
 			{
@@ -2818,19 +2818,19 @@ void JE_mainKeyboardInput( void )
 		} else
 
 		/* {HYPER-SPEED} */
-		if (keysactive[SDLK_1])
+		if (keysactive[SDL_SCANCODE_1])
 		{
 			fastPlay++;
 			if (fastPlay > 2)
 			{
 				fastPlay = 0;
 			}
-			keysactive[SDLK_1] = false;
+			keysactive[SDL_SCANCODE_1] = false;
 			JE_setNewGameSpeed();
 		}
 
 		/* {IN-GAME RANDOM MUSIC SELECTION} */
-		if (keysactive[SDLK_SCROLLOCK])
+		if (keysactive[SDL_SCANCODE_SCROLLLOCK])
 		{
 			play_song(mt_rand() % MUSIC_NUM);
 		}
@@ -2886,7 +2886,7 @@ void JE_pauseGame( void )
 		push_joysticks_as_keyboard();
 		service_SDL_events(true);
 
-		if ((newkey && lastkey_sym != SDLK_LCTRL && lastkey_sym != SDLK_RCTRL && lastkey_sym != SDLK_LALT && lastkey_sym != SDLK_RALT)
+		if ((newkey && lastkey_sym != SDL_SCANCODE_LCTRL && lastkey_sym != SDL_SCANCODE_RCTRL && lastkey_sym != SDL_SCANCODE_LALT && lastkey_sym != SDL_SCANCODE_RALT)
 		    || JE_mousePosition(&mouseX, &mouseY) > 0)
 		{
 #ifdef WITH_NETWORK
@@ -4177,7 +4177,7 @@ const char *JE_getName( JE_byte pnum )
 
 void JE_playerCollide( Player *this_player, JE_byte playerNum_ )
 {
-	char tempStr[256];
+	char tempStr[1024];
 
 	for (int z = 0; z < 100; z++)
 	{

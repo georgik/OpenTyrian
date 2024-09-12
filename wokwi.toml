@@ -1,5 +1,7 @@
-
+# Wokwi Configuration File
+# Reference: https://docs.wokwi.com/vscode/project-config
 [wokwi]
 version = 1
-elf = "build/uf2.bin"
-firmware = "build/uf2.bin"
+firmware = 'build.esp-box/flasher_args.json'
+elf = 'build.esp-box/esp32-open-tyrian.elf'
+gdbServerPort=3333

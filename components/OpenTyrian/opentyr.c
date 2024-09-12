@@ -48,7 +48,7 @@
 #include "video.h"
 #include "video_scale.h"
 
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -145,7 +145,7 @@ void opentyrian_menu( void )
 		{
 			switch (lastkey_sym)
 			{
-			case SDLK_UP:
+			case SDL_SCANCODE_UP:
 				do
 				{
 					if ((int)sel-1 == 0)
@@ -157,7 +157,7 @@ void opentyrian_menu( void )
 				
 				JE_playSampleNum(S_CURSOR);
 				break;
-			case SDLK_DOWN:
+			case SDL_SCANCODE_DOWN:
 				do
 				{
 					if ((int)sel+1 >= MenuOptions_MAX)
@@ -170,7 +170,7 @@ void opentyrian_menu( void )
 				JE_playSampleNum(S_CURSOR);
 				break;
 				
-			case SDLK_LEFT:
+			case SDL_SCANCODE_LEFT:
 				if (sel == MENU_SCALER)
 				{
 					do
@@ -184,7 +184,7 @@ void opentyrian_menu( void )
 					JE_playSampleNum(S_CURSOR);
 				}
 				break;
-			case SDLK_RIGHT:
+			case SDL_SCANCODE_RIGHT:
 				if (sel == MENU_SCALER)
 				{
 					do
@@ -199,7 +199,7 @@ void opentyrian_menu( void )
 				}
 				break;
 				
-			case SDLK_RETURN:
+			case SDL_SCANCODE_RETURN:
 				switch (sel)
 				{
 				case MENU_ABOUT:
@@ -261,7 +261,7 @@ void opentyrian_menu( void )
 				}
 				break;
 				
-			case SDLK_ESCAPE:
+			case SDL_SCANCODE_ESCAPE:
 				quit = true;
 				JE_playSampleNum(S_SPRING);
 				break;
@@ -274,9 +274,19 @@ void opentyrian_menu( void )
 }
 
 #include "esp_heap_trace.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_log.h"
+
+static const char *TAG = "opentyr";
 
 #define NUM_RECORDS 100
 static heap_trace_record_t trace_record[NUM_RECORDS]; // This buffer must be in internal RAM
+
+void log_free_dma(void) {
+    size_t free_dma = heap_caps_get_free_size(MALLOC_CAP_DMA);
+    ESP_LOGI(TAG, "Free DMA memory: %d bytes", free_dma);
+}
 
 int main( int argc, char *argv[] )
 {
@@ -291,12 +301,15 @@ int main( int argc, char *argv[] )
 	printf("This is free software, and you are welcome to redistribute it\n");
 	printf("under certain conditions.  See the file GPL.txt for details.\n\n");
 
-	if (SDL_Init(0))
-	{
-		printf("Failed to initialize SDL: %s\n", SDL_GetError());
-		return -1;
-	}
+	// init_keyboard();
+	// vTaskDelay(pdMS_TO_TICKS(4000));
+
+	log_free_dma();
+
 	init_video();
+
+	log_free_dma();
+
 	JE_loadConfiguration();
 
 	xmas = xmas_time();  // arg handler may override
@@ -305,10 +318,7 @@ int main( int argc, char *argv[] )
 
 	JE_scanForEpisodes();
 
-//	init_video();
-	init_keyboard();
 	init_joysticks();
-	printf("assuming mouse detected\n"); // SDL can't tell us if there isn't one
 
 	if (xmas && (!dir_file_exists(data_dir(), "tyrianc.shp") || !dir_file_exists(data_dir(), "voicesc.snd")))
 	{

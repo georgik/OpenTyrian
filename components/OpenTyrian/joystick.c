@@ -86,7 +86,7 @@ void poll_joysticks( void )
 }
 
 // sends SDL KEYDOWN and KEYUP events for a key
-void push_key( SDLKey key )
+void push_key(SDL_Keycode key)
 {
 }
 

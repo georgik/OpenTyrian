@@ -3404,14 +3404,14 @@ printf("JE_showVGA");
 			{
 				switch (lastkey_sym)
 				{
-				case SDLK_UP:
+				case SDL_SCANCODE_UP:
 					if (menu == 0)
 						menu = menunum-1;
 					else
 						menu--;
 					JE_playSampleNum(S_CURSOR);
 					break;
-				case SDLK_DOWN:
+				case SDL_SCANCODE_DOWN:
 					if (menu == menunum-1)
 						menu = 0;
 					else
@@ -3443,7 +3443,8 @@ printf("JE_showVGA");
 						JE_playSampleNum(V_DATA_CUBE);
 						JE_whoa();
 
-						initialDifficulty = keysactive[SDLK_SCROLLOCK] ? 6 : 8;
+						// initialDifficulty = keysactive[SDL_SCANCODE_SCROLLLOCK] ? 6 : 8;
+						initialDifficulty = 8;
 
 						JE_clr256(VGAScreen);
 						JE_outText(VGAScreen, 10, 10, "Cheat codes have been disabled.", 15, 4);
@@ -3532,10 +3533,10 @@ printf("JE_showVGA");
 			{
 				switch (lastkey_sym)
 				{
-				case SDLK_ESCAPE:
+				case SDL_SCANCODE_ESCAPE:
 					quit = true;
 					break;
-				case SDLK_RETURN:
+				case SDL_SCANCODE_RETURN:
 					JE_playSampleNum(S_SELECT);
 					switch (menu)
 					{
@@ -3630,7 +3631,7 @@ trentWinsGame:
 
 void intro_logos( void )
 {
-	SDL_FillRect(VGAScreen, NULL, 0);
+	SDL_FillSurfaceRect(VGAScreen, NULL, 0);
 
 	fade_white(50);
 

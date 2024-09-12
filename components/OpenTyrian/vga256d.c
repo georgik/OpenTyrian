@@ -23,7 +23,7 @@
 #include "vga256d.h"
 #include "video.h"
 
-#include "SDL.h"
+#include "SDL3/SDL.h"
 #include <assert.h>
 #include <ctype.h>
 #include <math.h>
@@ -83,7 +83,7 @@ void JE_rectangle( SDL_Surface *surface, int a, int b, int c, int d, int e ) /* 
 void fill_rectangle_xy( SDL_Surface *surface, int x, int y, int x2, int y2, Uint8 color )
 {
 	SDL_Rect rect = { (Sint16)x, (Sint16)y, (Uint16)(x2 - x + 1), (Uint16)(y2 - y + 1) };
-	SDL_FillRect(surface, &rect, color);
+	SDL_FillSurfaceRect(surface, &rect, color);
 }
 
 void JE_barShade( SDL_Surface *surface, int a, int b, int c, int d ) /* x1, y1, x2, y2 */
