@@ -51,11 +51,14 @@ void app_main(void)
     // xTaskCreatePinnedToCore(&memoryCheckTask, "memoryCheckTask", 2048, NULL, 1, NULL, 0);
 
     printf("USB - Keyboard initialization\n");
+
+#ifdef CONFIG_IDF_TARGET_ESP32P4
     init_keyboard();
 
     xTaskCreatePinnedToCore(&keyboardTask, "keyboardTask", 8912, NULL, 1, NULL, 0);
     // Delay required for the keyboard to initialize and allocate the DMA capable memory
     vTaskDelay(pdMS_TO_TICKS(500));
+#endif
 
     printf("OpenTyrian initialization...\n");
     // Create a task for the Tyrian game
