@@ -27,15 +27,6 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install ESP-IDF dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install espressif-python-idf
-
-      - name: Install esptool.py
-        run: |
-          pip install esptool
-
       - name: Set Configuration File
         run: |
           echo "BOARD_CONFIG=$(case ${{ matrix.board }} in
@@ -46,22 +37,19 @@ jobs:
             *) echo 'Unknown board'; exit 1;;
           esac)" >> $GITHUB_ENV
 
-      - name: esp-idf build
+      - name: esp-idf build and merge binaries
         uses: espressif/esp-idf-ci-action@v1.1.0
         with:
           esp_idf_version: v5.3
           target: ${{ matrix.board }}
           path: '.'
-          command: idf.py -B build.${{ matrix.board }} @boards/${{ env.BOARD_CONFIG }} build
-
-      - name: Merge Binaries into Single Image
-        run: |
-          cd build.${{ matrix.board }}
-          esptool.py --chip ${{ matrix.board }} merge_bin --output combined-open-tyrian-${{ matrix.board }}.bin --flash_mode dio --flash_freq 80m --flash_size 16MB \
-            0x2000 bootloader/bootloader.bin \
-            0x8000 partition_table/partition-table.bin \
-            0x10000 esp32-open-tyrian.bin \
-            0x310000 storage.bin
+          command: idf.py -B build.${{ matrix.board }} @boards/${{ env.BOARD_CONFIG }} build &&
+            cd build.${{ matrix.board }} &&
+            esptool.py --chip ${{ matrix.board }} merge_bin --output combined-open-tyrian-${{ matrix.board }}.bin --flash_mode dio --flash_freq 80m --flash_size 16MB \
+                0x2000 bootloader/bootloader.bin \
+                0x8000 partition_table/partition-table.bin \
+                0x10000 esp32-open-tyrian.bin \
+                0x310000 storage.bin
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
