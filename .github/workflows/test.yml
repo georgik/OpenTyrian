@@ -2,7 +2,7 @@ name: Test ESP32 Application
 
 on:
   workflow_run:
-    workflows: ["Build ESP32 Application"]
+    workflows: ["Build ESP32 Application"]  # This should match the name of your build workflow
     types:
       - completed
 
