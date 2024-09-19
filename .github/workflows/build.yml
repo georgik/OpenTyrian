@@ -23,7 +23,7 @@ jobs:
       - name: esp-idf build and merge binaries
         uses: espressif/esp-idf-ci-action@v1.1.0
         with:
-          esp_idf_version: master
+          esp_idf_version: latest
           path: '.'
           command: idf.py @boards/${{ matrix.board }}.cfg build &&
             cd build.${{ matrix.board }} &&
