@@ -13,21 +13,32 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        board: [esp-box-3, esp-box, m5stack_core_s3, esp32_p4_function_ev_board]
+        board: [esp-box-3, esp-box, m5stack-core-s3, esp32_p4_function_ev_board]
       fail-fast: false
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
 
+      - name: Set Target for ESP-IDF
+        run: |
+          echo "TARGET=$(case ${{ matrix.board }} in
+            esp-box-3) echo 'esp32s3';;
+            esp-box) echo 'esp32s3';;
+            m5stack-core-s3) echo 'esp32s3';;
+            esp32_p4_function_ev_board) echo 'esp32p4';;
+            *) echo 'Unknown target'; exit 1;;
+          esac)" >> $GITHUB_ENV
+
       - name: esp-idf build and merge binaries
         uses: espressif/esp-idf-ci-action@v1.1.0
         with:
           esp_idf_version: latest
+          target: ${{ env.TARGET }}
           path: '.'
           command: idf.py @boards/${{ matrix.board }}.cfg build &&
             cd build.${{ matrix.board }} &&
-            esptool.py --chip ${{ matrix.board }} merge_bin --output combined-open-tyrian-${{ matrix.board }}.bin --flash_mode dio --flash_freq 80m --flash_size 16MB \
+            esptool.py --chip ${{ env.TARGET }} merge_bin --output combined-open-tyrian-${{ matrix.board }}.bin --flash_mode dio --flash_freq 80m --flash_size 16MB \
                 0x2000 bootloader/bootloader.bin \
                 0x8000 partition_table/partition-table.bin \
                 0x10000 esp32-open-tyrian.bin \
