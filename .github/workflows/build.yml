@@ -1,0 +1,46 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      board:
+        description: 'Board to build for'
+        required: true
+        default: 'all'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        board:
+          - esp-box-3
+          - esp-box
+          - esp32_p4_function_ev_board
+          - m5stack_core_s3
+    if: ${{ github.event.inputs.board == 'all' || github.event.inputs.board == matrix.board }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up ESP-IDF
+        uses: espressif/esp-idf-ci-action@v2
+        with:
+          version: '5.3'
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip setuptools wheel
+
+      - name: Build for ${{ matrix.board }}
+        run: |
+          idf.py @boards/${{ matrix.board }}.cfg set-target ${{ matrix.board }}
+          idf.py build
+        env:
+          BUILD_BOARD: ${{ matrix.board }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.board }}-build
+          path: build/

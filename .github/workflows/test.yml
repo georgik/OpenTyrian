@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      board:
+        description: 'Board to test'
+        required: true
+        default: 'esp-box-3'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ github.event.inputs.board }}-build
+          path: build/
+
+      - name: Setup Wokwi CLI
+        uses: wokwi/wokwi-ci-action@v1
+        with:
+          token: ${{ secrets.WOKWI_CLI_TOKEN }}
+          path: . # assumes wokwi.toml is in the root directory
+          timeout: 30000
+          expect_text: 'Boot successful'
+          fail_text: 'Error'
+          serial_log_file: 'wokwi-logs.txt'
