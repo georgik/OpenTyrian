@@ -19,19 +19,11 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
 
       - name: esp-idf build and merge binaries
         uses: espressif/esp-idf-ci-action@v1.1.0
         with:
-          esp_idf_version: v5.3
-          target: ${{ matrix.board }}
+          esp_idf_version: master
           path: '.'
           command: idf.py @boards/${{ matrix.board }}.cfg build &&
             cd build.${{ matrix.board }} &&
