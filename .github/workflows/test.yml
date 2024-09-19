@@ -16,26 +16,26 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Updated to the latest version of checkout action
+        uses: actions/checkout@v4
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4  # Updated to the latest version
+        uses: actions/download-artifact@v4
         with:
-          name: build.${{ matrix.board }}  # Fetch artifacts using the matrix board name
+          name: build.${{ matrix.board }}
           path: build/
 
       - name: Setup Wokwi CLI
         uses: wokwi/wokwi-ci-action@v1
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
-          path: . # assumes wokwi.toml is in the root directory
+          path: .
           timeout: 30000
-          expect_text: 'OpenTyrian initialization...'  # Updated to match your boot success message
+          expect_text: 'OpenTyrian initialization...'
           fail_text: 'Error'
-          serial_log_file: 'wokwi-logs-${{ matrix.board }}.txt'  # Separate logs for each board
+          serial_log_file: 'wokwi-logs-${{ matrix.board }}.txt'
 
       - name: Upload Wokwi Logs
-        uses: actions/upload-artifact@v4  # Upload the logs for further analysis
+        uses: actions/upload-artifact@v4
         with:
           name: wokwi-logs-${{ matrix.board }}
           path: wokwi-logs-${{ matrix.board }}.txt
