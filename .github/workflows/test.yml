@@ -1,4 +1,4 @@
-name: Test
+name: Test ESP32 Application
 
 on:
   workflow_dispatch:
@@ -11,14 +11,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # Updated to the latest version of checkout action
 
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
-          name: ${{ github.event.inputs.board }}-build
+          name: build.${{ github.event.inputs.board }}
           path: build/
 
       - name: Setup Wokwi CLI
@@ -27,6 +28,13 @@ jobs:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           path: . # assumes wokwi.toml is in the root directory
           timeout: 30000
-          expect_text: 'Boot successful'
+          expect_text: 'OpenTyrian initialization...'  # Updated to match your boot success message
           fail_text: 'Error'
-          serial_log_file: 'wokwi-logs.txt'
+          serial_log_file: 'wokwi-logs-${{ github.event.inputs.board }}.txt'  # Separate logs for each board
+
+      - name: Upload Wokwi Logs
+        uses: actions/upload-artifact@v4  # Upload the logs for further analysis
+        with:
+          name: wokwi-logs-${{ github.event.inputs.board }}
+          path: wokwi-logs-${{ github.event.inputs.board }}.txt
+
