@@ -79,14 +79,12 @@ You can use the `@board/` parameter with `idf.py` to switch between different bo
 
 ## Acknowledgements
 
-This port is based on the work of the original OpenTyrian project (https://bitbucket.org/opentyrian/opentyrian/wiki/Home) and an ESP32 port by Gadget Workbench, which was initially created for ESP-WROVER and ESP-IDF 4.2. The current version is compatible with ESP-IDF 5.3 and leverages the ESP-BSP for board support. The updated port uses SDL3, available on the [Espressif Component Registry](https://components.espressif.com/components/georgik/sdl/versions/3.1.2~2).
+This port is based on the work of the original OpenTyrian project (https://github.com/jkirsons/OpenTyrian) and an ESP32 port by Gadget Workbench, which was initially created for ESP-WROVER and ESP-IDF 4.2. The current version is compatible with ESP-IDF 5.3 and leverages the ESP-BSP for board support. The updated port uses SDL3, available on the [Espressif Component Registry](https://components.espressif.com/components/georgik/sdl/).
 
 ## Original Video
 
 [![Alt text](https://img.youtube.com/vi/UL5eTUv7SZE/0.jpg)](https://www.youtube.com/watch?v=UL5eTUv7SZE)
 
 ## Credits
-
-- FreeSans.ttf - [GNU FreeFont](https://github.com/opensourcedesign/fonts/blob/master/gnu-freefont_freesans/FreeSans.ttf)
 
 Special thanks to all contributors and the open-source community for making this project possible.
