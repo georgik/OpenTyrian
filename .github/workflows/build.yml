@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        board: [esp-box-3, esp-box, m5stack-core-s3, esp32-p4-function-ev-board]
+        board: [esp-box-3, esp-box, m5stack_core_s3, esp32_p4_function_ev_board]
       fail-fast: false
 
     steps:
@@ -27,23 +27,13 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Set Configuration File
-        run: |
-          echo "BOARD_CONFIG=$(case ${{ matrix.board }} in
-            esp-box-3) echo 'esp-box-3.cfg';;
-            esp-box) echo 'esp-box.cfg';;
-            m5stack-core-s3) echo 'm5stack_core_s3.cfg';;
-            esp32-p4-function-ev-board) echo 'esp32_p4_function_ev_board.cfg';;
-            *) echo 'Unknown board'; exit 1;;
-          esac)" >> $GITHUB_ENV
-
       - name: esp-idf build and merge binaries
         uses: espressif/esp-idf-ci-action@v1.1.0
         with:
           esp_idf_version: v5.3
           target: ${{ matrix.board }}
           path: '.'
-          command: idf.py -B build.${{ matrix.board }} @boards/${{ env.BOARD_CONFIG }} build &&
+          command: idf.py @boards/${{ matrix.board }}.cfg build &&
             cd build.${{ matrix.board }} &&
             esptool.py --chip ${{ matrix.board }} merge_bin --output combined-open-tyrian-${{ matrix.board }}.bin --flash_mode dio --flash_freq 80m --flash_size 16MB \
                 0x2000 bootloader/bootloader.bin \
