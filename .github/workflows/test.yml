@@ -1,24 +1,27 @@
-name: Test
+name: Test ESP32 Application
 
 on:
-  workflow_dispatch:
-    inputs:
-      board:
-        description: 'Board to test'
-        required: true
-        default: 'esp-box-3'
+  workflow_run:
+    workflows: ["Build ESP32 Application"]  # This should match the name of your build workflow
+    types:
+      - completed
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        board: [esp-box-3, esp-box, m5stack_core_s3, esp32_p4_function_ev_board]
+      fail-fast: false
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # Updated to the latest version of checkout action
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4  # Updated to the latest version
         with:
-          name: ${{ github.event.inputs.board }}-build
+          name: build.${{ matrix.board }}  # Fetch artifacts using the matrix board name
           path: build/
 
       - name: Setup Wokwi CLI
@@ -27,6 +30,12 @@ jobs:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           path: . # assumes wokwi.toml is in the root directory
           timeout: 30000
-          expect_text: 'Boot successful'
+          expect_text: 'OpenTyrian initialization...'  # Updated to match your boot success message
           fail_text: 'Error'
-          serial_log_file: 'wokwi-logs.txt'
+          serial_log_file: 'wokwi-logs-${{ matrix.board }}.txt'  # Separate logs for each board
+
+      - name: Upload Wokwi Logs
+        uses: actions/upload-artifact@v4  # Upload the logs for further analysis
+        with:
+          name: wokwi-logs-${{ matrix.board }}
+          path: wokwi-logs-${{ matrix.board }}.txt
