@@ -27,14 +27,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set Build Run ID
+        if: ${{ github.event_name == 'workflow_run' }}
+        run: |
+          echo "BUILD_RUN_ID=${{ github.event.workflow_run.id }}" >> $GITHUB_ENV
+
       - name: Find latest build run ID
         if: ${{ github.event_name == 'workflow_dispatch' && !github.event.inputs.build_run_id }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Fetching latest build run ID..."
-          RUN_ID=$(gh run list --workflow "Build ESP32 Application" --json databaseId --jq '.[0].databaseId')
+          RUN_ID=$(gh run list --workflow "Build ESP32 Application" --json databaseId --jq '.[0].databaseId' --limit 1)
           echo "BUILD_RUN_ID=${RUN_ID}" >> $GITHUB_ENV
 
-      - name: Set build run ID
+      - name: Set build run ID from input
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.build_run_id }}
         run: |
           echo "BUILD_RUN_ID=${{ github.event.inputs.build_run_id }}" >> $GITHUB_ENV
@@ -44,7 +51,7 @@ jobs:
         with:
           name: build.${{ matrix.board }}
           path: build/
-          run-id: ${{ env.BUILD_RUN_ID || github.run.id }}
+          run-id: ${{ env.BUILD_RUN_ID }}
 
       - name: Setup Wokwi CLI
         uses: wokwi/wokwi-ci-action@v1
