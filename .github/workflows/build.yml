@@ -58,3 +58,14 @@ jobs:
         with:
           name: build.${{ matrix.board }}
           path: build.${{ matrix.board }}/combined-open-tyrian-${{ matrix.board }}.bin
+
+      - name: Test with Wokwi
+        uses: wokwi/wokwi-ci-action@v1.1.0
+        with:
+          token: ${{ secrets.WOKWI_CLI_TOKEN }}
+          elf: build.${{ matrix.board }}/combined-open-tyrian-${{ matrix.board }}.bin
+          diagram_file: diagram.json.esp32_p4_function_ev_board
+          timeout: 30000
+          expect_text: 'OpenTyrian initialization...'
+          fail_text: 'Error'
+          serial_log_file: 'wokwi-logs-${{ matrix.board }}.txt'
