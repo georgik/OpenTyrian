@@ -49,9 +49,9 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build.${{ matrix.board }}
+          #name: build.${{ matrix.board }}
           path: build/
-          run-id: ${{ env.BUILD_RUN_ID }}
+          #run-id: ${{ env.BUILD_RUN_ID }}
 
       - name: Setup Wokwi CLI
         uses: wokwi/wokwi-ci-action@v1
