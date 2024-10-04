@@ -20,62 +20,43 @@ Tyrian is an arcade-style vertical scrolling shooter. The story is set in 20,031
 
 ## Installation
 
-1. Clone the repository and prepare the data:
-   ```
-   ./prepare-data.sh
-   ```
+You can use the `@board/` parameter with `idf.py` to switch between different board configurations.
 
-2. Configure the build environment for your board:
+Configure the build environment for your board:
 
-   For ESP32-S3-BOX-3:
-   ```
-   idf.py @boards/esp-box-3.cfg set-target esp32-s3
-   idf.py @boards/esp-box-3.cfg build
-   ```
+For ESP32-S3-BOX-3:
+```shell
+idf.py @boards/esp-box-3.cfg build
+```
 
-   For ESP32-S3-BOX (prior to Dec. 2023):
-   ```
-   idf.py @boards/esp-box.cfg reconfigure
-   ```
+For ESP32-S3-BOX (prior to Dec. 2023):
+```shell
+idf.py @boards/esp-box.cfg build
+```
 
-   For ESP32-P4:
-   ```
-   idf.py @boards/esp32_p4_function_ev_board.cfg reconfigure
-   ```
+For ESP32-P4:
+```shell
+idf.py @boards/esp32_p4_function_ev_board.cfg build
+```
 
-   For M5Stack-CoreS3:
-   ```
-   idf.py @boards/m5stack_core_s3.cfg reconfigure
-   ```
+For M5Stack-CoreS3:
+```shell
+idf.py @boards/m5stack_core_s3.cfg build
+```
 
-3. Build and flash the firmware:
-   ```
-   idf.py flash monitor
-   ```
+### Build and flash the firmware:
 
-## Building for Different Boards
+```shell
+idf.py @boards/... flash monitor
+```
 
-You can use the `@board/` parameter with `idf.py` to switch between different board configurations:
+### Flash only application
 
-- ESP32-S3-BOX-3:
-  ```
-  idf.py @boards/esp-box-3.cfg reconfigure
-  ```
+Once you have bootloader in place, you can flash only application to save the time.
 
-- ESP32-S3-BOX (prior Dec. 2023):
-  ```
-  idf.py @boards/esp-box.cfg reconfigure
-  ```
-
-- ESP32-P4:
-  ```
-  idf.py @boards/esp32_p4_function_ev_board.cfg reconfigure
-  ```
-
-- M5Stack-CoreS3:
-  ```
-  idf.py @boards/m5stack_core_s3.cfg reconfigure
-  ```
+```shell
+idf.py @boards/... app-flash monitor
+```
 
 ## Acknowledgements
 
