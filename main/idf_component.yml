@@ -1,6 +1,6 @@
 ## IDF Component Manager Manifest File
 dependencies:
-  georgik/sdl: "^3.1.2~2"
+  georgik/sdl: "^3.1.2~6"
   joltwallet/littlefs: "==1.14.8"
   usb_host_hid: "^1.0.1"
 

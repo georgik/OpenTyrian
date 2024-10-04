@@ -5,19 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <pthread.h>
+#include <unistd.h>
 
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
 #include "keyboard.h"
 #include "SDL3/SDL_esp-idf.h"
-
-// Task to run Tyrian
-void tyrianTask(void *pvParameters)
-{
-    char *argv[] = {"opentyrian", NULL};
-    main(1, argv);
-}
 
 // Function to check and print memory usage
 void check_memory_main() {
@@ -27,46 +20,85 @@ void check_memory_main() {
     printf("Available PSRAM: %zu, DRAM: %zu\n", free_psram, free_dram);
 }
 
-// Task to periodically check memory usage
-void memoryCheckTask(void *pvParameters)
+// Thread to periodically check memory usage
+void* memory_check_thread(void *args)
 {
     while (1) {
         check_memory_main();
-        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 1000 ms (1 second)
+        usleep(10000 * 1000);
     }
+    return NULL;
 }
 
-void keyboardTask(void *pvParameters)
+// Thread for keyboard processing
+void* keyboard_thread(void *args)
 {
     while (1) {
         process_keyboard();
-        vTaskDelay(pdMS_TO_TICKS(50));  // Delay for 1000 ms (1 second)
+        usleep(50 * 1000);  // Sleep for 50 ms
     }
+    return NULL;
 }
 
-
-// Application main entry point
-void app_main(void)
-{
-    // Create a task to check memory every second
-    // xTaskCreatePinnedToCore(&memoryCheckTask, "memoryCheckTask", 2048, NULL, 1, NULL, 0);
-
-    printf("USB - Keyboard initialization\n");
+// Thread to run Tyrian
+void* tyrian_thread(void* args) {
 
 #ifdef CONFIG_IDF_TARGET_ESP32P4
+    printf("USB - Keyboard initialization\n");
+
     // Temporary solution to transport scaling factor directly to framebuffer
     // This will invoke PPA
     set_scale_factor(3, 3.0);
     init_keyboard();
 
-    xTaskCreatePinnedToCore(&keyboardTask, "keyboardTask", 8912, NULL, 1, NULL, 0);
+    // Create the keyboard processing thread
+    pthread_t keyboard_pthread;
+    pthread_attr_t keyboard_attr;
+    pthread_attr_init(&keyboard_attr);
+    pthread_attr_setstacksize(&keyboard_attr, 8192);  // Set stack size for keyboard thread
+
+    int ret = pthread_create(&keyboard_pthread, &keyboard_attr, keyboard_thread, NULL);
+    if (ret != 0) {
+        printf("Failed to create keyboard thread: %d\n", ret);
+        return NULL;
+    }
+    pthread_detach(keyboard_pthread);
+
     // Delay required for the keyboard to initialize and allocate the DMA capable memory
-    vTaskDelay(pdMS_TO_TICKS(500));
+    usleep(500 * 1000);  // Sleep for 500 ms
 #endif
 
+    char *argv[] = {"opentyrian", NULL};
+    main(1, argv);
+    return NULL;
+}
+
+void app_main(void) {
     printf("OpenTyrian initialization...\n");
-    // Create a task for the Tyrian game
-    xTaskCreatePinnedToCore(&tyrianTask, "tyrianTask", 32000, NULL, 5, NULL, 0);
 
+    pthread_t sdl_pthread, memory_check_pthread;
 
+    // Initialize SDL thread
+    pthread_attr_t sdl_attr;
+    pthread_attr_init(&sdl_attr);
+    pthread_attr_setstacksize(&sdl_attr, 32000);  // Set stack size for SDL thread
+
+    int ret = pthread_create(&sdl_pthread, &sdl_attr, tyrian_thread, NULL);
+    if (ret != 0) {
+        printf("Failed to create SDL thread: %d\n", ret);
+        return;
+    }
+    pthread_detach(sdl_pthread);
+
+    // Initialize memory check thread
+    pthread_attr_t memory_attr;
+    pthread_attr_init(&memory_attr);
+    pthread_attr_setstacksize(&memory_attr, 8192);  // Set stack size for memory check thread
+
+    ret = pthread_create(&memory_check_pthread, &memory_attr, memory_check_thread, NULL);
+    if (ret != 0) {
+        printf("Failed to create memory check thread: %d\n", ret);
+        return;
+    }
+    pthread_detach(memory_check_pthread);
 }

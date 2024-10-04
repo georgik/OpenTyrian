@@ -1,19 +1,12 @@
 name: Test ESP32 Application
 
 on:
-  workflow_run:
-    workflows: ["Build ESP32 Application"]
-    types:
-      - completed
   workflow_dispatch:
     inputs:
-      board:
-        description: 'Board to test'
+      prefix:
+        description: 'Prefix for binary name'
         required: true
-        default: 'esp-box-3'
-      build_run_id:
-        description: 'Build Workflow Run ID (optional, leave empty to use latest build)'
-        required: false
+        default: 'opentyrian'
 
 jobs:
   test:
@@ -27,40 +20,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set Build Run ID
-        if: ${{ github.event_name == 'workflow_run' }}
-        run: |
-          echo "BUILD_RUN_ID=${{ github.event.workflow_run.id }}" >> $GITHUB_ENV
-
-      - name: Find latest build run ID
-        if: ${{ github.event_name == 'workflow_dispatch' && !github.event.inputs.build_run_id }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Fetching latest build run ID..."
-          RUN_ID=$(gh run list --workflow "Build ESP32 Application" --json databaseId --jq '.[0].databaseId' --limit 1)
-          echo "BUILD_RUN_ID=${RUN_ID}" >> $GITHUB_ENV
-
-      - name: Set build run ID from input
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.build_run_id }}
-        run: |
-          echo "BUILD_RUN_ID=${{ github.event.inputs.build_run_id }}" >> $GITHUB_ENV
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - name: Download artifact
+        id: download-artifact
+        uses: dawidd6/action-download-artifact@v6
         with:
-          name: build.${{ matrix.board }}
-          path: build/
-          run-id: ${{ env.BUILD_RUN_ID }}
+          workflow: build.yml
+          name: ${{ github.event.inputs.prefix }}-${{ matrix.board }}.bin
+          path: build.${{ matrix.board }}
 
-      - name: Setup Wokwi CLI
-        uses: wokwi/wokwi-ci-action@v1
+      - name: Run tests using Wokwi CI Server
+        uses: wokwi/wokwi-ci-server-action@v1
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
-          path: . # assumes wokwi.toml is in the root directory
-          timeout: 30000
-          expect_text: 'OpenTyrian initialization...'
-          fail_text: 'Error'
+          path: boards/${{ matrix.board }}
+          elf: build.${{ matrix.board }}/${{ github.event.inputs.prefix }}-${{ matrix.board }}.bin
+          timeout: 20000
+          expect_text: 'Entering main loop...'
+          fail_text: 'Rebooting...'
           serial_log_file: 'wokwi-logs-${{ matrix.board }}.txt'
 
       - name: Upload Wokwi Logs

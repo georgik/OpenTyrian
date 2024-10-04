@@ -44,6 +44,12 @@
 #include "usb/hid_usage_keyboard.h"
 #include "usb/hid_usage_mouse.h"
 
+#include <pthread.h>
+#include <semaphore.h>
+
+sem_t usb_task_semaphore;
+pthread_t usb_event_thread;  // Thread for handling HID events
+
 static const char *TAG = "keyboard";
 
 JE_boolean ESCPressed;
@@ -57,7 +63,7 @@ Uint16 lastmouse_x, lastmouse_y;
 JE_boolean mouse_pressed[3] = {false, false, false};
 Uint16 mouse_x, mouse_y;
 
-Uint8 keysactive[SDL_NUM_SCANCODES];
+Uint8 keysactive[SDL_SCANCODE_COUNT];
 
 #ifdef NDEBUG
 bool input_grab_enabled = true;
@@ -68,37 +74,6 @@ bool input_grab_enabled = false;
 QueueHandle_t app_event_queue = NULL;
 
 #define APP_QUIT_PIN                GPIO_NUM_0
-
-const uint8_t keycode2ascii [57][2] = {
-    {0, 0}, /* HID_KEY_NO_PRESS        */
-    {0, 0}, /* HID_KEY_ROLLOVER        */
-    {0, 0}, /* HID_KEY_POST_FAIL       */
-    {0, 0}, /* HID_KEY_ERROR_UNDEFINED */
-    {'a', 'A'}, /* HID_KEY_A               */
-    {'b', 'B'}, /* HID_KEY_B               */
-    {'c', 'C'}, /* HID_KEY_C               */
-    {'d', 'D'}, /* HID_KEY_D               */
-    {'e', 'E'}, /* HID_KEY_E               */
-    {'f', 'F'}, /* HID_KEY_F               */
-    {'g', 'G'}, /* HID_KEY_G               */
-    {'h', 'H'}, /* HID_KEY_H               */
-    {'i', 'I'}, /* HID_KEY_I               */
-    {'j', 'J'}, /* HID_KEY_J               */
-    {'k', 'K'}, /* HID_KEY_K               */
-    {'l', 'L'}, /* HID_KEY_L               */
-    {'m', 'M'}, /* HID_KEY_M               */
-    {'n', 'N'}, /* HID_KEY_N               */
-    {'o', 'O'}, /* HID_KEY_O               */
-    {'p', 'P'}, /* HID_KEY_P               */
-    {'q', 'Q'}, /* HID_KEY_Q               */
-    {'r', 'R'}, /* HID_KEY_R               */
-    {'s', 'S'}, /* HID_KEY_S               */
-    {'t', 'T'}, /* HID_KEY_T               */
-    {'u', 'U'}, /* HID_KEY_U               */
-    {'v', 'V'}, /* HID_KEY_V               */
-};
-
-
 
 void flush_events_buffer( void )
 {
@@ -169,22 +144,6 @@ static inline bool hid_keyboard_is_modifier_shift(uint8_t modifier)
         return true;
     }
     return false;
-}
-
-static inline bool hid_keyboard_get_char(uint8_t modifier,
-                                         uint8_t key_code,
-                                         unsigned char *key_char)
-{
-    uint8_t mod = (hid_keyboard_is_modifier_shift(modifier)) ? 1 : 0;
-
-    if ((key_code >= HID_KEY_A) && (key_code <= HID_KEY_SLASH)) {
-        *key_char = keycode2ascii[key_code][mod];
-    } else {
-        // All other key pressed
-        return false;
-    }
-
-    return true;
 }
 
 #include "SDL_keyboard.h"
@@ -268,6 +227,89 @@ SDL_Scancode convert_hid_to_sdl_scancode(uint8_t hid_code) {
         default: return SDL_SCANCODE_UNKNOWN;
     }
 }
+
+char convert_sdl_scancode_to_ascii(SDL_Scancode scancode, bool shift_pressed) {
+    switch (scancode) {
+        // Alphabet (A-Z)
+        case SDL_SCANCODE_A: return shift_pressed ? 'A' : 'a';
+        case SDL_SCANCODE_B: return shift_pressed ? 'B' : 'b';
+        case SDL_SCANCODE_C: return shift_pressed ? 'C' : 'c';
+        case SDL_SCANCODE_D: return shift_pressed ? 'D' : 'd';
+        case SDL_SCANCODE_E: return shift_pressed ? 'E' : 'e';
+        case SDL_SCANCODE_F: return shift_pressed ? 'F' : 'f';
+        case SDL_SCANCODE_G: return shift_pressed ? 'G' : 'g';
+        case SDL_SCANCODE_H: return shift_pressed ? 'H' : 'h';
+        case SDL_SCANCODE_I: return shift_pressed ? 'I' : 'i';
+        case SDL_SCANCODE_J: return shift_pressed ? 'J' : 'j';
+        case SDL_SCANCODE_K: return shift_pressed ? 'K' : 'k';
+        case SDL_SCANCODE_L: return shift_pressed ? 'L' : 'l';
+        case SDL_SCANCODE_M: return shift_pressed ? 'M' : 'm';
+        case SDL_SCANCODE_N: return shift_pressed ? 'N' : 'n';
+        case SDL_SCANCODE_O: return shift_pressed ? 'O' : 'o';
+        case SDL_SCANCODE_P: return shift_pressed ? 'P' : 'p';
+        case SDL_SCANCODE_Q: return shift_pressed ? 'Q' : 'q';
+        case SDL_SCANCODE_R: return shift_pressed ? 'R' : 'r';
+        case SDL_SCANCODE_S: return shift_pressed ? 'S' : 's';
+        case SDL_SCANCODE_T: return shift_pressed ? 'T' : 't';
+        case SDL_SCANCODE_U: return shift_pressed ? 'U' : 'u';
+        case SDL_SCANCODE_V: return shift_pressed ? 'V' : 'v';
+        case SDL_SCANCODE_W: return shift_pressed ? 'W' : 'w';
+        case SDL_SCANCODE_X: return shift_pressed ? 'X' : 'x';
+        case SDL_SCANCODE_Y: return shift_pressed ? 'Y' : 'y';
+        case SDL_SCANCODE_Z: return shift_pressed ? 'Z' : 'z';
+
+        // Numbers (0-9)
+        case SDL_SCANCODE_1: return shift_pressed ? '!' : '1';
+        case SDL_SCANCODE_2: return shift_pressed ? '@' : '2';
+        case SDL_SCANCODE_3: return shift_pressed ? '#' : '3';
+        case SDL_SCANCODE_4: return shift_pressed ? '$' : '4';
+        case SDL_SCANCODE_5: return shift_pressed ? '%' : '5';
+        case SDL_SCANCODE_6: return shift_pressed ? '^' : '6';
+        case SDL_SCANCODE_7: return shift_pressed ? '&' : '7';
+        case SDL_SCANCODE_8: return shift_pressed ? '*' : '8';
+        case SDL_SCANCODE_9: return shift_pressed ? '(' : '9';
+        case SDL_SCANCODE_0: return shift_pressed ? ')' : '0';
+
+        // Special keys (these don't have ASCII equivalents, but return placeholders)
+        case SDL_SCANCODE_RETURN: return '\n';
+        case SDL_SCANCODE_ESCAPE: return 27;  // ASCII ESC
+        case SDL_SCANCODE_SPACE: return ' ';
+        case SDL_SCANCODE_BACKSPACE: return '\b';
+        case SDL_SCANCODE_TAB: return '\t';
+        case SDL_SCANCODE_MINUS: return shift_pressed ? '_' : '-';
+        case SDL_SCANCODE_EQUALS: return shift_pressed ? '+' : '=';
+        case SDL_SCANCODE_LEFTBRACKET: return shift_pressed ? '{' : '[';
+        case SDL_SCANCODE_RIGHTBRACKET: return shift_pressed ? '}' : ']';
+        case SDL_SCANCODE_BACKSLASH: return shift_pressed ? '|' : '\\';
+        case SDL_SCANCODE_COMMA: return shift_pressed ? '<' : ',';
+        case SDL_SCANCODE_SLASH: return shift_pressed ? '?' : '/';
+
+        // Arrow keys (returning non-ASCII codes)
+        case SDL_SCANCODE_UP:
+        case SDL_SCANCODE_DOWN:
+        case SDL_SCANCODE_LEFT:
+        case SDL_SCANCODE_RIGHT:
+            return 0;
+
+        // Function keys (returning non-ASCII codes)
+        case SDL_SCANCODE_F1:
+        case SDL_SCANCODE_F2:
+        case SDL_SCANCODE_F3:
+        case SDL_SCANCODE_F4:
+        case SDL_SCANCODE_F5:
+        case SDL_SCANCODE_F6:
+        case SDL_SCANCODE_F7:
+        case SDL_SCANCODE_F8:
+        case SDL_SCANCODE_F9:
+        case SDL_SCANCODE_F10:
+        case SDL_SCANCODE_F11:
+        case SDL_SCANCODE_F12:
+            return 0;
+
+        default: return 0;
+    }
+}
+
 #include "../src/events/SDL_keyboard_c.h"
 
 static void key_event_callback(key_event_t *key_event)
@@ -302,7 +344,7 @@ static void key_event_callback(key_event_t *key_event)
         scancode = convert_hid_to_sdl_scancode(key_event->key_code);
         if (scancode != SDL_SCANCODE_UNKNOWN) {
             // Send key press event to SDL
-            SDL_SendKeyboardKey(SDL_GetTicks(), keyboardID, key_event->key_code, scancode, SDL_PRESSED);
+            SDL_SendKeyboardKey(SDL_GetTicks(), keyboardID, key_event->key_code, scancode, 1);
         }
     }
 
@@ -310,7 +352,7 @@ static void key_event_callback(key_event_t *key_event)
         scancode = convert_hid_to_sdl_scancode(key_event->key_code);
         if (scancode != SDL_SCANCODE_UNKNOWN) {
             // Send key release event to SDL
-            SDL_SendKeyboardKey(SDL_GetTicks(), keyboardID, key_event->key_code, scancode, SDL_RELEASED);
+            SDL_SendKeyboardKey(SDL_GetTicks(), keyboardID, key_event->key_code, scancode, 0);
         }
     }
 
@@ -473,7 +515,7 @@ void hid_host_device_event(hid_host_device_handle_t hid_device_handle,
     }
 }
 
-static void usb_lib_task(void *arg)
+void* usb_lib_thread(void *arg)
 {
     const usb_host_config_t host_config = {
         .skip_phy_setup = false,
@@ -481,9 +523,11 @@ static void usb_lib_task(void *arg)
     };
 
     ESP_ERROR_CHECK(usb_host_install(&host_config));
-    xTaskNotifyGive(arg);
 
-	ESP_LOGI(TAG, "USB main loop");
+    // Notify the main thread that USB host initialization is complete
+    sem_post(&usb_task_semaphore);
+
+    ESP_LOGI(TAG, "USB main loop");
     while (true) {
         uint32_t event_flags;
         usb_host_lib_handle_events(portMAX_DELAY, &event_flags);
@@ -497,9 +541,10 @@ static void usb_lib_task(void *arg)
 
     ESP_LOGI(TAG, "USB shutdown");
     // Clean up USB Host
-    vTaskDelay(10); // Short delay to allow clients clean-up
+    usleep(10 * 1000);  // Short delay to allow clients clean-up
     ESP_ERROR_CHECK(usb_host_uninstall());
-    vTaskDelete(NULL);
+
+    pthread_exit(NULL);  // Terminate the thread
 }
 
 void process_keyboard()
@@ -560,19 +605,33 @@ void hid_host_device_callback(hid_host_device_handle_t hid_device_handle,
     }
 }
 
-void init_keyboard( void )
+void* usb_event_handler_thread(void* arg)
 {
-    SDL_AddKeyboard(1, "Virtual Keyboard", SDL_TRUE);
+    ESP_LOGI(TAG, "USB HID event handler started");
 
-	newkey = newmouse = false;
-	keydown = mousedown = false;
+    while (true) {
+        // Handle USB HID events
+        esp_err_t ret = hid_host_handle_events(portMAX_DELAY);  // Wait indefinitely for events
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Error handling HID events: %d", ret);
+            break;
+        }
+    }
 
-	BaseType_t task_created;
-    
+    ESP_LOGI(TAG, "USB HID event handler shutting down");
+    pthread_exit(NULL);
+}
+
+void init_keyboard(void)
+{
+    SDL_AddKeyboard(1, "Virtual Keyboard", true);
+
+    newkey = newmouse = false;
+    keydown = mousedown = false;
+
     ESP_LOGI(TAG, "HID Keyboard");
 
     // Init BOOT button: Pressing the button simulates app request to exit
-    // It will disconnect the USB device and uninstall the HID driver and USB Host Lib
     const gpio_config_t input_pin = {
         .pin_bit_mask = BIT64(APP_QUIT_PIN),
         .mode = GPIO_MODE_INPUT,
@@ -583,46 +642,48 @@ void init_keyboard( void )
     ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1));
     ESP_ERROR_CHECK(gpio_isr_handler_add(APP_QUIT_PIN, gpio_isr_cb, NULL));
 
-    /*
-    * Create usb_lib_task to:
-    * - initialize USB Host library
-    * - Handle USB Host events while APP pin in in HIGH state
-    */
-    task_created = xTaskCreatePinnedToCore(usb_lib_task,
-                                           "usb_events",
-                                           8912,
-                                           xTaskGetCurrentTaskHandle(),
-                                           2, NULL, 0);
-    assert(task_created == pdTRUE);
+    // Initialize semaphore for synchronization
+    sem_init(&usb_task_semaphore, 0, 0);
 
-    // Wait for notification from usb_lib_task to proceed
-    ulTaskNotifyTake(false, 1000);
+    // Create usb_lib_task thread
+    pthread_t usb_thread;
+    pthread_attr_t usb_thread_attr;
+    pthread_attr_init(&usb_thread_attr);
+    pthread_attr_setstacksize(&usb_thread_attr, 8912);
 
-    /*
-    * HID host driver configuration
-    * - create background task for handling low level event inside the HID driver
-    * - provide the device callback to get new HID Device connection event
-    */
+    int ret = pthread_create(&usb_thread, &usb_thread_attr, usb_lib_thread, NULL);
+    if (ret != 0) {
+        ESP_LOGE(TAG, "Failed to create USB thread: %d", ret);
+        return;
+    }
+
+    // Wait for notification from usb_lib_thread to proceed (using semaphore)
+    sem_wait(&usb_task_semaphore);
+
+    // HID host driver configuration
     const hid_host_driver_config_t hid_host_driver_config = {
-        .create_background_task = true,
-        .task_priority = 5,
-        .stack_size = 8912,
+        .create_background_task = false,  // No background task, handled manually
+        .task_priority = 5,               // Priority doesn't apply to pthreads
+        .stack_size = 8912,               // Stack size for thread (set manually if needed)
         .core_id = 0,
-		.callback = hid_host_device_callback,
+        .callback = hid_host_device_callback,
         .callback_arg = NULL
     };
 
-  	ESP_ERROR_CHECK(hid_host_install(&hid_host_driver_config));
+    ESP_ERROR_CHECK(hid_host_install(&hid_host_driver_config));
 
-    // Create queue
+    // Create queue (keeping xQueue for event handling if necessary)
     app_event_queue = xQueueCreate(10, sizeof(app_event_queue_t));
 
     ESP_LOGI(TAG, "Waiting for HID Device to be connected");
-	// inputInit();
 
-
-    // process_keyboard();
-
+    // Start the HID event handler thread
+    ret = pthread_create(&usb_event_thread, NULL, usb_event_handler_thread, NULL);
+    if (ret != 0) {
+        ESP_LOGE(TAG, "Failed to create HID event handler thread: %d", ret);
+        return;
+    }
+    pthread_detach(usb_event_thread);
 }
 
 void input_grab( bool enable )
@@ -660,24 +721,25 @@ void service_SDL_events(JE_boolean clear_new)
         {
             // Keyboard events
             case SDL_EVENT_KEY_DOWN: {
-                printf("Scan code: %i\n", event.key.scancode);
                 lastkey_sym = event.key.scancode;   // Record the last key symbol
                 lastkey_mod = SDL_GetModState();   // Record the last key modifiers
-                // lastkey_char = (unsigned char)event.key.keysym.sym; // Optionally store it as char
+                lastkey_char = convert_sdl_scancode_to_ascii(lastkey_sym, lastkey_mod & SDL_KMOD_SHIFT);
+                printf("Key: %i, Scan code: %i\n", lastkey_char, event.key.scancode);
 
                 keydown = true;    // Key is pressed
                 newkey = true;     // Mark new key event
-                keysactive[event.key.key] = SDL_PRESSED;  // Update key state
+                keysactive[event.key.key] = true;  // Update key state
                 break;
             }
             case SDL_EVENT_KEY_UP: {
                 lastkey_sym = event.key.scancode;   // Record the last key symbol
                 lastkey_mod = SDL_GetModState();   // Record the last key modifiers
-                // lastkey_char = (unsigned char)event.key.keysym.sym; // Optionally store it as char
+                lastkey_char = convert_sdl_scancode_to_ascii(lastkey_sym, lastkey_mod & SDL_KMOD_SHIFT);
+                printf("Key: %i, Scan code: %i\n", lastkey_char, event.key.scancode);
 
                 keydown = false;   // Key is released
                 newkey = false;     // Mark new key event
-                keysactive[event.key.key] = SDL_RELEASED;  // Update key state
+                keysactive[event.key.key] = false;  // Update key state
                 break;
             }
             case SDL_EVENT_QUIT:
