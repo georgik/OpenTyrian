@@ -55,7 +55,7 @@ void clear_screen(SDL_Renderer *renderer) {
 
 void init_video( void )
 {
-    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == false) {
         printf("Unable to initialize SDL: %s\n", SDL_GetError());
         return;
     }
@@ -97,7 +97,7 @@ void init_video( void )
 // printf("BPP: %d\n", VGAScreen->format->BitsPerPixel);
 	// spi_lcd_clear();
 	SDL_FillSurfaceRect(VGAScreen, NULL, 0);
-//heap_caps_check_integrity_all(true);	
+//heap_caps_check_integrity_all(true);
 /*
 	if (!init_scaler(scaler, fullscreen_enabled) &&  // try desired scaler and desired fullscreen state
 	    !init_any_scaler(fullscreen_enabled) &&      // try any scaler in desired fullscreen state
@@ -113,18 +113,18 @@ int can_init_scaler( unsigned int new_scaler, bool fullscreen )
 {
 	if (new_scaler >= scalers_count)
 		return false;
-	
+
 	int w = scalers[new_scaler].width,
 	    h = scalers[new_scaler].height;
 	// int flags = SDL_SWSURFACE | SDL_HWPALETTE | (fullscreen ? SDL_FULLSCREEN : 0);
 
-	int flags = 0;	
+	int flags = 0;
 	// test each bitdepth
 	for (uint bpp = 32; bpp > 0; bpp -= 8)
 	{
 		// uint temp_bpp = SDL_VideoModeOK(w, h, bpp, flags);
 		uint temp_bpp = 8;
-		
+
 		if ((temp_bpp == 32 && scalers[new_scaler].scaler32) ||
 		    (temp_bpp == 16 && scalers[new_scaler].scaler16) ||
 		    (temp_bpp == 8  && scalers[new_scaler].scaler8 ))
@@ -138,7 +138,7 @@ int can_init_scaler( unsigned int new_scaler, bool fullscreen )
 			return 32;
 		}
 	}
-	
+
 	return 0;
 }
 

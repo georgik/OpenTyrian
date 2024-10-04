@@ -412,9 +412,9 @@ static enum de_unit_t get_unit_by_name( const char *unit_name )
 
 static SDL_Keycode get_SDLKey_by_name(const char *key_name)
 {
-    for (SDL_Scancode scancode = SDL_SCANCODE_UNKNOWN; scancode < SDL_NUM_SCANCODES; ++scancode)
+    for (SDL_Scancode scancode = SDL_SCANCODE_UNKNOWN; scancode < SDL_SCANCODE_COUNT; ++scancode)
     {
-        SDL_Keycode keycode = SDL_GetKeyFromScancode(scancode, SDL_GetModState(), SDL_TRUE);
+        SDL_Keycode keycode = SDL_GetKeyFromScancode(scancode, SDL_GetModState(), true);
         if (strcmp(key_name, SDL_GetKeyName(keycode)) == 0)
             return keycode;
     }

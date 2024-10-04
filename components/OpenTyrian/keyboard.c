@@ -57,7 +57,7 @@ Uint16 lastmouse_x, lastmouse_y;
 JE_boolean mouse_pressed[3] = {false, false, false};
 Uint16 mouse_x, mouse_y;
 
-Uint8 keysactive[SDL_NUM_SCANCODES];
+Uint8 keysactive[SDL_SCANCODE_COUNT];
 
 #ifdef NDEBUG
 bool input_grab_enabled = true;
@@ -339,7 +339,7 @@ static void key_event_callback(key_event_t *key_event)
         scancode = convert_hid_to_sdl_scancode(key_event->key_code);
         if (scancode != SDL_SCANCODE_UNKNOWN) {
             // Send key press event to SDL
-            SDL_SendKeyboardKey(SDL_GetTicks(), keyboardID, key_event->key_code, scancode, SDL_PRESSED);
+            SDL_SendKeyboardKey(SDL_GetTicks(), keyboardID, key_event->key_code, scancode, 1);
         }
     }
 
@@ -347,7 +347,7 @@ static void key_event_callback(key_event_t *key_event)
         scancode = convert_hid_to_sdl_scancode(key_event->key_code);
         if (scancode != SDL_SCANCODE_UNKNOWN) {
             // Send key release event to SDL
-            SDL_SendKeyboardKey(SDL_GetTicks(), keyboardID, key_event->key_code, scancode, SDL_RELEASED);
+            SDL_SendKeyboardKey(SDL_GetTicks(), keyboardID, key_event->key_code, scancode, 0);
         }
     }
 
@@ -599,7 +599,7 @@ void hid_host_device_callback(hid_host_device_handle_t hid_device_handle,
 
 void init_keyboard( void )
 {
-    SDL_AddKeyboard(1, "Virtual Keyboard", SDL_TRUE);
+    SDL_AddKeyboard(1, "Virtual Keyboard", true);
 
 	newkey = newmouse = false;
 	keydown = mousedown = false;
@@ -704,7 +704,7 @@ void service_SDL_events(JE_boolean clear_new)
 
                 keydown = true;    // Key is pressed
                 newkey = true;     // Mark new key event
-                keysactive[event.key.key] = SDL_PRESSED;  // Update key state
+                keysactive[event.key.key] = true;  // Update key state
                 break;
             }
             case SDL_EVENT_KEY_UP: {
@@ -715,7 +715,7 @@ void service_SDL_events(JE_boolean clear_new)
 
                 keydown = false;   // Key is released
                 newkey = false;     // Mark new key event
-                keysactive[event.key.key] = SDL_RELEASED;  // Update key state
+                keysactive[event.key.key] = false;  // Update key state
                 break;
             }
             case SDL_EVENT_QUIT:
