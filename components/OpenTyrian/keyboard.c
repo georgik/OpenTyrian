@@ -69,37 +69,6 @@ QueueHandle_t app_event_queue = NULL;
 
 #define APP_QUIT_PIN                GPIO_NUM_0
 
-const uint8_t keycode2ascii [57][2] = {
-    {0, 0}, /* HID_KEY_NO_PRESS        */
-    {0, 0}, /* HID_KEY_ROLLOVER        */
-    {0, 0}, /* HID_KEY_POST_FAIL       */
-    {0, 0}, /* HID_KEY_ERROR_UNDEFINED */
-    {'a', 'A'}, /* HID_KEY_A               */
-    {'b', 'B'}, /* HID_KEY_B               */
-    {'c', 'C'}, /* HID_KEY_C               */
-    {'d', 'D'}, /* HID_KEY_D               */
-    {'e', 'E'}, /* HID_KEY_E               */
-    {'f', 'F'}, /* HID_KEY_F               */
-    {'g', 'G'}, /* HID_KEY_G               */
-    {'h', 'H'}, /* HID_KEY_H               */
-    {'i', 'I'}, /* HID_KEY_I               */
-    {'j', 'J'}, /* HID_KEY_J               */
-    {'k', 'K'}, /* HID_KEY_K               */
-    {'l', 'L'}, /* HID_KEY_L               */
-    {'m', 'M'}, /* HID_KEY_M               */
-    {'n', 'N'}, /* HID_KEY_N               */
-    {'o', 'O'}, /* HID_KEY_O               */
-    {'p', 'P'}, /* HID_KEY_P               */
-    {'q', 'Q'}, /* HID_KEY_Q               */
-    {'r', 'R'}, /* HID_KEY_R               */
-    {'s', 'S'}, /* HID_KEY_S               */
-    {'t', 'T'}, /* HID_KEY_T               */
-    {'u', 'U'}, /* HID_KEY_U               */
-    {'v', 'V'}, /* HID_KEY_V               */
-};
-
-
-
 void flush_events_buffer( void )
 {
 }
@@ -169,22 +138,6 @@ static inline bool hid_keyboard_is_modifier_shift(uint8_t modifier)
         return true;
     }
     return false;
-}
-
-static inline bool hid_keyboard_get_char(uint8_t modifier,
-                                         uint8_t key_code,
-                                         unsigned char *key_char)
-{
-    uint8_t mod = (hid_keyboard_is_modifier_shift(modifier)) ? 1 : 0;
-
-    if ((key_code >= HID_KEY_A) && (key_code <= HID_KEY_SLASH)) {
-        *key_char = keycode2ascii[key_code][mod];
-    } else {
-        // All other key pressed
-        return false;
-    }
-
-    return true;
 }
 
 #include "SDL_keyboard.h"
@@ -268,6 +221,90 @@ SDL_Scancode convert_hid_to_sdl_scancode(uint8_t hid_code) {
         default: return SDL_SCANCODE_UNKNOWN;
     }
 }
+
+
+char convert_sdl_scancode_to_ascii(SDL_Scancode scancode, bool shift_pressed) {
+    switch (scancode) {
+        // Alphabet (A-Z)
+        case SDL_SCANCODE_A: return shift_pressed ? 'A' : 'a';
+        case SDL_SCANCODE_B: return shift_pressed ? 'B' : 'b';
+        case SDL_SCANCODE_C: return shift_pressed ? 'C' : 'c';
+        case SDL_SCANCODE_D: return shift_pressed ? 'D' : 'd';
+        case SDL_SCANCODE_E: return shift_pressed ? 'E' : 'e';
+        case SDL_SCANCODE_F: return shift_pressed ? 'F' : 'f';
+        case SDL_SCANCODE_G: return shift_pressed ? 'G' : 'g';
+        case SDL_SCANCODE_H: return shift_pressed ? 'H' : 'h';
+        case SDL_SCANCODE_I: return shift_pressed ? 'I' : 'i';
+        case SDL_SCANCODE_J: return shift_pressed ? 'J' : 'j';
+        case SDL_SCANCODE_K: return shift_pressed ? 'K' : 'k';
+        case SDL_SCANCODE_L: return shift_pressed ? 'L' : 'l';
+        case SDL_SCANCODE_M: return shift_pressed ? 'M' : 'm';
+        case SDL_SCANCODE_N: return shift_pressed ? 'N' : 'n';
+        case SDL_SCANCODE_O: return shift_pressed ? 'O' : 'o';
+        case SDL_SCANCODE_P: return shift_pressed ? 'P' : 'p';
+        case SDL_SCANCODE_Q: return shift_pressed ? 'Q' : 'q';
+        case SDL_SCANCODE_R: return shift_pressed ? 'R' : 'r';
+        case SDL_SCANCODE_S: return shift_pressed ? 'S' : 's';
+        case SDL_SCANCODE_T: return shift_pressed ? 'T' : 't';
+        case SDL_SCANCODE_U: return shift_pressed ? 'U' : 'u';
+        case SDL_SCANCODE_V: return shift_pressed ? 'V' : 'v';
+        case SDL_SCANCODE_W: return shift_pressed ? 'W' : 'w';
+        case SDL_SCANCODE_X: return shift_pressed ? 'X' : 'x';
+        case SDL_SCANCODE_Y: return shift_pressed ? 'Y' : 'y';
+        case SDL_SCANCODE_Z: return shift_pressed ? 'Z' : 'z';
+
+        // Numbers (0-9)
+        case SDL_SCANCODE_1: return shift_pressed ? '!' : '1';
+        case SDL_SCANCODE_2: return shift_pressed ? '@' : '2';
+        case SDL_SCANCODE_3: return shift_pressed ? '#' : '3';
+        case SDL_SCANCODE_4: return shift_pressed ? '$' : '4';
+        case SDL_SCANCODE_5: return shift_pressed ? '%' : '5';
+        case SDL_SCANCODE_6: return shift_pressed ? '^' : '6';
+        case SDL_SCANCODE_7: return shift_pressed ? '&' : '7';
+        case SDL_SCANCODE_8: return shift_pressed ? '*' : '8';
+        case SDL_SCANCODE_9: return shift_pressed ? '(' : '9';
+        case SDL_SCANCODE_0: return shift_pressed ? ')' : '0';
+
+        // Special keys (these don't have ASCII equivalents, but return placeholders)
+        case SDL_SCANCODE_RETURN: return '\n';
+        case SDL_SCANCODE_ESCAPE: return 27;  // ASCII ESC
+        case SDL_SCANCODE_SPACE: return ' ';
+        case SDL_SCANCODE_BACKSPACE: return '\b';
+        case SDL_SCANCODE_TAB: return '\t';
+        case SDL_SCANCODE_MINUS: return shift_pressed ? '_' : '-';
+        case SDL_SCANCODE_EQUALS: return shift_pressed ? '+' : '=';
+        case SDL_SCANCODE_LEFTBRACKET: return shift_pressed ? '{' : '[';
+        case SDL_SCANCODE_RIGHTBRACKET: return shift_pressed ? '}' : ']';
+        case SDL_SCANCODE_BACKSLASH: return shift_pressed ? '|' : '\\';
+        case SDL_SCANCODE_COMMA: return shift_pressed ? '<' : ',';
+        case SDL_SCANCODE_SLASH: return shift_pressed ? '?' : '/';
+
+        // Arrow keys (returning non-ASCII codes)
+        case SDL_SCANCODE_UP:
+        case SDL_SCANCODE_DOWN:
+        case SDL_SCANCODE_LEFT:
+        case SDL_SCANCODE_RIGHT:
+            return 0;
+
+        // Function keys (returning non-ASCII codes)
+        case SDL_SCANCODE_F1:
+        case SDL_SCANCODE_F2:
+        case SDL_SCANCODE_F3:
+        case SDL_SCANCODE_F4:
+        case SDL_SCANCODE_F5:
+        case SDL_SCANCODE_F6:
+        case SDL_SCANCODE_F7:
+        case SDL_SCANCODE_F8:
+        case SDL_SCANCODE_F9:
+        case SDL_SCANCODE_F10:
+        case SDL_SCANCODE_F11:
+        case SDL_SCANCODE_F12:
+            return 0;
+
+        default: return 0;
+    }
+}
+
 #include "../src/events/SDL_keyboard_c.h"
 
 static void key_event_callback(key_event_t *key_event)
@@ -660,10 +697,10 @@ void service_SDL_events(JE_boolean clear_new)
         {
             // Keyboard events
             case SDL_EVENT_KEY_DOWN: {
-                printf("Scan code: %i\n", event.key.scancode);
                 lastkey_sym = event.key.scancode;   // Record the last key symbol
                 lastkey_mod = SDL_GetModState();   // Record the last key modifiers
-                // lastkey_char = (unsigned char)event.key.keysym.sym; // Optionally store it as char
+                lastkey_char = convert_sdl_scancode_to_ascii(lastkey_sym, lastkey_mod & SDL_KMOD_SHIFT);
+                printf("Key: %i, Scan code: %i\n", lastkey_char, event.key.scancode);
 
                 keydown = true;    // Key is pressed
                 newkey = true;     // Mark new key event
@@ -673,7 +710,8 @@ void service_SDL_events(JE_boolean clear_new)
             case SDL_EVENT_KEY_UP: {
                 lastkey_sym = event.key.scancode;   // Record the last key symbol
                 lastkey_mod = SDL_GetModState();   // Record the last key modifiers
-                // lastkey_char = (unsigned char)event.key.keysym.sym; // Optionally store it as char
+                lastkey_char = convert_sdl_scancode_to_ascii(lastkey_sym, lastkey_mod & SDL_KMOD_SHIFT);
+                printf("Key: %i, Scan code: %i\n", lastkey_char, event.key.scancode);
 
                 keydown = false;   // Key is released
                 newkey = false;     // Mark new key event

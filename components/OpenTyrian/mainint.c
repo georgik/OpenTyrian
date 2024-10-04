@@ -2455,50 +2455,51 @@ void JE_operation( JE_byte slot )
 			{
 				bool validkey = false;
 				//lastkey_char = toupper(lastkey_char);
-				switch (lastkey_char)
+				// switch (lastkey_char)
+				switch (lastkey_sym)
 				{
 					//case ' ':
-					case '-':
-					case '.':
-					case ',':
-					case ':':
-					case '!':
-					case '?':
-					case '#':
-					case '@':
-					case '$':
-					case '%':
-					case '*':
-					case '(':
-					case ')':
-					case '/':
-					case '=':
-					case '+':
-					case '<':
-					case '>':
-					case ';':
-					case '"':
-					case '\'':
-						validkey = true;
-					// case SDL_SCANCODE_BACKSPACE:
-					// case SDL_SCANCODE_DELETE:
-					// 	if (temp)
-					// 	{
-					// 		temp--;
-					// 		stemp[temp] = ' ';
-					// 		JE_playSampleNum(S_CLICK);
-					// 	}
-					// 	break;
-					// case SDL_SCANCODE_ESCAPE:
-					// 	quit = true;
-					// 	JE_playSampleNum(S_SPRING);
-					// 	break;
-					// case SDL_SCANCODE_RETURN:
-					// case SDL_SCANCODE_SPACE:
-					// 	quit = true;
-					// 	JE_saveGame(slot, stemp);
-					// 	JE_playSampleNum(S_SELECT);
-					// 	break;
+					// case '-':
+					// case '.':
+					// case ',':
+					// case ':':
+					// case '!':
+					// case '?':
+					// case '#':
+					// case '@':
+					// case '$':
+					// case '%':
+					// case '*':
+					// case '(':
+					// case ')':
+					// case '/':
+					// case '=':
+					// case '+':
+					// case '<':
+					// case '>':
+					// case ';':
+					// case '"':
+					// case '\'':
+					// 	validkey = true;
+					case SDL_SCANCODE_BACKSPACE:
+					case SDL_SCANCODE_DELETE:
+						if (temp)
+						{
+							temp--;
+							stemp[temp] = ' ';
+							JE_playSampleNum(S_CLICK);
+						}
+						break;
+					case SDL_SCANCODE_ESCAPE:
+						quit = true;
+						JE_playSampleNum(S_SPRING);
+						break;
+					case SDL_SCANCODE_RETURN:
+					case SDL_SCANCODE_SPACE:
+						quit = true;
+						JE_saveGame(slot, stemp);
+						JE_playSampleNum(S_SELECT);
+						break;
 					default:
 						if (temp < 14 && (validkey || (lastkey_char >= 'A' && lastkey_char <= 'Z') || (lastkey_char >= '0' && lastkey_char <= '9')))
 						{
