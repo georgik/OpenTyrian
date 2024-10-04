@@ -2,7 +2,7 @@
 
 This is a port of OpenTyrian to the ESP32 platform, originally ported to ESP32 by Gadget Workbench and updated for new hardware with support for [Board Support Packages](https://components.espressif.com/components?q=Board+Support+Package).
 
-The fork was updated to use all the game data directly from flash, as SD cards have a tendency to be unreliable. It now works with ESP-IDF 5.3 and utilizes the latest [SDL3](https://components.espressif.com/components/georgik/sdl/versions/3.1.2~2) available at the Espressif Component Registry.
+The fork was updated to use all the game data directly from flash, as SD cards have a tendency to be unreliable. It now works with ESP-IDF 5.3 and utilizes the latest [SDL3](https://components.espressif.com/components/georgik/sdl) available at the Espressif Component Registry.
 
 ## Storyline
 
