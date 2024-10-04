@@ -44,6 +44,12 @@
 #include "usb/hid_usage_keyboard.h"
 #include "usb/hid_usage_mouse.h"
 
+#include <pthread.h>
+#include <semaphore.h>
+
+sem_t usb_task_semaphore;
+pthread_t usb_event_thread;  // Thread for handling HID events
+
 static const char *TAG = "keyboard";
 
 JE_boolean ESCPressed;
@@ -510,7 +516,7 @@ void hid_host_device_event(hid_host_device_handle_t hid_device_handle,
     }
 }
 
-static void usb_lib_task(void *arg)
+void* usb_lib_thread(void *arg)
 {
     const usb_host_config_t host_config = {
         .skip_phy_setup = false,
@@ -518,9 +524,11 @@ static void usb_lib_task(void *arg)
     };
 
     ESP_ERROR_CHECK(usb_host_install(&host_config));
-    xTaskNotifyGive(arg);
 
-	ESP_LOGI(TAG, "USB main loop");
+    // Notify the main thread that USB host initialization is complete
+    sem_post(&usb_task_semaphore);
+
+    ESP_LOGI(TAG, "USB main loop");
     while (true) {
         uint32_t event_flags;
         usb_host_lib_handle_events(portMAX_DELAY, &event_flags);
@@ -534,9 +542,10 @@ static void usb_lib_task(void *arg)
 
     ESP_LOGI(TAG, "USB shutdown");
     // Clean up USB Host
-    vTaskDelay(10); // Short delay to allow clients clean-up
+    usleep(10 * 1000);  // Short delay to allow clients clean-up
     ESP_ERROR_CHECK(usb_host_uninstall());
-    vTaskDelete(NULL);
+
+    pthread_exit(NULL);  // Terminate the thread
 }
 
 void process_keyboard()
@@ -597,19 +606,33 @@ void hid_host_device_callback(hid_host_device_handle_t hid_device_handle,
     }
 }
 
-void init_keyboard( void )
+void* usb_event_handler_thread(void* arg)
+{
+    ESP_LOGI(TAG, "USB HID event handler started");
+
+    while (true) {
+        // Handle USB HID events
+        esp_err_t ret = hid_host_handle_events(portMAX_DELAY);  // Wait indefinitely for events
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Error handling HID events: %d", ret);
+            break;
+        }
+    }
+
+    ESP_LOGI(TAG, "USB HID event handler shutting down");
+    pthread_exit(NULL);
+}
+
+void init_keyboard(void)
 {
     SDL_AddKeyboard(1, "Virtual Keyboard", true);
 
-	newkey = newmouse = false;
-	keydown = mousedown = false;
+    newkey = newmouse = false;
+    keydown = mousedown = false;
 
-	BaseType_t task_created;
-    
     ESP_LOGI(TAG, "HID Keyboard");
 
     // Init BOOT button: Pressing the button simulates app request to exit
-    // It will disconnect the USB device and uninstall the HID driver and USB Host Lib
     const gpio_config_t input_pin = {
         .pin_bit_mask = BIT64(APP_QUIT_PIN),
         .mode = GPIO_MODE_INPUT,
@@ -620,46 +643,48 @@ void init_keyboard( void )
     ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1));
     ESP_ERROR_CHECK(gpio_isr_handler_add(APP_QUIT_PIN, gpio_isr_cb, NULL));
 
-    /*
-    * Create usb_lib_task to:
-    * - initialize USB Host library
-    * - Handle USB Host events while APP pin in in HIGH state
-    */
-    task_created = xTaskCreatePinnedToCore(usb_lib_task,
-                                           "usb_events",
-                                           8912,
-                                           xTaskGetCurrentTaskHandle(),
-                                           2, NULL, 0);
-    assert(task_created == pdTRUE);
+    // Initialize semaphore for synchronization
+    sem_init(&usb_task_semaphore, 0, 0);
 
-    // Wait for notification from usb_lib_task to proceed
-    ulTaskNotifyTake(false, 1000);
+    // Create usb_lib_task thread
+    pthread_t usb_thread;
+    pthread_attr_t usb_thread_attr;
+    pthread_attr_init(&usb_thread_attr);
+    pthread_attr_setstacksize(&usb_thread_attr, 8912);
 
-    /*
-    * HID host driver configuration
-    * - create background task for handling low level event inside the HID driver
-    * - provide the device callback to get new HID Device connection event
-    */
+    int ret = pthread_create(&usb_thread, &usb_thread_attr, usb_lib_thread, NULL);
+    if (ret != 0) {
+        ESP_LOGE(TAG, "Failed to create USB thread: %d", ret);
+        return;
+    }
+
+    // Wait for notification from usb_lib_thread to proceed (using semaphore)
+    sem_wait(&usb_task_semaphore);
+
+    // HID host driver configuration
     const hid_host_driver_config_t hid_host_driver_config = {
-        .create_background_task = true,
-        .task_priority = 5,
-        .stack_size = 8912,
+        .create_background_task = false,  // No background task, handled manually
+        .task_priority = 5,               // Priority doesn't apply to pthreads
+        .stack_size = 8912,               // Stack size for thread (set manually if needed)
         .core_id = 0,
-		.callback = hid_host_device_callback,
+        .callback = hid_host_device_callback,
         .callback_arg = NULL
     };
 
-  	ESP_ERROR_CHECK(hid_host_install(&hid_host_driver_config));
+    ESP_ERROR_CHECK(hid_host_install(&hid_host_driver_config));
 
-    // Create queue
+    // Create queue (keeping xQueue for event handling if necessary)
     app_event_queue = xQueueCreate(10, sizeof(app_event_queue_t));
 
     ESP_LOGI(TAG, "Waiting for HID Device to be connected");
-	// inputInit();
 
-
-    // process_keyboard();
-
+    // Start the HID event handler thread
+    ret = pthread_create(&usb_event_thread, NULL, usb_event_handler_thread, NULL);
+    if (ret != 0) {
+        ESP_LOGE(TAG, "Failed to create HID event handler thread: %d", ret);
+        return;
+    }
+    pthread_detach(usb_event_thread);
 }
 
 void input_grab( bool enable )

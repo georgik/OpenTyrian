@@ -8,7 +8,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#include "freertos/FreeRTOS.h"  // Optional: Remove if no FreeRTOS features are used
+#include "freertos/FreeRTOS.h"
 #include "keyboard.h"
 #include "SDL3/SDL_esp-idf.h"
 
@@ -25,7 +25,7 @@ void* memory_check_thread(void *args)
 {
     while (1) {
         check_memory_main();
-        usleep(1000 * 1000);  // Sleep for 1000 ms (1 second)
+        usleep(10000 * 1000);
     }
     return NULL;
 }
