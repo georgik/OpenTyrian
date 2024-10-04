@@ -125,7 +125,7 @@ int can_init_scaler( unsigned int new_scaler, bool fullscreen )
 		// uint temp_bpp = SDL_VideoModeOK(w, h, bpp, flags);
 		uint temp_bpp = 8;
 
-		if ((temp_bpp == 32 && scalers[new_scaler].scaler32) ||
+    if ((temp_bpp == 32 && scalers[new_scaler].scaler32) ||
 		    (temp_bpp == 16 && scalers[new_scaler].scaler16) ||
 		    (temp_bpp == 8  && scalers[new_scaler].scaler8 ))
 		{

@@ -21,7 +21,6 @@ on:
         default: 'assets'
 
 
-
 jobs:
   build:
     runs-on: ubuntu-latest

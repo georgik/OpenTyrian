@@ -228,7 +228,6 @@ SDL_Scancode convert_hid_to_sdl_scancode(uint8_t hid_code) {
     }
 }
 
-
 char convert_sdl_scancode_to_ascii(SDL_Scancode scancode, bool shift_pressed) {
     switch (scancode) {
         // Alphabet (A-Z)
