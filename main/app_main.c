@@ -42,6 +42,8 @@ void* keyboard_thread(void *args)
 
 // Thread to run Tyrian
 void* tyrian_thread(void* args) {
+    // Delay 500ms before starting the app
+    vTaskDelay(500 / portTICK_PERIOD_MS);
 
 #ifdef CONFIG_IDF_TARGET_ESP32P4
     printf("USB - Keyboard initialization\n");
