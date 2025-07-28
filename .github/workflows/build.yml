@@ -46,38 +46,22 @@ jobs:
             *) echo 'Unknown target'; exit 1;;
           esac)" >> $GITHUB_ENV
 
-      - name: esp-idf build
+      - name: esp-idf build and merge binaries
         uses: espressif/esp-idf-ci-action@v1.1.0
         with:
           esp_idf_version: latest
           target: ${{ env.TARGET }}
           path: '.'
           command: |
-            idf.py @boards/${{ matrix.board }}.cfg build
-
-      - name: Extract individual binaries
-        run: |
-          cd build.${{ matrix.board }}
-          # Copy individual components
-          cp bootloader/bootloader.bin ../bootloader-${{ matrix.board }}.bin
-          cp partition_table/partition-table.bin ../partition-table-${{ matrix.board }}.bin
-          cp esp32-open-tyrian.bin ../opentyrian.bin
-          cp storage.bin ../storage.bin
-          cd ..
-
-      - name: Create merged binary for ESP Launchpad
-        run: |
-          cd build.${{ matrix.board }}
-          # Create merged binary for web flashing
-          case ${{ matrix.board }} in
-            esp32_p4_function_ev_board)
-              esptool.py --chip ${{ env.TARGET }} merge_bin -o ../opentyrian-${{ github.event.inputs.version }}-${{ matrix.board }}.bin "@flash_args"
-              ;;
-            *)
-              esptool.py --chip ${{ env.TARGET }} merge_bin -o ../opentyrian-${{ github.event.inputs.version }}-${{ matrix.board }}.bin "@flash_args"
-              ;;
-          esac
-          cd ..
+            idf.py @boards/${{ matrix.board }}.cfg build &&
+            cd build.${{ matrix.board }} &&
+            # Copy individual components for packaging
+            cp bootloader/bootloader.bin ../bootloader-${{ matrix.board }}.bin &&
+            cp partition_table/partition-table.bin ../partition-table-${{ matrix.board }}.bin &&
+            cp esp32-open-tyrian.bin ../opentyrian.bin &&
+            cp storage.bin ../storage.bin &&
+            # Create merged binary for ESP Launchpad
+            esptool.py --chip ${{ env.TARGET }} merge_bin -o ../opentyrian-${{ github.event.inputs.version }}-${{ matrix.board }}.bin "@flash_args"
 
       - name: Create package
         run: |
