@@ -1,4 +1,4 @@
-name: Build ESP32 Application
+name: Build OpenTyrian Application
 
 on:
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        board: [esp-box-3, esp-box, m5stack_core_s3, esp32_p4_function_ev_board]
+        board: [esp-box-3, m5stack_core_s3, esp32_p4_function_ev_board]
       fail-fast: false
 
     steps:
@@ -37,7 +37,6 @@ jobs:
         run: |
           echo "TARGET=$(case ${{ matrix.board }} in
             esp-box-3) echo 'esp32s3';;
-            esp-box) echo 'esp32s3';;
             m5stack_core_s3) echo 'esp32s3';;
             esp32_p4_function_ev_board) echo 'esp32p4';;
             *) echo 'Unknown target'; exit 1;;

@@ -47,7 +47,26 @@ jobs:
       - name: Create Release
         if: env.release_exists == 'false'
         run: |
-          gh release create ${{ github.event.inputs.release_tag }} --title "${{ github.event.inputs.release_name }}" --prerelease
+          gh release create ${{ github.event.inputs.release_tag }} --title "${{ github.event.inputs.release_name }}" --prerelease --notes-file /tmp/release_notes.md
+
+      - name: Generate Flashing Instructions
+        run: |
+          for board in esp-box-3 m5stack_core_s3 esp32_p4_function_ev_board; do
+            cat >> /tmp/release_notes.md <<EOF
+          ## Flashing instructions for ${board}
+
+          Using esptool.py:
+          ```
+          esptool.py --chip auto erase_flash
+          esptool.py --chip auto write_flash --flash_mode dio --flash_size detect --flash_freq 80m 0x0 opentyrian-${{ github.event.inputs.release_tag }}-${board}.bin
+          ```
+
+          Using espflash:
+          ```
+          espflash flash opentyrian-${{ github.event.inputs.release_tag }}-${board}.bin
+          ```
+          EOF
+          done
 
       - name: Download Build Artifacts
         uses: dawidd6/action-download-artifact@v6
