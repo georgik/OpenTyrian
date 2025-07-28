@@ -12,27 +12,32 @@ cp ./bootloader-${BOARD}.bin $PACKAGE_DIR/
 cp ./partition-table-${BOARD}.bin $PACKAGE_DIR/
 cp ./opentyrian.bin $PACKAGE_DIR/
 
-# Create flash scripts
-cat << 'EOF' > $PACKAGE_DIR/flash.sh
+# Create flash scripts with board-specific flags
+ESPFLASH_FLAGS=""
+if [ "$BOARD" = "esp32_p4_function_ev_board" ]; then
+    ESPFLASH_FLAGS="--chip esp32p4 --no-stub"
+fi
+
+cat << EOF > $PACKAGE_DIR/flash.sh
 #!/bin/bash
-echo "Flashing OpenTyrian..."
-espflash flash --bootloader bootloader-${BOARD}.bin \
-               --partition-table partition-table-${BOARD}.bin \
+echo "Flashing OpenTyrian for ${BOARD}..."
+espflash flash ${ESPFLASH_FLAGS} --bootloader bootloader-${BOARD}.bin \\
+               --partition-table partition-table-${BOARD}.bin \\
                opentyrian.bin
 EOF
 chmod +x $PACKAGE_DIR/flash.sh
 
-cat << 'EOF' > $PACKAGE_DIR/flash.bat
+cat << EOF > $PACKAGE_DIR/flash.bat
 @echo off
-echo Flashing OpenTyrian...
-espflash flash --bootloader bootloader-${BOARD}.bin ^
+echo Flashing OpenTyrian for ${BOARD}...
+espflash flash ${ESPFLASH_FLAGS} --bootloader bootloader-${BOARD}.bin ^
                --partition-table partition-table-${BOARD}.bin ^
                opentyrian.bin
 EOF
 
-cat << 'EOF' > $PACKAGE_DIR/flash.ps1
-Write-Host "Flashing OpenTyrian..."
-espflash flash --bootloader bootloader-${BOARD}.bin `
+cat << EOF > $PACKAGE_DIR/flash.ps1
+Write-Host "Flashing OpenTyrian for ${BOARD}..."
+espflash flash ${ESPFLASH_FLAGS} --bootloader bootloader-${BOARD}.bin `
                --partition-table partition-table-${BOARD}.bin `
                opentyrian.bin
 EOF
@@ -84,7 +89,8 @@ size = "detect"       # Flash size (detect automatically)
 
 # Tool configurations
 [tools.espflash]
-command = "espflash flash --bootloader {bootloader} --partition-table {partition_table} {application}"
+command = "espflash flash ${ESPFLASH_FLAGS} --bootloader {bootloader} --partition-table {partition_table} {application}"
+flags = "${ESPFLASH_FLAGS}"
 
 [tools.espflash.components]
 bootloader = "bootloader-${BOARD}.bin"
