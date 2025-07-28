@@ -7,7 +7,7 @@ OpenTyrian with ESP32-P4 and [T-Keyboard S3 Pro](https://github.com/MatheyDeo/Li
 
 This is a port of OpenTyrian to the ESP32 platform, originally ported to ESP32 by Gadget Workbench and updated for new hardware with support for [Board Support Packages](https://components.espressif.com/components?q=Board+Support+Package).
 
-The fork was updated to use all the game data directly from flash, as SD cards have a tendency to be unreliable. It now works with ESP-IDF 5.4 and utilizes the latest [SDL3](https://components.espressif.com/components/georgik/sdl) available at the Espressif Component Registry.
+The fork was updated to use all the game data directly from flash, as SD cards have a tendency to be unreliable. It now works with ESP-IDF and utilizes the latest [SDL3](https://components.espressif.com/components/georgik/sdl) available at the Espressif Component Registry.
 
 ## Storyline
 
@@ -21,6 +21,18 @@ Tyrian is an arcade-style vertical scrolling shooter. The story is set in 20,031
 - [ESP32-S3-BOX-3](https://components.espressif.com/components/espressif/esp-box-3)
 - [ESP32-P4](https://components.espressif.com/components/espressif/esp32_p4_function_ev_board_noglib)
 - [M5Stack-CoreS3](https://components.espressif.com/components/espressif/m5stack_core_s3)
+
+## ESP32-P4 Features
+
+The ESP32-P4 version leverages the **Pixel Processing Accelerator (PPA)** for enhanced graphics performance. The PPA is a hardware accelerator specifically designed for image and graphics processing operations, enabling smooth scaling of the original game graphics to full display resolution with minimal CPU overhead.
+
+The [PPA peripheral](https://docs.espressif.com/projects/esp-idf/en/stable/esp32p4/api-reference/peripherals/ppa.html) provides hardware acceleration for:
+- Image scaling and rotation
+- Color format conversion
+- Blending operations
+- Real-time graphics transformations
+
+This hardware acceleration ensures OpenTyrian runs smoothly at full display resolution while maintaining responsive gameplay.
 
 ## Installation
 
