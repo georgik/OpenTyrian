@@ -21,25 +21,19 @@ fi
 cat << EOF > $PACKAGE_DIR/flash.sh
 #!/bin/bash
 echo "Flashing OpenTyrian for ${BOARD}..."
-espflash flash ${ESPFLASH_FLAGS} --bootloader bootloader-${BOARD}.bin \\
-               --partition-table partition-table-${BOARD}.bin \\
-               opentyrian.bin
+espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin 0x8000 partition-table-${BOARD}.bin 0x10000 opentyrian.bin
 EOF
 chmod +x $PACKAGE_DIR/flash.sh
 
 cat << EOF > $PACKAGE_DIR/flash.bat
 @echo off
 echo Flashing OpenTyrian for ${BOARD}...
-espflash flash ${ESPFLASH_FLAGS} --bootloader bootloader-${BOARD}.bin ^
-               --partition-table partition-table-${BOARD}.bin ^
-               opentyrian.bin
+espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin 0x8000 partition-table-${BOARD}.bin 0x10000 opentyrian.bin
 EOF
 
 cat << EOF > $PACKAGE_DIR/flash.ps1
 Write-Host "Flashing OpenTyrian for ${BOARD}..."
-espflash flash ${ESPFLASH_FLAGS} --bootloader bootloader-${BOARD}.bin `
-               --partition-table partition-table-${BOARD}.bin `
-               opentyrian.bin
+espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin 0x8000 partition-table-${BOARD}.bin 0x10000 opentyrian.bin
 EOF
 
 # Create comprehensive TOML manifest
@@ -89,7 +83,7 @@ size = "detect"       # Flash size (detect automatically)
 
 # Tool configurations
 [tools.espflash]
-command = "espflash flash ${ESPFLASH_FLAGS} --bootloader {bootloader} --partition-table {partition_table} {application}"
+command = "espflash write-bin ${ESPFLASH_FLAGS} 0x0 {bootloader} 0x8000 {partition_table} 0x10000 {application}"
 flags = "${ESPFLASH_FLAGS}"
 
 [tools.espflash.components]
