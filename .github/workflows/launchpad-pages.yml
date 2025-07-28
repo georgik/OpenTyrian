@@ -6,6 +6,8 @@ on:
     paths: 
       - 'launchpad/**'
       - '.github/workflows/launchpad-pages.yml'
+  release:
+    types: [published]
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -32,6 +34,22 @@ jobs:
       - name: Clone ESP Launchpad
         run: |
           git clone https://github.com/espressif/esp-launchpad.git temp-launchpad
+          
+      - name: Download latest release binaries
+        run: |
+          # Create firmware directory
+          mkdir -p temp-launchpad/firmware
+          
+          # Get the latest release and download firmware binaries
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/georgik/OpenTyrian/releases/latest | jq -r '.tag_name')
+          echo "Latest release: $LATEST_RELEASE"
+          
+          # Download firmware binaries from latest release
+          curl -L -o temp-launchpad/firmware/opentyrian-latest-m5stack_core_s3.bin \
+            "https://github.com/georgik/OpenTyrian/releases/latest/download/opentyrian-${LATEST_RELEASE}-m5stack_core_s3.bin" || echo "M5Stack binary not found"
+          
+          curl -L -o temp-launchpad/firmware/opentyrian-latest-esp32_p4_function_ev_board.bin \
+            "https://github.com/georgik/OpenTyrian/releases/latest/download/opentyrian-${LATEST_RELEASE}-esp32_p4_function_ev_board.bin" || echo "ESP32-P4 binary not found"
           
       - name: Setup custom configuration
         run: |

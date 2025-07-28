@@ -1,7 +1,7 @@
 esp_toml_version = 1.0
 
 # Base URL where OpenTyrian firmware binaries are hosted
-firmware_images_url = "https://github.com/georgik/OpenTyrian/releases/latest/download/"
+firmware_images_url = "https://georgik.github.io/OpenTyrian/firmware/"
 
 # OpenTyrian applications available
 supported_apps = ["OpenTyrian"]
