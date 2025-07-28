@@ -15,15 +15,17 @@ cp ./storage.bin $PACKAGE_DIR/
 
 # Create flash scripts with board-specific flags
 ESPFLASH_FLAGS=""
+BOOTLOADER_OFFSET="0x0"
 if [ "$BOARD" = "esp32_p4_function_ev_board" ]; then
     ESPFLASH_FLAGS="--chip esp32p4 --no-stub"
+    BOOTLOADER_OFFSET="0x2000"
 fi
 
 cat << EOF > $PACKAGE_DIR/flash.sh
 #!/bin/bash
 echo "Flashing OpenTyrian for ${BOARD}..."
 echo "Flashing bootloader..."
-espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin
+espflash write-bin ${ESPFLASH_FLAGS} ${BOOTLOADER_OFFSET} bootloader-${BOARD}.bin
 echo "Flashing partition table..."
 espflash write-bin ${ESPFLASH_FLAGS} 0x8000 partition-table-${BOARD}.bin
 echo "Flashing application..."
@@ -38,7 +40,7 @@ cat << EOF > $PACKAGE_DIR/flash.bat
 @echo off
 echo Flashing OpenTyrian for ${BOARD}...
 echo Flashing bootloader...
-espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin
+espflash write-bin ${ESPFLASH_FLAGS} ${BOOTLOADER_OFFSET} bootloader-${BOARD}.bin
 echo Flashing partition table...
 espflash write-bin ${ESPFLASH_FLAGS} 0x8000 partition-table-${BOARD}.bin
 echo Flashing application...
@@ -51,7 +53,7 @@ EOF
 cat << EOF > $PACKAGE_DIR/flash.ps1
 Write-Host "Flashing OpenTyrian for ${BOARD}..."
 Write-Host "Flashing bootloader..."
-espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin
+espflash write-bin ${ESPFLASH_FLAGS} ${BOOTLOADER_OFFSET} bootloader-${BOARD}.bin
 Write-Host "Flashing partition table..."
 espflash write-bin ${ESPFLASH_FLAGS} 0x8000 partition-table-${BOARD}.bin
 Write-Host "Flashing application..."
@@ -82,7 +84,7 @@ description = "OpenTyrian game firmware for ESP32 boards"
 [[flash_components]]
 name = "bootloader"
 file = "bootloader-${BOARD}.bin"
-offset = "0x0"
+offset = "${BOOTLOADER_OFFSET}"
 required = true
 description = "ESP-IDF bootloader - handles initial boot sequence"
 
@@ -118,7 +120,7 @@ size = "detect"       # Flash size (detect automatically)
 flags = "${ESPFLASH_FLAGS}"
 
 [tools.espflash.commands]
-bootloader = "espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin"
+bootloader = "espflash write-bin ${ESPFLASH_FLAGS} ${BOOTLOADER_OFFSET} bootloader-${BOARD}.bin"
 partition_table = "espflash write-bin ${ESPFLASH_FLAGS} 0x8000 partition-table-${BOARD}.bin"
 application = "espflash write-bin ${ESPFLASH_FLAGS} 0x10000 opentyrian.bin"
 storage = "espflash write-bin ${ESPFLASH_FLAGS} 0x310000 storage.bin"
