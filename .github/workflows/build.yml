@@ -57,7 +57,7 @@ jobs:
           # Copy individual components
           cp bootloader/bootloader.bin ../bootloader-${{ matrix.board }}.bin
           cp partition_table/partition-table.bin ../partition-table-${{ matrix.board }}.bin
-          cp ${{ github.event.inputs.prefix }}.bin ../opentyrian.bin
+          cp esp32-open-tyrian.bin ../opentyrian.bin
           cd ..
 
       - name: Create package
