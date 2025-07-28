@@ -62,6 +62,7 @@ jobs:
           cp bootloader/bootloader.bin ../bootloader-${{ matrix.board }}.bin
           cp partition_table/partition-table.bin ../partition-table-${{ matrix.board }}.bin
           cp esp32-open-tyrian.bin ../opentyrian.bin
+          cp storage.bin ../storage.bin
           cd ..
 
       - name: Create package

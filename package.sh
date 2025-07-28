@@ -11,6 +11,7 @@ mkdir -p $PACKAGE_DIR
 cp ./bootloader-${BOARD}.bin $PACKAGE_DIR/
 cp ./partition-table-${BOARD}.bin $PACKAGE_DIR/
 cp ./opentyrian.bin $PACKAGE_DIR/
+cp ./storage.bin $PACKAGE_DIR/
 
 # Create flash scripts with board-specific flags
 ESPFLASH_FLAGS=""
@@ -21,19 +22,43 @@ fi
 cat << EOF > $PACKAGE_DIR/flash.sh
 #!/bin/bash
 echo "Flashing OpenTyrian for ${BOARD}..."
-espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin 0x8000 partition-table-${BOARD}.bin 0x10000 opentyrian.bin
+echo "Flashing bootloader..."
+espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin
+echo "Flashing partition table..."
+espflash write-bin ${ESPFLASH_FLAGS} 0x8000 partition-table-${BOARD}.bin
+echo "Flashing application..."
+espflash write-bin ${ESPFLASH_FLAGS} 0x10000 opentyrian.bin
+echo "Flashing storage data..."
+espflash write-bin ${ESPFLASH_FLAGS} 0x310000 storage.bin
+echo "Done!"
 EOF
 chmod +x $PACKAGE_DIR/flash.sh
 
 cat << EOF > $PACKAGE_DIR/flash.bat
 @echo off
 echo Flashing OpenTyrian for ${BOARD}...
-espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin 0x8000 partition-table-${BOARD}.bin 0x10000 opentyrian.bin
+echo Flashing bootloader...
+espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin
+echo Flashing partition table...
+espflash write-bin ${ESPFLASH_FLAGS} 0x8000 partition-table-${BOARD}.bin
+echo Flashing application...
+espflash write-bin ${ESPFLASH_FLAGS} 0x10000 opentyrian.bin
+echo Flashing storage data...
+espflash write-bin ${ESPFLASH_FLAGS} 0x310000 storage.bin
+echo Done!
 EOF
 
 cat << EOF > $PACKAGE_DIR/flash.ps1
 Write-Host "Flashing OpenTyrian for ${BOARD}..."
-espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin 0x8000 partition-table-${BOARD}.bin 0x10000 opentyrian.bin
+Write-Host "Flashing bootloader..."
+espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin
+Write-Host "Flashing partition table..."
+espflash write-bin ${ESPFLASH_FLAGS} 0x8000 partition-table-${BOARD}.bin
+Write-Host "Flashing application..."
+espflash write-bin ${ESPFLASH_FLAGS} 0x10000 opentyrian.bin
+Write-Host "Flashing storage data..."
+espflash write-bin ${ESPFLASH_FLAGS} 0x310000 storage.bin
+Write-Host "Done!"
 EOF
 
 # Create comprehensive TOML manifest
@@ -75,6 +100,13 @@ offset = "0x10000"
 required = true
 description = "Main OpenTyrian application binary"
 
+[[flash_components]]
+name = "storage"
+file = "storage.bin"
+offset = "0x310000"
+required = true
+description = "Game assets and data storage (LittleFS)"
+
 # Flash settings
 [flash_settings]
 mode = "dio"          # Flash mode (dio/qio/dout/qout)
@@ -83,13 +115,19 @@ size = "detect"       # Flash size (detect automatically)
 
 # Tool configurations
 [tools.espflash]
-command = "espflash write-bin ${ESPFLASH_FLAGS} 0x0 {bootloader} 0x8000 {partition_table} 0x10000 {application}"
 flags = "${ESPFLASH_FLAGS}"
+
+[tools.espflash.commands]
+bootloader = "espflash write-bin ${ESPFLASH_FLAGS} 0x0 bootloader-${BOARD}.bin"
+partition_table = "espflash write-bin ${ESPFLASH_FLAGS} 0x8000 partition-table-${BOARD}.bin"
+application = "espflash write-bin ${ESPFLASH_FLAGS} 0x10000 opentyrian.bin"
+storage = "espflash write-bin ${ESPFLASH_FLAGS} 0x310000 storage.bin"
 
 [tools.espflash.components]
 bootloader = "bootloader-${BOARD}.bin"
 partition_table = "partition-table-${BOARD}.bin"
 application = "opentyrian.bin"
+storage = "storage.bin"
 
 [tools.esptool]
 erase_command = "esptool.py --chip auto erase_flash"
