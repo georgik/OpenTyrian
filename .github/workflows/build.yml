@@ -3,6 +3,10 @@ name: Build OpenTyrian Application
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
       board:
         description: 'Board to build for (all or specific board name)'
         required: true
@@ -63,10 +67,10 @@ jobs:
       - name: Create package
         run: |
           chmod +x ./package.sh
-          ./package.sh ${{ github.event.inputs.prefix }}-v1.0.0 ${{ matrix.board }}
+          ./package.sh ${{ github.event.inputs.version }} ${{ matrix.board }}
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.inputs.prefix }}-v1.0.0-${{ matrix.board }}
-          path: ${{ github.event.inputs.prefix }}-v1.0.0-${{ matrix.board }}.zip
+          name: ${{ github.event.inputs.prefix }}-${{ github.event.inputs.version }}-${{ matrix.board }}
+          path: opentyrian-${{ github.event.inputs.version }}-${{ matrix.board }}.zip

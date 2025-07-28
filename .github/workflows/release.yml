@@ -84,6 +84,8 @@ jobs:
         uses: dawidd6/action-download-artifact@v6
         with:
           workflow: build.yml
+          name_is_regexp: true
+          name: '${{ github.event.inputs.prefix }}-${{ github.event.inputs.release_tag }}-.*'
           path: artifacts
 
       - name: List Downloaded Files

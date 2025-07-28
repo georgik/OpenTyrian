@@ -13,7 +13,7 @@ cp ./partition-table-${BOARD}.bin $PACKAGE_DIR/
 cp ./opentyrian.bin $PACKAGE_DIR/
 
 # Create flash scripts
-cat << EOF > $PACKAGE_DIR/flash.sh
+cat << 'EOF' > $PACKAGE_DIR/flash.sh
 #!/bin/bash
 echo "Flashing OpenTyrian..."
 espflash flash --bootloader bootloader-${BOARD}.bin \
@@ -22,7 +22,7 @@ espflash flash --bootloader bootloader-${BOARD}.bin \
 EOF
 chmod +x $PACKAGE_DIR/flash.sh
 
-cat << EOF > $PACKAGE_DIR/flash.bat
+cat << 'EOF' > $PACKAGE_DIR/flash.bat
 @echo off
 echo Flashing OpenTyrian...
 espflash flash --bootloader bootloader-${BOARD}.bin ^
@@ -30,7 +30,7 @@ espflash flash --bootloader bootloader-${BOARD}.bin ^
                opentyrian.bin
 EOF
 
-cat << EOF > $PACKAGE_DIR/flash.ps1
+cat << 'EOF' > $PACKAGE_DIR/flash.ps1
 Write-Host "Flashing OpenTyrian..."
 espflash flash --bootloader bootloader-${BOARD}.bin `
                --partition-table partition-table-${BOARD}.bin `
