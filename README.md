@@ -3,7 +3,7 @@
 
 ![ESP32-P4 with T-Keyboard S3 Pro](docs/images/opentyrian-esp32-p4.webp)
 
-OpenTyrian with ESP32-P4 and T-Keyboard S3 Pro for a seamless gaming experience.
+OpenTyrian with ESP32-P4 and [T-Keyboard S3 Pro](https://github.com/MatheyDeo/LilyGoT-keyboard-s3-pro-usb-boot-keyboard).
 
 This is a port of OpenTyrian to the ESP32 platform, originally ported to ESP32 by Gadget Workbench and updated for new hardware with support for [Board Support Packages](https://components.espressif.com/components?q=Board+Support+Package).
 
@@ -17,8 +17,7 @@ Tyrian is an arcade-style vertical scrolling shooter. The story is set in 20,031
 
 ## Requirements
 
-- ESP-IDF 5.4 or later
-- [ESP32-S3-BOX](https://components.espressif.com/components/espressif/esp-box-3)
+- ESP-IDF 5.5 or later
 - [ESP32-S3-BOX-3](https://components.espressif.com/components/espressif/esp-box-3)
 - [ESP32-P4](https://components.espressif.com/components/espressif/esp32_p4_function_ev_board_noglib)
 - [M5Stack-CoreS3](https://components.espressif.com/components/espressif/m5stack_core_s3)
@@ -57,6 +56,10 @@ Once you have bootloader in place, you can flash only application to save the ti
 ```shell
 idf.py @boards/... app-flash monitor
 ```
+
+## Firmware for the Keyboard
+
+If you'd like to extend the project by using [T-Keyboard S3 Pro](https://lilygo.cc/products/t-keyboard-s3-pro), then you can use project [LilyGoT-keyboard-s3-pro-usb-boot-keyboard](https://github.com/MatheyDeo/LilyGoT-keyboard-s3-pro-usb-boot-keyboard).
 
 ## Acknowledgements
 
