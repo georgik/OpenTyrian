@@ -48,36 +48,30 @@ jobs:
         run: |
           cat > /tmp/release_notes.md <<EOF
           # OpenTyrian ${{ github.event.inputs.release_tag }}
-
-## Installation Instructions
-
+          
+          ## Web-based Flashing (Easiest)
+          
+          Use our web-based installer for one-click flashing:
+          
+          [![Try it with ESP Launchpad](https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png)](https://georgik.github.io/OpenTyrian/?flashConfigURL=https://georgik.github.io/OpenTyrian/config/config.toml)
+          
+          ## Manual Installation
+          
           1. Download the appropriate zip file for your board
           2. Extract the zip file
           3. Run the flashing script for your platform:
              - Linux/macOS: `./flash.sh`
              - Windows (Command Prompt): `flash.bat`
              - Windows (PowerShell): `flash.ps1`
-
-          ## Inputs
-
-          - USB Keyboard: Attach a USB keyboard to control the gameplay.
-          - T-Keyboard S3 Pro: This device offers enhanced control with additional programmable keys.
-
           
-
-          If you prefer to flash manually using espflash:
-          ```
-          espflash flash --bootloader bootloader-[board].bin --partition-table partition-table-[board].bin opentyrian.bin
-          ```
-
-          Or using esptool.py:
-          ```
-          esptool.py write_flash 0x0 bootloader-[board].bin 0x8000 partition-table-[board].bin 0x10000 opentyrian.bin
-          ```
-
+          ## Game Controls
+          
+          - USB Keyboard: Connect any USB keyboard for full game control
+          - T-Keyboard S3 Pro: Enhanced gaming experience with programmable keys
+          
           ## Available Boards
-          - m5stack_core_s3
-          - esp32_p4_function_ev_board
+          - M5Stack Core S3
+          - ESP32-P4 Function EV Board
           EOF
 
       - name: Create Release

@@ -38,7 +38,7 @@ This hardware acceleration ensures OpenTyrian runs smoothly at full display reso
 
 For the quickest installation, use our web-based installer (Chrome/Edge browsers recommended):
 
-[![Try it with ESP Launchpad](https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png)](https://georgik.github.io/OpenTyrian/)
+[![Try it with ESP Launchpad](https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png)](https://georgik.github.io/OpenTyrian/?flashConfigURL=https://georgik.github.io/OpenTyrian/config/config.toml)
 
 1. Connect your ESP32-P4 board via USB
 2. Click the button above to open the web installer
