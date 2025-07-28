@@ -1,4 +1,9 @@
+
 # OpenTyrian - ESP32 Port
+
+![ESP32-P4 with T-Keyboard S3 Pro](docs/images/opentyrian-esp32-p4.webp)
+
+OpenTyrian with ESP32-P4 and T-Keyboard S3 Pro for a seamless gaming experience.
 
 This is a port of OpenTyrian to the ESP32 platform, originally ported to ESP32 by Gadget Workbench and updated for new hardware with support for [Board Support Packages](https://components.espressif.com/components?q=Board+Support+Package).
 
@@ -27,11 +32,6 @@ Configure the build environment for your board:
 For ESP32-S3-BOX-3:
 ```shell
 idf.py @boards/esp-box-3.cfg build
-```
-
-For ESP32-S3-BOX (prior to Dec. 2023):
-```shell
-idf.py @boards/esp-box.cfg build
 ```
 
 For ESP32-P4:
@@ -69,3 +69,4 @@ This port is based on the work of the original OpenTyrian project (https://githu
 ## Credits
 
 Special thanks to all contributors and the open-source community for making this project possible.
+
