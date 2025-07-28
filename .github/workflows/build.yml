@@ -42,19 +42,31 @@ jobs:
             *) echo 'Unknown target'; exit 1;;
           esac)" >> $GITHUB_ENV
 
-      - name: esp-idf build and merge binaries
+      - name: esp-idf build
         uses: espressif/esp-idf-ci-action@v1.1.0
         with:
           esp_idf_version: latest
           target: ${{ env.TARGET }}
           path: '.'
           command: |
-            idf.py @boards/${{ matrix.board }}.cfg build &&
-            cd build.${{ matrix.board }} &&
-            esptool.py --chip ${{ env.TARGET }} merge_bin -o ${{ github.event.inputs.prefix }}-${{ matrix.board }}.bin "@flash_args"
+            idf.py @boards/${{ matrix.board }}.cfg build
+
+      - name: Extract individual binaries
+        run: |
+          cd build.${{ matrix.board }}
+          # Copy individual components
+          cp bootloader/bootloader.bin ../bootloader-${{ matrix.board }}.bin
+          cp partition_table/partition-table.bin ../partition-table-${{ matrix.board }}.bin
+          cp ${{ github.event.inputs.prefix }}.bin ../opentyrian.bin
+          cd ..
+
+      - name: Create package
+        run: |
+          chmod +x ./package.sh
+          ./package.sh ${{ github.event.inputs.prefix }}-v1.0.0 ${{ matrix.board }}
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.inputs.prefix }}-${{ matrix.board }}.bin
-          path: build.${{ matrix.board }}/${{ github.event.inputs.prefix }}-${{ matrix.board }}.bin
+          name: ${{ github.event.inputs.prefix }}-v1.0.0-${{ matrix.board }}
+          path: ${{ github.event.inputs.prefix }}-v1.0.0-${{ matrix.board }}.zip

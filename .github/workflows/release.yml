@@ -46,22 +46,34 @@ jobs:
 
       - name: Generate Flashing Instructions
         run: |
-          for board in esp-box-3 m5stack_core_s3 esp32_p4_function_ev_board; do
-            cat >> /tmp/release_notes.md <<EOF
-          ## Flashing instructions for ${board}
+          cat > /tmp/release_notes.md <<EOF
+          # OpenTyrian ${{ github.event.inputs.release_tag }}
 
-          Using esptool.py:
+          ## Installation Instructions
+
+          1. Download the appropriate zip file for your board
+          2. Extract the zip file
+          3. Run the flashing script for your platform:
+             - Linux/macOS: `./flash.sh`
+             - Windows (Command Prompt): `flash.bat`
+             - Windows (PowerShell): `flash.ps1`
+
+          ## Manual Flashing
+
+          If you prefer to flash manually using espflash:
           ```
-          esptool.py --chip auto erase_flash
-          esptool.py --chip auto write_flash --flash_mode dio --flash_size detect --flash_freq 80m 0x0 opentyrian-${{ github.event.inputs.release_tag }}-${board}.bin
+          espflash flash --bootloader bootloader-[board].bin --partition-table partition-table-[board].bin opentyrian.bin
           ```
 
-          Using espflash:
+          Or using esptool.py:
           ```
-          espflash flash opentyrian-${{ github.event.inputs.release_tag }}-${board}.bin
+          esptool.py write_flash 0x0 bootloader-[board].bin 0x8000 partition-table-[board].bin 0x10000 opentyrian.bin
           ```
+
+          ## Available Boards
+          - m5stack_core_s3
+          - esp32_p4_function_ev_board
           EOF
-          done
 
       - name: Create Release
         if: env.release_exists == 'false'
@@ -79,16 +91,12 @@ jobs:
           echo "Listing all files in the artifacts directory:"
           find artifacts -type f
 
-      - name: Rename and Upload Assets to Release
+      - name: Upload Package Assets to Release
         run: |
-          # List all binary files in the artifacts directory
-          for file in $(find artifacts -type f -name "*.bin"); do
-            # Extract board name from the directory structure
-            board_name=$(basename "$file" | sed -n "s/${{ github.event.inputs.prefix }}-\(.*\)\.bin/\1/p")
-            # Define the versioned asset name
-            asset_name="${{ github.event.inputs.prefix }}-${{ github.event.inputs.release_tag }}-${board_name}.bin"
-            # Upload the artifact to the release
-            gh release upload "${{ github.event.inputs.release_tag }}" "$file#${asset_name}" --clobber
+          # Upload all zip packages to the release
+          for file in $(find artifacts -type f -name "*.zip"); do
+            # Upload the zip package directly
+            gh release upload "${{ github.event.inputs.release_tag }}" "$file" --clobber
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
