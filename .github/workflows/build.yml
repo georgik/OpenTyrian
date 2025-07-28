@@ -65,6 +65,20 @@ jobs:
           cp storage.bin ../storage.bin
           cd ..
 
+      - name: Create merged binary for ESP Launchpad
+        run: |
+          cd build.${{ matrix.board }}
+          # Create merged binary for web flashing
+          case ${{ matrix.board }} in
+            esp32_p4_function_ev_board)
+              esptool.py --chip ${{ env.TARGET }} merge_bin -o ../opentyrian-${{ github.event.inputs.version }}-${{ matrix.board }}.bin "@flash_args"
+              ;;
+            *)
+              esptool.py --chip ${{ env.TARGET }} merge_bin -o ../opentyrian-${{ github.event.inputs.version }}-${{ matrix.board }}.bin "@flash_args"
+              ;;
+          esac
+          cd ..
+
       - name: Create package
         run: |
           chmod +x ./package.sh
@@ -74,4 +88,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.inputs.prefix }}-${{ github.event.inputs.version }}-${{ matrix.board }}
-          path: opentyrian-${{ github.event.inputs.version }}-${{ matrix.board }}.zip
+          path: |
+            opentyrian-${{ github.event.inputs.version }}-${{ matrix.board }}.zip
+            opentyrian-${{ github.event.inputs.version }}-${{ matrix.board }}.bin

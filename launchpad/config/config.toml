@@ -1,0 +1,31 @@
+esp_toml_version = 1.0
+
+# Base URL where OpenTyrian firmware binaries are hosted
+firmware_images_url = "https://github.com/georgik/OpenTyrian/releases/latest/download/"
+
+# OpenTyrian applications available
+supported_apps = ["OpenTyrian"]
+
+# Configuration documentation
+config_readme_url = "https://raw.githubusercontent.com/georgik/OpenTyrian/main/docs/FLASH_INSTRUCTIONS.md"
+
+[OpenTyrian]
+# Supported ESP32 chipsets
+chipsets = ["ESP32-S3", "ESP32-P4"]
+
+# Development kits
+developKits.esp32-s3 = ["m5stack-core-s3"]
+developKits.esp32-p4 = ["esp32-p4-function-ev-board"]
+
+# Firmware images for each board (using merged binaries)
+image.m5stack-core-s3 = "opentyrian-latest-m5stack_core_s3.bin"
+image.esp32-p4-function-ev-board = "opentyrian-latest-esp32_p4_function_ev_board.bin"
+
+# Description
+description = "OpenTyrian - Classic space shooter game ported to ESP32. Experience nostalgic arcade gaming with modern ESP32 hardware acceleration."
+
+# Additional information
+readme.text = "https://raw.githubusercontent.com/georgik/OpenTyrian/main/README.md"
+
+# Console settings
+console_baudrate = 115200

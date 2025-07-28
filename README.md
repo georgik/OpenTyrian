@@ -34,7 +34,19 @@ The [PPA peripheral](https://docs.espressif.com/projects/esp-idf/en/stable/esp32
 
 This hardware acceleration ensures OpenTyrian runs smoothly at full display resolution while maintaining responsive gameplay.
 
-## Installation
+## Web-based Flashing (Easiest)
+
+For the quickest installation, use our web-based installer (Chrome/Edge browsers recommended):
+
+[![Try it with ESP Launchpad](https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png)](https://georgik.github.io/OpenTyrian/)
+
+1. Connect your ESP32-P4 board via USB
+2. Click the button above to open the web installer
+3. Click "Connect" and select your board's serial port
+4. Choose "OpenTyrian" and your board type
+5. Click "Flash" and wait for completion
+
+## Manual Installation
 
 You can use the `@board/` parameter with `idf.py` to switch between different board configurations.
 

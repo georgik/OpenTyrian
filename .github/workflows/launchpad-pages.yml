@@ -1,0 +1,61 @@
+name: Deploy ESP Launchpad to Pages
+
+on:
+  push:
+    branches: ["main"]
+    paths: 
+      - 'launchpad/**'
+      - '.github/workflows/launchpad-pages.yml'
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "launchpad-pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Clone ESP Launchpad
+        run: |
+          git clone https://github.com/espressif/esp-launchpad.git temp-launchpad
+          
+      - name: Setup custom configuration
+        run: |
+          # Copy our configuration over the default one
+          cp launchpad/config/config.toml temp-launchpad/config/config.toml
+          
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          
+      - name: Install dependencies
+        run: |
+          cd temp-launchpad
+          npm install
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'temp-launchpad'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

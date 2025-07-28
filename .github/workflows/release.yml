@@ -49,7 +49,7 @@ jobs:
           cat > /tmp/release_notes.md <<EOF
           # OpenTyrian ${{ github.event.inputs.release_tag }}
 
-          ## Installation Instructions
+## Installation Instructions
 
           1. Download the appropriate zip file for your board
           2. Extract the zip file
@@ -58,7 +58,12 @@ jobs:
              - Windows (Command Prompt): `flash.bat`
              - Windows (PowerShell): `flash.ps1`
 
-          ## Manual Flashing
+          ## Inputs
+
+          - USB Keyboard: Attach a USB keyboard to control the gameplay.
+          - T-Keyboard S3 Pro: This device offers enhanced control with additional programmable keys.
+
+          
 
           If you prefer to flash manually using espflash:
           ```
@@ -98,6 +103,11 @@ jobs:
           # Upload all zip packages to the release
           for file in $(find artifacts -type f -name "*.zip"); do
             # Upload the zip package directly
+            gh release upload "${{ github.event.inputs.release_tag }}" "$file" --clobber
+          done
+          # Upload merged binaries for ESP Launchpad
+          for file in $(find artifacts -type f -name "*.bin"); do
+            # Upload the merged binary directly
             gh release upload "${{ github.event.inputs.release_tag }}" "$file" --clobber
           done
         env:
