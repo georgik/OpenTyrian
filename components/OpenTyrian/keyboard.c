@@ -624,7 +624,7 @@ void* usb_event_handler_thread(void* arg)
 
 void init_keyboard(void)
 {
-    SDL_AddKeyboard(1, "Virtual Keyboard", true);
+    SDL_AddKeyboard(1, "Virtual Keyboard");
 
     newkey = newmouse = false;
     keydown = mousedown = false;
@@ -728,7 +728,7 @@ void service_SDL_events(JE_boolean clear_new)
 
                 keydown = true;    // Key is pressed
                 newkey = true;     // Mark new key event
-                keysactive[event.key.key] = true;  // Update key state
+                keysactive[event.key.scancode] = true;  // Update key state
                 break;
             }
             case SDL_EVENT_KEY_UP: {
@@ -739,7 +739,7 @@ void service_SDL_events(JE_boolean clear_new)
 
                 keydown = false;   // Key is released
                 newkey = false;     // Mark new key event
-                keysactive[event.key.key] = false;  // Update key state
+                keysactive[event.key.scancode] = false;  // Update key state
                 break;
             }
             case SDL_EVENT_QUIT:

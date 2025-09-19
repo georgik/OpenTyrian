@@ -16,7 +16,7 @@ cp ./storage.bin $PACKAGE_DIR/
 # Create flash scripts with board-specific flags
 ESPFLASH_FLAGS=""
 BOOTLOADER_OFFSET="0x0"
-if [ "$BOARD" = "esp32_p4_function_ev_board" ]; then
+if [ "$BOARD" = "esp32_p4_function_ev_board" ] || [ "$BOARD" = "m5stack_tab5" ]; then
     ESPFLASH_FLAGS="--chip esp32p4 --no-stub"
     BOOTLOADER_OFFSET="0x2000"
 fi
@@ -74,7 +74,7 @@ version = "$VERSION"
 board = "$BOARD"
 target = "$(case $BOARD in
   esp-box-3|m5stack_core_s3) echo 'esp32s3';;
-  esp32_p4_function_ev_board) echo 'esp32p4';;
+  esp32_p4_function_ev_board|m5stack_tab5) echo 'esp32p4';;
   *) echo 'unknown';;
 esac)"
 created_at = "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
