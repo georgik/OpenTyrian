@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        board: [m5stack_core_s3, esp32_p4_function_ev_board]
+        board: [m5stack_core_s3, esp32_p4_function_ev_board, m5stack_tab5, esp-box-3]
       fail-fast: false
 
     steps:
@@ -43,6 +43,7 @@ jobs:
             esp-box-3) echo 'esp32s3';;
             m5stack_core_s3) echo 'esp32s3';;
             esp32_p4_function_ev_board) echo 'esp32p4';;
+            m5stack_tab5) echo 'esp32p4';;
             *) echo 'Unknown target'; exit 1;;
           esac)" >> $GITHUB_ENV
 
@@ -53,8 +54,9 @@ jobs:
           target: ${{ env.TARGET }}
           path: '.'
           command: |
-            idf.py @boards/${{ matrix.board }}.cfg build &&
-            cd build.${{ matrix.board }} &&
+            cp sdkconfig.defaults.${{ matrix.board }} sdkconfig.defaults &&
+            idf.py build &&
+            cd build &&
             # Copy individual components for packaging
             cp bootloader/bootloader.bin ../bootloader-${{ matrix.board }}.bin &&
             cp partition_table/partition-table.bin ../partition-table-${{ matrix.board }}.bin &&

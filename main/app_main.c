@@ -50,7 +50,13 @@ void* tyrian_thread(void* args) {
 
     // Temporary solution to transport scaling factor directly to framebuffer
     // This will invoke PPA
+#ifdef CONFIG_SDL_BSP_M5STACK_TAB5
+    // For M5Stack Tab5, disable PPA scaling as hardware scaling is handled by BSP layer
+    set_scale_factor(1, 1.0);
+#else
+    // For other ESP32P4 boards, use 3x PPA scaling
     set_scale_factor(3, 3.0);
+#endif
     init_keyboard();
 
     // Create the keyboard processing thread

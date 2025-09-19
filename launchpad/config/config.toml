@@ -14,15 +14,17 @@ config_readme_url = "https://raw.githubusercontent.com/georgik/OpenTyrian/main/d
 chipsets = ["ESP32-S3", "ESP32-P4"]
 
 # Development kits
-developKits.esp32-s3 = ["m5stack-core-s3"]
-developKits.esp32-p4 = ["esp32-p4-function-ev-board"]
+developKits.esp32-s3 = ["m5stack-core-s3", "esp32-s3-box-3"]
+developKits.esp32-p4 = ["esp32-p4-function-ev-board", "m5stack-tab5"]
 
 # Firmware images for each board (using merged binaries)
 image.m5stack-core-s3 = "opentyrian-latest-m5stack_core_s3.bin"
+image.esp32-s3-box-3 = "opentyrian-latest-esp-box-3.bin"
 image.esp32-p4-function-ev-board = "opentyrian-latest-esp32_p4_function_ev_board.bin"
+image.m5stack-tab5 = "opentyrian-latest-m5stack_tab5.bin"
 
 # Description
-description = "OpenTyrian - Classic space shooter game ported to ESP32. Experience nostalgic arcade gaming with modern ESP32 hardware acceleration."
+description = "OpenTyrian - Classic space shooter game ported to ESP32. Experience nostalgic arcade gaming with modern ESP32 hardware acceleration. Features touch screen support on M5Stack Tab5 and USB keyboard support on ESP32-P4 boards."
 
 # Additional information
 readme.text = "https://raw.githubusercontent.com/georgik/OpenTyrian/main/README.md"

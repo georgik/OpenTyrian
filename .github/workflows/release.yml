@@ -66,12 +66,26 @@ jobs:
           
           ## Game Controls
           
-          - USB Keyboard: Connect any USB keyboard for full game control
-          - T-Keyboard S3 Pro: Enhanced gaming experience with programmable keys
+          ### Keyboard Controls
+          - **Arrow Keys**: Move your ship
+          - **Space**: Fire primary weapon
+          - **Left Ctrl**: Fire secondary weapon
+          - **Left Alt**: Fire super bombs
+          - **Enter**: Change weapon mode
+
+          ### Hardware Support
+          - **USB Keyboard**: Connect any USB keyboard to ESP32-P4 boards for full game control
+          - **Touch Screen**: M5Stack Tab5 features intuitive touch controls
+          - **T-Keyboard S3 Pro**: Enhanced gaming experience with programmable keys
+
+          ## Supported Hardware
           
-          ## Available Boards
-          - M5Stack Core S3
-          - ESP32-P4 Function EV Board
+          - **ESP32-P4 boards:**
+            - ESP32-P4 Function EV Board (1024x600 RGB display)
+            - M5Stack Tab5 (1280x720 MIPI-DSI display with touch)
+          - **ESP32-S3 boards:**
+            - M5Stack Core S3 (320x240 display)
+            - ESP32-S3-BOX-3 (320x240 display)
           EOF
 
       - name: Create Release
