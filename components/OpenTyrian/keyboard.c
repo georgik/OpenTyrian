@@ -728,7 +728,7 @@ void service_SDL_events(JE_boolean clear_new)
 
                 keydown = true;    // Key is pressed
                 newkey = true;     // Mark new key event
-                keysactive[event.key.key] = true;  // Update key state
+                keysactive[event.key.scancode] = true;  // Update key state
                 break;
             }
             case SDL_EVENT_KEY_UP: {
@@ -739,7 +739,7 @@ void service_SDL_events(JE_boolean clear_new)
 
                 keydown = false;   // Key is released
                 newkey = false;     // Mark new key event
-                keysactive[event.key.key] = false;  // Update key state
+                keysactive[event.key.scancode] = false;  // Update key state
                 break;
             }
             case SDL_EVENT_QUIT:
