@@ -624,7 +624,7 @@ void* usb_event_handler_thread(void* arg)
 
 void init_keyboard(void)
 {
-    SDL_AddKeyboard(1, "Virtual Keyboard", true);
+    SDL_AddKeyboard(1, "Virtual Keyboard");
 
     newkey = newmouse = false;
     keydown = mousedown = false;
