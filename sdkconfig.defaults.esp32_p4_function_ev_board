@@ -32,3 +32,6 @@ CONFIG_BSP_LCD_TYPE_1024_600=y
 # Required for TTF rendering if it happens in main task
 CONFIG_ESP_MAIN_TASK_STACK_SIZE=32000
 
+# USB Host Hub support for connecting multiple devices (mouse + keyboard through hub)
+CONFIG_USB_HOST_HUBS_SUPPORTED=y
+
