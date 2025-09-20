@@ -219,39 +219,52 @@ SDKCONFIG_DEFAULTS="sdkconfig.defaults.m5stack_core_s3" idf.py -B "build.m5stack
 
 ### Development Tips
 
-#### Using espbrew
+#### Fast Development Workflow
 ```shell
-# Interactive TUI with real-time build monitoring
-espbrew
+# Fast application-only flashing (after initial full flash)
+# Using espbrew generated scripts:
+./support/build_esp32_p4_function_ev_board.sh --app-flash
 
-# Build all boards in parallel
-espbrew --cli-only build
-
-# Use generated build scripts
-./support/build_esp32_p4_function_ev_board.sh
+# Using manual ESP-IDF:
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.esp32_p4_function_ev_board" idf.py -B "build.esp32_p4_function_ev_board" app-flash monitor
 ```
 
-#### Manual ESP-IDF Commands
+#### Project Configuration
 ```shell
-# Fast application-only flashing (after initial flash)
-SDKCONFIG_DEFAULTS="sdkconfig.defaults.esp32_p4_function_ev_board" idf.py -B "build.esp32_p4_function_ev_board" app-flash monitor
+# Interactive configuration (creates temporary sdkconfig)
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.esp32_p4_function_ev_board" idf.py menuconfig
 
-# Clean specific build
-rm -rf build.esp32_p4_function_ev_board
+# View partition table layout
+idf.py partition-table
 
-# Clean all builds
+# Monitor serial output without flashing
+idf.py monitor -p /dev/cu.usbserial-*
+```
+
+#### Debugging and Analysis
+```shell
+# Check component sizes
+idf.py size-components
+
+# Analyze memory usage
+idf.py size
+
+# View build logs (when using espbrew)
+ls ./logs/
+tail -f ./logs/esp32_p4_function_ev_board.log
+```
+
+#### Clean Builds
+```shell
+# Clean specific board build
+rm -rf build.{board_name}
+
+# Clean all board builds
 rm -rf build.*
 
-# Configure project interactively (creates temporary sdkconfig)
-SDKCONFIG_DEFAULTS="sdkconfig.defaults.esp32_p4_function_ev_board" idf.py menuconfig
+# Clean generated espbrew scripts
+rm -rf support/ logs/
 ```
-
-#### Build Directory Structure
-Each board gets its own build directory to avoid conflicts:
-- `build.esp32_p4_function_ev_board/` - ESP32-P4 Function EV Board
-- `build.m5stack_tab5/` - M5Stack Tab5
-- `build.esp-box-3/` - ESP32-S3-BOX-3
-- `build.m5stack_core_s3/` - M5Stack CoreS3
 
 ## Troubleshooting
 
