@@ -18,12 +18,12 @@ Tyrian is an arcade-style vertical scrolling shooter. The story is set in 20,031
 ## Supported Hardware
 
 - ESP-IDF 5.4+ or later
-- **ESP32-P4 boards:**
-  - [ESP32-P4 Function EV Board](https://components.espressif.com/components/espressif/esp32_p4_function_ev_board_noglib) - 1024x600 RGB display
-  - [M5Stack Tab5](https://shop.m5stack.com/products/m5stack-tab5-esp32-p4-5-inch-1280-720-mipi-dsi-ips-display-touch-screen-development-board) - 5-inch 1280x720 MIPI-DSI display with touch
-- **ESP32-S3 boards:**
-  - [ESP32-S3-BOX-3](https://components.espressif.com/components/espressif/esp-box-3) - 320x240 display
-  - [M5Stack-CoreS3](https://components.espressif.com/components/espressif/m5stack_core_s3) - 320x240 display
+- **ESP32-P4 boards (16MB Flash):**
+  - [ESP32-P4 Function EV Board](https://components.espressif.com/components/espressif/esp32_p4_function_ev_board_noglib) - 1024x600 RGB display, 32MB PSRAM
+  - [M5Stack Tab5](https://shop.m5stack.com/products/m5stack-tab5-esp32-p4-5-inch-1280-720-mipi-dsi-ips-display-touch-screen-development-board) - 5-inch 1280x720 MIPI-DSI display with touch, 32MB PSRAM
+- **ESP32-S3 boards (16MB Flash):**
+  - [ESP32-S3-BOX-3](https://components.espressif.com/components/espressif/esp-box-3) - 320x240 display, 8MB PSRAM (Octal)
+  - [M5Stack-CoreS3](https://components.espressif.com/components/espressif/m5stack_core_s3) - 320x240 display, 8MB PSRAM (Quad)
 
 ## ESP32-P4 Features
 
@@ -36,6 +36,29 @@ The [PPA peripheral](https://docs.espressif.com/projects/esp-idf/en/stable/esp32
 - Real-time graphics transformations
 
 This hardware acceleration ensures OpenTyrian runs smoothly at full display resolution while maintaining responsive gameplay.
+
+## Flash Storage and Partition Tables
+
+OpenTyrian uses custom partition tables optimized for each board architecture to maximize available storage for game assets:
+
+### ESP32-P4 Boards (16MB Flash)
+- **Partition Table**: `partitions.csv`
+- **Factory App**: 3MB (main application)
+- **LittleFS Storage**: 11MB (game data and assets)
+- **Configuration**: All game assets loaded directly from flash storage for reliability
+
+### ESP32-S3 Boards (16MB Flash)
+- **Partition Table**: `partitions_esp32s3_16mb.csv`
+- **Factory App**: 3MB (main application)
+- **LittleFS Storage**: 12MB (game data and assets)
+- **PSRAM Configuration**: Optimized for frame buffers and large data structures
+
+### Storage Architecture
+The game data is stored in a LittleFS filesystem containing:
+- Original Tyrian game assets (sprites, levels, sounds, music)
+- Configuration files and save data
+- All assets pre-loaded during build process
+- No SD card dependency for maximum reliability
 
 ## Game Controls
 
@@ -79,31 +102,58 @@ For the quickest installation, use our web-based installer (Chrome/Edge browsers
 - Git for cloning the repository
 - USB cable for flashing
 
+### Build Method Comparison
+
+| Method | Pros | Best For |
+|--------|------|----------|
+| **espbrew TUI** | Interactive interface, real-time monitoring, builds all boards simultaneously | Development, first-time users |
+| **espbrew CLI** | Perfect for CI/CD, parallel builds, generates scripts | Automated builds, scripting |
+| **Manual ESP-IDF** | Full control, standard ESP-IDF workflow | Advanced users, debugging |
+
 ### Quick Build with espbrew (Recommended)
 
-[espbrew](https://github.com/georgik/espbrew) is a convenient build tool that simplifies ESP-IDF project management:
+[espbrew](https://github.com/georgik/espbrew) is a TUI/CLI build manager that automatically discovers board configurations and provides real-time build monitoring:
+
+#### Installation
 
 ```shell
-# Install espbrew (if not already installed)
+# Option 1: One-line install (recommended)
 curl -L https://georgik.github.io/espbrew/install.sh | bash
 
-# Clone and build OpenTyrian
+# Option 2: Homebrew (macOS Apple Silicon)
+brew tap georgik/espbrew
+brew install espbrew
+
+# Option 3: Build from source
+cargo install espbrew
+```
+
+#### Usage
+
+```shell
+# Clone OpenTyrian
 git clone https://github.com/georgik/OpenTyrian.git
 cd OpenTyrian
 
-# Build and flash for different boards
-espbrew build --board esp32_p4_function_ev_board  # ESP32-P4 Function EV Board
-espbrew build --board m5stack_tab5                # M5Stack Tab5
-espbrew build --board esp-box-3                   # ESP32-S3-BOX-3
-espbrew build --board m5stack_core_s3             # M5Stack CoreS3
+# Interactive TUI mode (recommended) - shows real-time build progress
+espbrew
 
-# Flash the firmware
-espbrew flash
+# CLI mode - build all boards simultaneously
+espbrew --cli-only build
+
+# Use generated build scripts (created by espbrew)
+./support/build_esp32_p4_function_ev_board.sh
+./support/build_m5stack_tab5.sh
+./support/build_esp-box-3.sh
+./support/build_m5stack_core_s3.sh
+
+# Flash using generated scripts
+./support/flash_esp32_p4_function_ev_board.sh
 ```
 
 ### Manual Build with ESP-IDF
 
-Alternatively, use board-specific sdkconfig files for building:
+Alternatively, build manually using ESP-IDF with the SDKCONFIG_DEFAULTS environment variable:
 
 ```shell
 git clone https://github.com/georgik/OpenTyrian.git
@@ -112,50 +162,96 @@ cd OpenTyrian
 # Set up ESP-IDF environment
 source $IDF_PATH/export.sh  # or export.bat on Windows
 
-# Build for specific boards using sdkconfig defaults
+# Build for specific boards using SDKCONFIG_DEFAULTS environment variable
 
 # ESP32-P4 Function EV Board (1024x600 RGB display)
-cp sdkconfig.defaults.esp32_p4_function_ev_board sdkconfig.defaults
-idf.py build flash monitor
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.esp32_p4_function_ev_board" idf.py -B "build.esp32_p4_function_ev_board" build
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.esp32_p4_function_ev_board" idf.py -B "build.esp32_p4_function_ev_board" flash monitor
 
 # M5Stack Tab5 (1280x720 MIPI-DSI display with touch)
-cp sdkconfig.defaults.m5stack_tab5 sdkconfig.defaults
-idf.py build flash monitor
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.m5stack_tab5" idf.py -B "build.m5stack_tab5" build
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.m5stack_tab5" idf.py -B "build.m5stack_tab5" flash monitor
 
-# ESP32-S3-BOX-3
-cp sdkconfig.defaults.esp-box-3 sdkconfig.defaults
-idf.py build flash monitor
+# ESP32-S3-BOX-3 (320x240 display)
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.esp-box-3" idf.py -B "build.esp-box-3" build
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.esp-box-3" idf.py -B "build.esp-box-3" flash monitor
 
-# M5Stack CoreS3
-cp sdkconfig.defaults.m5stack_core_s3 sdkconfig.defaults
-idf.py build flash monitor
+# M5Stack CoreS3 (320x240 display)
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.m5stack_core_s3" idf.py -B "build.m5stack_core_s3" build
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.m5stack_core_s3" idf.py -B "build.m5stack_core_s3" flash monitor
 ```
 
 ### Board-Specific Features
 
-#### M5Stack Tab5 Optimizations
+#### M5Stack Tab5 (ESP32-P4)
+- **Architecture**: ESP32-P4 RISC-V dual-core
+- **Display**: 5-inch 1280x720 MIPI-DSI IPS with touch
+- **Storage**: 16MB Flash + 32MB PSRAM (Hex mode)
 - **Native Landscape Orientation**: Display configured for 1280x720 landscape mode
 - **Touch Input**: Full capacitive touch support with coordinate transformation
 - **Hardware Scaling**: PPA scaling disabled in favor of efficient display driver scaling
-- **PSRAM Integration**: Utilizes 32MB PSRAM for optimal performance
+- **Partition Table**: `partitions.csv` (3MB app + 11MB storage)
 
 #### ESP32-P4 Function EV Board
+- **Architecture**: ESP32-P4 RISC-V dual-core
+- **Display**: 1024x600 RGB LCD
+- **Storage**: 16MB Flash + 32MB PSRAM (Hex mode)
 - **PPA Acceleration**: Hardware-accelerated 3x scaling (320x200 → 960x600)
 - **RGB Display**: Direct RGB interface for minimal latency
 - **USB HID**: Full keyboard and mouse support
+- **Partition Table**: `partitions.csv` (3MB app + 11MB storage)
+
+#### ESP32-S3-BOX-3
+- **Architecture**: ESP32-S3 Xtensa dual-core
+- **Display**: 320x240 ILI9341 LCD
+- **Storage**: 16MB Flash + 8MB PSRAM (Octal mode)
+- **Touch Support**: Capacitive touch interface
+- **Audio**: Built-in speaker and microphone
+- **Partition Table**: `partitions_esp32s3_16mb.csv` (3MB app + 12MB storage)
+
+#### M5Stack CoreS3
+- **Architecture**: ESP32-S3 Xtensa dual-core
+- **Display**: 320x240 ILI9341 LCD
+- **Storage**: 16MB Flash + 8MB PSRAM (Quad mode)
+- **IMU**: Built-in accelerometer and gyroscope
+- **Audio**: Built-in speaker
+- **Partition Table**: `partitions_esp32s3_16mb.csv` (3MB app + 12MB storage)
 
 ### Development Tips
 
+#### Using espbrew
+```shell
+# Interactive TUI with real-time build monitoring
+espbrew
+
+# Build all boards in parallel
+espbrew --cli-only build
+
+# Use generated build scripts
+./support/build_esp32_p4_function_ev_board.sh
+```
+
+#### Manual ESP-IDF Commands
 ```shell
 # Fast application-only flashing (after initial flash)
-idf.py app-flash monitor
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.esp32_p4_function_ev_board" idf.py -B "build.esp32_p4_function_ev_board" app-flash monitor
 
-# Clean build
-idf.py fullclean
+# Clean specific build
+rm -rf build.esp32_p4_function_ev_board
 
-# Configure project interactively
-idf.py menuconfig
+# Clean all builds
+rm -rf build.*
+
+# Configure project interactively (creates temporary sdkconfig)
+SDKCONFIG_DEFAULTS="sdkconfig.defaults.esp32_p4_function_ev_board" idf.py menuconfig
 ```
+
+#### Build Directory Structure
+Each board gets its own build directory to avoid conflicts:
+- `build.esp32_p4_function_ev_board/` - ESP32-P4 Function EV Board
+- `build.m5stack_tab5/` - M5Stack Tab5
+- `build.esp-box-3/` - ESP32-S3-BOX-3
+- `build.m5stack_core_s3/` - M5Stack CoreS3
 
 ## Troubleshooting
 
@@ -176,8 +272,24 @@ idf.py menuconfig
 
 **Build errors:**
 - Ensure ESP-IDF 5.4+ is installed and properly configured
-- Run `idf.py fullclean` and rebuild
+- Using espbrew: Check build logs in `./logs/` directory
+- Using manual builds: Clean specific build directory `rm -rf build.{board_name}`
 - Check component dependencies are properly resolved
+- Verify SDKCONFIG_DEFAULTS path is correct when using manual builds
+
+**Partition table / LittleFS errors:**
+- Verify correct partition table is being used for your board architecture
+- ESP32-P4 boards should use `partitions.csv`
+- ESP32-S3 boards should use `partitions_esp32s3_16mb.csv`
+- If changing board types, always run `idf.py fullclean` before rebuilding
+- Check that `CONFIG_PARTITION_TABLE_CUSTOM=y` is set in sdkconfig
+
+**Memory/linking errors:**
+- Ensure PSRAM is properly configured for your board
+- ESP32-S3-BOX-3 uses Octal PSRAM mode
+- M5Stack CoreS3 uses Quad PSRAM mode
+- ESP32-P4 boards use Hex PSRAM mode
+- Large frame buffers should be allocated in PSRAM, not internal RAM
 
 ### Performance Optimization
 
