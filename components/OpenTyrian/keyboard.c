@@ -414,19 +414,47 @@ static void hid_host_mouse_report_callback(const uint8_t *const data, const int 
         return;
     }
 
-    static int x_pos = 0;
-    static int y_pos = 0;
+    static int x_pos = 160;  // Start at screen center
+    static int y_pos = 100;  // Start at screen center
 
     // Calculate absolute position from displacement
     x_pos += mouse_report->x_displacement;
     y_pos += mouse_report->y_displacement;
 
+    // Constrain mouse position to screen bounds (320x200 for Tyrian)
+    if (x_pos < 0) x_pos = 0;
+    if (x_pos >= 320) x_pos = 319;
+    if (y_pos < 0) y_pos = 0;
+    if (y_pos >= 200) y_pos = 199;
+
+    // Update OpenTyrian mouse variables
+    mouse_x = (Uint16)x_pos;
+    mouse_y = (Uint16)y_pos;
+    lastmouse_x = mouse_x;
+    lastmouse_y = mouse_y;
+
+    // Update button states
+    uint8_t buttons = 0;
+    if (mouse_report->buttons.button1) buttons |= 1;  // Left button
+    if (mouse_report->buttons.button2) buttons |= 2;  // Right button
+    if (mouse_report->buttons.button3) buttons |= 4;  // Middle button (if present)
+
+    lastmouse_but = buttons;
+    mousedown = (buttons != 0);
+    newmouse = true;
+
+    // Update individual button press states
+    mouse_pressed[0] = mouse_report->buttons.button1;  // Left
+    mouse_pressed[1] = mouse_report->buttons.button2;  // Right
+    mouse_pressed[2] = mouse_report->buttons.button3;  // Middle
+
     hid_print_new_device_report_header(HID_PROTOCOL_MOUSE);
 
-    printf("X: %06d\tY: %06d\t|%c|%c|\r",
+    printf("X: %06d\tY: %06d\t|%c|%c|%c|\r",
            x_pos, y_pos,
            (mouse_report->buttons.button1 ? 'o' : ' '),
-           (mouse_report->buttons.button2 ? 'o' : ' '));
+           (mouse_report->buttons.button2 ? 'o' : ' '),
+           (mouse_report->buttons.button3 ? 'o' : ' '));
     fflush(stdout);
 }
 
