@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -22,15 +22,14 @@
 #include "opentyr.h"
 
 #ifdef TYRIAN2000
-#define GAMEPLAY_NAME_COUNT 6
+#    define GAMEPLAY_NAME_COUNT 6
 #else
-#define GAMEPLAY_NAME_COUNT 5
+#    define GAMEPLAY_NAME_COUNT 5
 #endif
 EXT_RAM_BSS_ATTR extern char episode_name[6][31], difficulty_name[7][21], gameplay_name[GAMEPLAY_NAME_COUNT][26];
 
-bool select_gameplay( void );
-bool select_episode( void );
-bool select_difficulty( void );
+bool select_gameplay(void);
+bool select_episode(void);
+bool select_difficulty(void);
 
 #endif /* MENUS_H */
-

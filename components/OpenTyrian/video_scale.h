@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2010  The OpenTyrian Development Team
  *
@@ -23,20 +23,18 @@
 
 #include "SDL3/SDL.h"
 
-typedef void (*ScalerFunction)( SDL_Surface *dst, SDL_Surface *src );
+typedef void (*ScalerFunction)(SDL_Surface *dst, SDL_Surface *src);
 
-struct Scalers
-{
-	int width, height;
-	ScalerFunction scaler8, scaler16, scaler32;
-	const char *name;
+struct Scalers {
+    int width, height;
+    ScalerFunction scaler8, scaler16, scaler32;
+    const char *name;
 };
 
 extern uint scaler;
 extern const struct Scalers scalers[];
 extern const uint scalers_count;
 
-void set_scaler_by_name( const char *name );
+void set_scaler_by_name(const char *name);
 
 #endif /* VIDEO_SCALE_H */
-

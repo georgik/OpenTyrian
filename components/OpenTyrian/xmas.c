@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -29,71 +29,73 @@
 
 bool xmas = false;
 
-bool xmas_time( void )
+bool xmas_time(void)
 {
-	time_t now = time(NULL);
-	return localtime(&now)->tm_mon == 11;
+    time_t now = time(NULL);
+    return localtime(&now)->tm_mon == 11;
 }
 
-bool xmas_prompt( void )
+bool xmas_prompt(void)
 {
-	const char *prompt[] =
-	{
-		"Christmas has been detected.",
-		"Activate Christmas?",
-	};
-	const char *choice[] =
-	{
-		"Yes",
-		"No",
-	};
-	
-	set_palette(palettes[0], 0, 255);
-	
-	for (uint i = 0; i < COUNTOF(prompt); ++i)
-		draw_font_hv(VGAScreen, 320 / 2, 85 + 15 * i, prompt[i], normal_font, centered, (i % 2) ? 2 : 4, -2);
-	
-	uint selection = 0;
-	
-	bool decided = false, quit = false;
-	while (!decided)
-	{
-		for (uint i = 0; i < COUNTOF(choice); ++i)
-			draw_font_hv(VGAScreen, 320 / 2 - 20 + 40 * i, 120, choice[i], normal_font, centered, 15, (selection == i) ? -2 : -4);
-		
-		JE_showVGA();
-		
-		JE_word temp = 0;
-		JE_textMenuWait(&temp, false);
-		
-		if (newkey)
-		{
-			switch (lastkey_sym)
-			{
-				case SDL_SCANCODE_LEFT:
-					if (selection == 0)
-						selection = 2;
-					selection--;
-					break;
-				case SDL_SCANCODE_RIGHT:
-					selection++;
-					selection %= 2;
-					break;
-					
-				case SDL_SCANCODE_RETURN:
-					decided = true;
-					break;
-				case SDL_SCANCODE_ESCAPE:
-					decided = true;
-					quit = true;
-					break;
-				default:
-					break;
-			}
-		}
-	}
-	
-	fade_black(10);
-	
-	return (selection == 0 && quit == false);
+    const char *prompt[] = {
+        "Christmas has been detected.",
+        "Activate Christmas?",
+    };
+    const char *choice[] = {
+        "Yes",
+        "No",
+    };
+
+    set_palette(palettes[0], 0, 255);
+
+    for(uint i = 0; i < COUNTOF(prompt); ++i)
+        draw_font_hv(VGAScreen, 320 / 2, 85 + 15 * i, prompt[i], normal_font, centered, (i % 2) ? 2 : 4, -2);
+
+    uint selection = 0;
+
+    bool decided = false, quit = false;
+    while(!decided) {
+        for(uint i = 0; i < COUNTOF(choice); ++i)
+            draw_font_hv(VGAScreen,
+                         320 / 2 - 20 + 40 * i,
+                         120,
+                         choice[i],
+                         normal_font,
+                         centered,
+                         15,
+                         (selection == i) ? -2 : -4);
+
+        JE_showVGA();
+
+        JE_word temp = 0;
+        JE_textMenuWait(&temp, false);
+
+        if(newkey) {
+            switch(lastkey_sym) {
+                case SDL_SCANCODE_LEFT:
+                    if(selection == 0)
+                        selection = 2;
+                    selection--;
+                    break;
+                case SDL_SCANCODE_RIGHT:
+                    selection++;
+                    selection %= 2;
+                    break;
+
+                case SDL_SCANCODE_RETURN:
+                    decided = true;
+                    break;
+                case SDL_SCANCODE_ESCAPE:
+                    decided = true;
+                    quit = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    fade_black(10);
+
+    return (selection == 0 && quit == false);
 }

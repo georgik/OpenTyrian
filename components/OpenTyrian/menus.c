@@ -31,231 +31,227 @@
 
 EXT_RAM_BSS_ATTR char episode_name[6][31], difficulty_name[7][21], gameplay_name[GAMEPLAY_NAME_COUNT][26];
 
-bool select_gameplay( void )
+bool select_gameplay(void)
 {
-	JE_loadPic(VGAScreen, 2, false);
-	JE_dString(VGAScreen, JE_fontCenter(gameplay_name[0], FONT_SHAPES), 20, gameplay_name[0], FONT_SHAPES);
+    JE_loadPic(VGAScreen, 2, false);
+    JE_dString(VGAScreen, JE_fontCenter(gameplay_name[0], FONT_SHAPES), 20, gameplay_name[0], FONT_SHAPES);
 
-	int gameplay = 1,
-	    gameplay_max = GAMEPLAY_NAME_COUNT - 1;
+    int gameplay = 1, gameplay_max = GAMEPLAY_NAME_COUNT - 1;
 
-	bool fade_in = true;
-	for (; ; )
-	{
-		for (int i = 1; i <= gameplay_max; i++)
-		{
-			JE_outTextAdjust(VGAScreen, JE_fontCenter(gameplay_name[i], SMALL_FONT_SHAPES), i * 24 + 30, gameplay_name[i], 15, -4 + (i == gameplay ? 2 : 0) - (i == (GAMEPLAY_NAME_COUNT - 1) ? 4 : 0), SMALL_FONT_SHAPES, true);
-		}
-		JE_showVGA();
+    bool fade_in = true;
+    for(;;) {
+        for(int i = 1; i <= gameplay_max; i++) {
+            JE_outTextAdjust(VGAScreen,
+                             JE_fontCenter(gameplay_name[i], SMALL_FONT_SHAPES),
+                             i * 24 + 30,
+                             gameplay_name[i],
+                             15,
+                             -4 + (i == gameplay ? 2 : 0) - (i == (GAMEPLAY_NAME_COUNT - 1) ? 4 : 0),
+                             SMALL_FONT_SHAPES,
+                             true);
+        }
+        JE_showVGA();
 
-		if (fade_in)
-		{
-			fade_palette(colors, 10, 0, 255);
-			fade_in = false;
-		}
+        if(fade_in) {
+            fade_palette(colors, 10, 0, 255);
+            fade_in = false;
+        }
 
-		JE_word temp = 0;
-		JE_textMenuWait(&temp, false);
+        JE_word temp = 0;
+        JE_textMenuWait(&temp, false);
 
-		if (newkey)
-		{
-			switch (lastkey_sym)
-			{
-			case SDL_SCANCODE_UP:
-				if (--gameplay < 1)
-					gameplay = gameplay_max;
-				JE_playSampleNum(S_CURSOR);
-				break;
-			case SDL_SCANCODE_DOWN:
-				if (++gameplay > gameplay_max)
-					gameplay = 1;
-				JE_playSampleNum(S_CURSOR);
-				break;
+        if(newkey) {
+            switch(lastkey_sym) {
+                case SDL_SCANCODE_UP:
+                    if(--gameplay < 1)
+                        gameplay = gameplay_max;
+                    JE_playSampleNum(S_CURSOR);
+                    break;
+                case SDL_SCANCODE_DOWN:
+                    if(++gameplay > gameplay_max)
+                        gameplay = 1;
+                    JE_playSampleNum(S_CURSOR);
+                    break;
 
-			case SDL_SCANCODE_RETURN:
-				if (gameplay == GAMEPLAY_NAME_COUNT - 1)
-				{
-					JE_playSampleNum(S_SPRING);
-					/* TODO: NETWORK */
-					fprintf(stderr, "error: networking via menu not implemented\n");
-					break;
-				}
-				JE_playSampleNum(S_SELECT);
-				fade_black(10);
+                case SDL_SCANCODE_RETURN:
+                    if(gameplay == GAMEPLAY_NAME_COUNT - 1) {
+                        JE_playSampleNum(S_SPRING);
+                        /* TODO: NETWORK */
+                        fprintf(stderr, "error: networking via menu not implemented\n");
+                        break;
+                    }
+                    JE_playSampleNum(S_SELECT);
+                    fade_black(10);
 
-				onePlayerAction = (gameplay == 2);
-				twoPlayerMode = (gameplay == GAMEPLAY_NAME_COUNT - 2);
-				return true;
+                    onePlayerAction = (gameplay == 2);
+                    twoPlayerMode = (gameplay == GAMEPLAY_NAME_COUNT - 2);
+                    return true;
 
-			case SDL_SCANCODE_ESCAPE:
-				JE_playSampleNum(S_SPRING);
-				/* fading handled elsewhere
-				fade_black(10); */
+                case SDL_SCANCODE_ESCAPE:
+                    JE_playSampleNum(S_SPRING);
+                    /* fading handled elsewhere
+                    fade_black(10); */
 
-				return false;
+                    return false;
 
-			default:
-				break;
-			}
-		}
-	}
+                default:
+                    break;
+            }
+        }
+    }
 }
 
-bool select_episode( void )
+bool select_episode(void)
 {
-	JE_loadPic(VGAScreen, 2, false);
-	JE_dString(VGAScreen, JE_fontCenter(episode_name[0], FONT_SHAPES), 20, episode_name[0], FONT_SHAPES);
+    JE_loadPic(VGAScreen, 2, false);
+    JE_dString(VGAScreen, JE_fontCenter(episode_name[0], FONT_SHAPES), 20, episode_name[0], FONT_SHAPES);
 
-	int episode = 1, episode_max = EPISODE_AVAILABLE;
+    int episode = 1, episode_max = EPISODE_AVAILABLE;
 
-	bool fade_in = true;
-	for (; ; )
-	{
-		for (int i = 1; i <= episode_max; i++)
-		{
-			JE_outTextAdjust(VGAScreen, 20, i * 30 + 20, episode_name[i], 15, -4 + (i == episode ? 2 : 0) - (!episodeAvail[i - 1] ? 4 : 0), SMALL_FONT_SHAPES, true);
-		}
-		JE_showVGA();
+    bool fade_in = true;
+    for(;;) {
+        for(int i = 1; i <= episode_max; i++) {
+            JE_outTextAdjust(VGAScreen,
+                             20,
+                             i * 30 + 20,
+                             episode_name[i],
+                             15,
+                             -4 + (i == episode ? 2 : 0) - (!episodeAvail[i - 1] ? 4 : 0),
+                             SMALL_FONT_SHAPES,
+                             true);
+        }
+        JE_showVGA();
 
-		if (fade_in)
-		{
-			fade_palette(colors, 10, 0, 255);
-			fade_in = false;
-		}
+        if(fade_in) {
+            fade_palette(colors, 10, 0, 255);
+            fade_in = false;
+        }
 
-		JE_word temp = 0;
-		JE_textMenuWait(&temp, false);
+        JE_word temp = 0;
+        JE_textMenuWait(&temp, false);
 
-		if (newkey)
-		{
-			switch (lastkey_sym)
-			{
-			case SDL_SCANCODE_UP:
-				episode--;
-				if (episode < 1)
-				{
-					episode = episode_max;
-				}
-				JE_playSampleNum(S_CURSOR);
-				break;
-			case SDL_SCANCODE_DOWN:
-				episode++;
-				if (episode > episode_max)
-				{
-					episode = 1;
-				}
-				JE_playSampleNum(S_CURSOR);
-				break;
+        if(newkey) {
+            switch(lastkey_sym) {
+                case SDL_SCANCODE_UP:
+                    episode--;
+                    if(episode < 1) {
+                        episode = episode_max;
+                    }
+                    JE_playSampleNum(S_CURSOR);
+                    break;
+                case SDL_SCANCODE_DOWN:
+                    episode++;
+                    if(episode > episode_max) {
+                        episode = 1;
+                    }
+                    JE_playSampleNum(S_CURSOR);
+                    break;
 
-			case SDL_SCANCODE_RETURN:
-				if (!episodeAvail[episode - 1])
-				{
-					JE_playSampleNum(S_SPRING);
-					break;
-				}
-				JE_playSampleNum(S_SELECT);
-				fade_black(10);
+                case SDL_SCANCODE_RETURN:
+                    if(!episodeAvail[episode - 1]) {
+                        JE_playSampleNum(S_SPRING);
+                        break;
+                    }
+                    JE_playSampleNum(S_SELECT);
+                    fade_black(10);
 
-				JE_initEpisode((JE_byte)episode);
-				initial_episode_num = episodeNum;
-				return true;
+                    JE_initEpisode((JE_byte) episode);
+                    initial_episode_num = episodeNum;
+                    return true;
 
-			case SDL_SCANCODE_ESCAPE:
-				JE_playSampleNum(S_SPRING);
-				/* fading handled elsewhere
-				fade_black(10); */
+                case SDL_SCANCODE_ESCAPE:
+                    JE_playSampleNum(S_SPRING);
+                    /* fading handled elsewhere
+                    fade_black(10); */
 
-				return false;
+                    return false;
 
-			default:
-				break;
-			}
-		}
-	}
+                default:
+                    break;
+            }
+        }
+    }
 }
 
-bool select_difficulty( void )
+bool select_difficulty(void)
 {
-	JE_loadPic(VGAScreen, 2, false);
-	JE_dString(VGAScreen, JE_fontCenter(difficulty_name[0], FONT_SHAPES), 20, difficulty_name[0], FONT_SHAPES);
+    JE_loadPic(VGAScreen, 2, false);
+    JE_dString(VGAScreen, JE_fontCenter(difficulty_name[0], FONT_SHAPES), 20, difficulty_name[0], FONT_SHAPES);
 
-	difficultyLevel = 2;
-	int difficulty_max = 3;
+    difficultyLevel = 2;
+    int difficulty_max = 3;
 
-	bool fade_in = true;
-	for (; ; )
-	{
-		for (int i = 1; i <= difficulty_max; i++)
-		{
-			JE_outTextAdjust(VGAScreen, JE_fontCenter(difficulty_name[i], SMALL_FONT_SHAPES), i * 24 + 30, difficulty_name[i], 15, -4 + (i == difficultyLevel ? 2 : 0), SMALL_FONT_SHAPES, true);
-		}
-		JE_showVGA();
+    bool fade_in = true;
+    for(;;) {
+        for(int i = 1; i <= difficulty_max; i++) {
+            JE_outTextAdjust(VGAScreen,
+                             JE_fontCenter(difficulty_name[i], SMALL_FONT_SHAPES),
+                             i * 24 + 30,
+                             difficulty_name[i],
+                             15,
+                             -4 + (i == difficultyLevel ? 2 : 0),
+                             SMALL_FONT_SHAPES,
+                             true);
+        }
+        JE_showVGA();
 
-		if (fade_in)
-		{
-			fade_palette(colors, 10, 0, 255);
-			fade_in = false;
-		}
+        if(fade_in) {
+            fade_palette(colors, 10, 0, 255);
+            fade_in = false;
+        }
 
-		JE_word temp = 0;
-		JE_textMenuWait(&temp, false);
+        JE_word temp = 0;
+        JE_textMenuWait(&temp, false);
 
-		if (SDL_GetModState() & SDL_KMOD_SHIFT)
-		{
-			if ((difficulty_max < 4 && keysactive[SDL_SCANCODE_G]) ||
-			    (difficulty_max == 4 && keysactive[SDL_SCANCODE_RIGHTBRACKET]))
-			{
-				difficulty_max++;
-			}
-		} else if (difficulty_max == 5 && keysactive[SDL_SCANCODE_L] && keysactive[SDL_SCANCODE_O] && keysactive[SDL_SCANCODE_R] && keysactive[SDL_SCANCODE_D]) {
-			difficulty_max++;
-		}
+        if(SDL_GetModState() & SDL_KMOD_SHIFT) {
+            if((difficulty_max < 4 && keysactive[SDL_SCANCODE_G]) ||
+               (difficulty_max == 4 && keysactive[SDL_SCANCODE_RIGHTBRACKET])) {
+                difficulty_max++;
+            }
+        } else if(difficulty_max == 5 && keysactive[SDL_SCANCODE_L] && keysactive[SDL_SCANCODE_O] &&
+                  keysactive[SDL_SCANCODE_R] && keysactive[SDL_SCANCODE_D]) {
+            difficulty_max++;
+        }
 
-		if (newkey)
-		{
-			switch (lastkey_sym)
-			{
-			case SDL_SCANCODE_UP:
-				difficultyLevel--;
-				if (difficultyLevel < 1)
-				{
-					difficultyLevel = difficulty_max;
-				}
-				JE_playSampleNum(S_CURSOR);
-				break;
-			case SDL_SCANCODE_DOWN:
-				difficultyLevel++;
-				if (difficultyLevel > difficulty_max)
-				{
-					difficultyLevel = 1;
-				}
-				JE_playSampleNum(S_CURSOR);
-				break;
+        if(newkey) {
+            switch(lastkey_sym) {
+                case SDL_SCANCODE_UP:
+                    difficultyLevel--;
+                    if(difficultyLevel < 1) {
+                        difficultyLevel = difficulty_max;
+                    }
+                    JE_playSampleNum(S_CURSOR);
+                    break;
+                case SDL_SCANCODE_DOWN:
+                    difficultyLevel++;
+                    if(difficultyLevel > difficulty_max) {
+                        difficultyLevel = 1;
+                    }
+                    JE_playSampleNum(S_CURSOR);
+                    break;
 
-			case SDL_SCANCODE_RETURN:
-				JE_playSampleNum(S_SELECT);
-				/* fading handled elsewhere
-				fade_black(10); */
+                case SDL_SCANCODE_RETURN:
+                    JE_playSampleNum(S_SELECT);
+                    /* fading handled elsewhere
+                    fade_black(10); */
 
-				if (difficultyLevel == 6)
-				{
-					difficultyLevel = 8;
-				} else if (difficultyLevel == 5) {
-					difficultyLevel = 6;
-				}
-				return true;
+                    if(difficultyLevel == 6) {
+                        difficultyLevel = 8;
+                    } else if(difficultyLevel == 5) {
+                        difficultyLevel = 6;
+                    }
+                    return true;
 
-			case SDL_SCANCODE_ESCAPE:
-				JE_playSampleNum(S_SPRING);
-				/* fading handled elsewhere
-				fade_black(10); */
+                case SDL_SCANCODE_ESCAPE:
+                    JE_playSampleNum(S_SPRING);
+                    /* fading handled elsewhere
+                    fade_black(10); */
 
-				return false;
+                    return false;
 
-			default:
-				break;
-			}
-		}
-	}
+                default:
+                    break;
+            }
+        }
+    }
 }
-

@@ -5,4 +5,4 @@
 
 extern Palette vga_palette;
 
-#endif // VGA_PALETTE_H
+#endif  // VGA_PALETTE_H

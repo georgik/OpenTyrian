@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -33,11 +33,10 @@ extern JE_word mouseXB, mouseYB;
 
 extern JE_byte mouseGrabShape[24 * 28];
 
-void JE_drawShapeTypeOne( JE_word x, JE_word y, JE_byte *shape );
-void JE_grabShapeTypeOne( JE_word x, JE_word y, JE_byte *shape );
+void JE_drawShapeTypeOne(JE_word x, JE_word y, JE_byte *shape);
+void JE_grabShapeTypeOne(JE_word x, JE_word y, JE_byte *shape);
 
-void JE_mouseStart( void );
-void JE_mouseReplace( void );
+void JE_mouseStart(void);
+void JE_mouseReplace(void);
 
 #endif /* MOUSE_H */
-

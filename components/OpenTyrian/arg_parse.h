@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -23,36 +23,31 @@
 
 // this is essentially a reimplementation of getopt_long()
 
-typedef struct
-{
-	int value;
-	char short_opt;
-	const char *long_opt;
-	bool has_arg;
-}
-Options;
+typedef struct {
+    int value;
+    char short_opt;
+    const char *long_opt;
+    bool has_arg;
+} Options;
 
-enum
-{
-	// indicates that argv[argn..argc) are not options
-	NOT_OPTION = 0,
-	
-	/* behavior of parse_args() is undefined after
-	   it has returned any of the following values */
-	INVALID_OPTION = -1,
-	AMBIGUOUS_OPTION = -2,
-	OPTION_MISSING_ARG = -3
+enum {
+    // indicates that argv[argn..argc) are not options
+    NOT_OPTION = 0,
+
+    /* behavior of parse_args() is undefined after
+       it has returned any of the following values */
+    INVALID_OPTION = -1,
+    AMBIGUOUS_OPTION = -2,
+    OPTION_MISSING_ARG = -3
 };
 
-typedef struct
-{
-	int value;
-	const char *arg;
-	
-	int argn;
-}
-Option;
+typedef struct {
+    int value;
+    const char *arg;
 
-Option parse_args( int argc, const char *argv[], const Options *options );
+    int argn;
+} Option;
+
+Option parse_args(int argc, const char *argv[], const Options *options);
 
 #endif /* ARG_PARSE_H */

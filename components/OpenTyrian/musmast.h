@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -23,12 +23,12 @@
 
 
 #define DEFAULT_SONG_BUY 2
-#define SONG_LEVELEND    9
-#define SONG_GAMEOVER    10
-#define SONG_MAPVIEW     19
-#define SONG_ENDGAME1    7
-#define SONG_ZANAC       31
-#define SONG_TITLE       29
+#define SONG_LEVELEND 9
+#define SONG_GAMEOVER 10
+#define SONG_MAPVIEW 19
+#define SONG_ENDGAME1 7
+#define SONG_ZANAC 31
+#define SONG_TITLE 29
 
 #define MUSIC_NUM 41
 
@@ -38,4 +38,3 @@ extern const char musicTitle[MUSIC_NUM][48];
 extern JE_boolean musicFade;
 
 #endif /* MUSMAST_H */
-

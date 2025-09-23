@@ -28,10 +28,9 @@
 #define starlib_MAX_STARS 1000
 #define MAX_TYPES 14
 
-struct JE_StarType
-{
-	JE_integer spX, spY, spZ;
-	JE_integer lastX, lastY;
+struct JE_StarType {
+    JE_integer spX, spY, spZ;
+    JE_integer lastX, lastY;
 };
 
 static int tempX, tempY;
@@ -60,373 +59,345 @@ static JE_shortint speedChange;
 static JE_byte pColor;
 
 
-void JE_starlib_main( void )
+void JE_starlib_main(void)
 {
-	int off;
-	JE_word i;
-	JE_integer tempZ;
-	JE_byte tempCol;
-	struct JE_StarType *stars;
-	Uint8 *surf;
+    int off;
+    JE_word i;
+    JE_integer tempZ;
+    JE_byte tempCol;
+    struct JE_StarType *stars;
+    Uint8 *surf;
 
-	JE_wackyCol();
+    JE_wackyCol();
 
-	grayB = false;
+    grayB = false;
 
-	starlib_speed += speedChange;
-
-
-	for(stars = star, i = starlib_MAX_STARS; i > 0; stars++, i--)
-	{
-		/* Make a pointer to the screen... */
-		surf = (Uint8*)VGAScreen->pixels;
-
-		/* Calculate the offset to where we wish to draw */
-		off = (stars->lastX)+(stars->lastY)*320;
+    starlib_speed += speedChange;
 
 
-		/* We don't want trails in our star field.  Erase the old graphic */
-		if (off >= 640 && off < (320*200)-640)
-		{
-			surf[off] = 0; /* Shade Level 0 */
+    for(stars = star, i = starlib_MAX_STARS; i > 0; stars++, i--) {
+        /* Make a pointer to the screen... */
+        surf = (Uint8 *) VGAScreen->pixels;
 
-			surf[off-1] = 0; /* Shade Level 1, 2 */
-			surf[off+1] = 0;
-			surf[off-2] = 0;
-			surf[off+2] = 0;
-
-			surf[off-320] = 0;
-			surf[off+320] = 0;
-			surf[off-640] = 0;
-			surf[off+640] = 0;
-		}
-
-		/* Move star */
-		tempZ = stars->spZ;
-		tempX = (stars->spX / tempZ) + 160;
-		tempY = (stars->spY / tempZ) + 100;
-		tempZ -=  starlib_speed;
+        /* Calculate the offset to where we wish to draw */
+        off = (stars->lastX) + (stars->lastY) * 320;
 
 
-		/* If star is out of range, make a new one */
-		if (tempZ <=  0 ||
-		    tempY ==  0 || tempY > 198 ||
-		    tempX > 318 || tempX <   1)
-		{
-			stars->spZ = 500;
+        /* We don't want trails in our star field.  Erase the old graphic */
+        if(off >= 640 && off < (320 * 200) - 640) {
+            surf[off] = 0; /* Shade Level 0 */
 
-			JE_newStar();
+            surf[off - 1] = 0; /* Shade Level 1, 2 */
+            surf[off + 1] = 0;
+            surf[off - 2] = 0;
+            surf[off + 2] = 0;
 
-			stars->spX = tempX;
-			stars->spY = tempY;
-		}
-		else /* Otherwise, update & draw it */
-		{
-			stars->lastX = tempX;
-			stars->lastY = tempY;
-			stars->spZ = tempZ;
+            surf[off - 320] = 0;
+            surf[off + 320] = 0;
+            surf[off - 640] = 0;
+            surf[off + 640] = 0;
+        }
 
-			off = tempX+tempY*320;
+        /* Move star */
+        tempZ = stars->spZ;
+        tempX = (stars->spX / tempZ) + 160;
+        tempY = (stars->spY / tempZ) + 100;
+        tempZ -= starlib_speed;
 
-			if (grayB)
-			{
-				tempCol = tempZ >> 1;
-			} else {
-				tempCol = pColor+((tempZ >> 4) & 31);
-			}
 
-			/* Draw the pixel! */
-			if (off >= 640 && off < (320*200)-640)
-			{
-				surf[off] = tempCol;
+        /* If star is out of range, make a new one */
+        if(tempZ <= 0 || tempY == 0 || tempY > 198 || tempX > 318 || tempX < 1) {
+            stars->spZ = 500;
 
-				tempCol += 72;
-				surf[off-1] = tempCol;
-				surf[off+1] = tempCol;
-				surf[off-320] = tempCol;
-				surf[off+320] = tempCol;
+            JE_newStar();
 
-				tempCol += 72;
-				surf[off-2] = tempCol;
-				surf[off+2] = tempCol;
-				surf[off-640] = tempCol;
-				surf[off+640] = tempCol;
-			}
-		}
-	}
+            stars->spX = tempX;
+            stars->spY = tempY;
+        } else /* Otherwise, update & draw it */
+        {
+            stars->lastX = tempX;
+            stars->lastY = tempY;
+            stars->spZ = tempZ;
 
-	if (newkey)
-	{
-		switch (toupper(lastkey_char))
-		{
-			case '+':
-				starlib_speed++;
-				speedChange = 0;
-				break;
-			case '-':
-				starlib_speed--;
-				speedChange = 0;
-				break;
-			case '1':
-				JE_changeSetup(1);
-				break;
-			case '2':
-				JE_changeSetup(2);
-				break;
-			case '3':
-				JE_changeSetup(3);
-				break;
-			case '4':
-				JE_changeSetup(4);
-				break;
-			case '5':
-				JE_changeSetup(5);
-				break;
-			case '6':
-				JE_changeSetup(6);
-				break;
-			case '7':
-				JE_changeSetup(7);
-				break;
-			case '8':
-				JE_changeSetup(8);
-				break;
-			case '9':
-				JE_changeSetup(9);
-				break;
-			case '0':
-				JE_changeSetup(10);
-				break;
-			case '!':
-				JE_changeSetup(11);
-				break;
-			case '@':
-				JE_changeSetup(12);
-				break;
-			case '#':
-				JE_changeSetup(13);
-				break;
-			case '$':
-				JE_changeSetup(14);
-				break;
+            off = tempX + tempY * 320;
 
-			case 'C':
-				JE_resetValues();
-				break;
-			case 'S':
-				nspVarVarInc = mt_rand_1() * 0.01f - 0.005f;
-				break;
-			case 'X':
-			case 27:
-				run = false;
-				break;
-			case '[':
-				pColor--;
-				break;
-			case ']':
-				pColor++;
-				break;
-			case '{':
-				pColor -= 72;
-				break;
-			case '}':
-				pColor += 72;
-				break;
-			case '`': /* ` */
-				doChange = !doChange;
-				break;
-			case 'P':
-				wait_noinput(true, false, false);
-				wait_input(true, false, false);
-				break;
-			default:
-				break;
-		}
-	}
+            if(grayB) {
+                tempCol = tempZ >> 1;
+            } else {
+                tempCol = pColor + ((tempZ >> 4) & 31);
+            }
 
-	if (doChange)
-	{
-		stepCounter++;
-		if (stepCounter > changeTime)
-		{
-			JE_changeSetup(0);
-		}
-	}
+            /* Draw the pixel! */
+            if(off >= 640 && off < (320 * 200) - 640) {
+                surf[off] = tempCol;
 
-	if ((mt_rand() % 1000) == 1)
-	{
-		nspVarVarInc = mt_rand_1() * 0.01f - 0.005f;
-	}
+                tempCol += 72;
+                surf[off - 1] = tempCol;
+                surf[off + 1] = tempCol;
+                surf[off - 320] = tempCol;
+                surf[off + 320] = tempCol;
 
-	nspVarInc += nspVarVarInc;
+                tempCol += 72;
+                surf[off - 2] = tempCol;
+                surf[off + 2] = tempCol;
+                surf[off - 640] = tempCol;
+                surf[off + 640] = tempCol;
+            }
+        }
+    }
+
+    if(newkey) {
+        switch(toupper(lastkey_char)) {
+            case '+':
+                starlib_speed++;
+                speedChange = 0;
+                break;
+            case '-':
+                starlib_speed--;
+                speedChange = 0;
+                break;
+            case '1':
+                JE_changeSetup(1);
+                break;
+            case '2':
+                JE_changeSetup(2);
+                break;
+            case '3':
+                JE_changeSetup(3);
+                break;
+            case '4':
+                JE_changeSetup(4);
+                break;
+            case '5':
+                JE_changeSetup(5);
+                break;
+            case '6':
+                JE_changeSetup(6);
+                break;
+            case '7':
+                JE_changeSetup(7);
+                break;
+            case '8':
+                JE_changeSetup(8);
+                break;
+            case '9':
+                JE_changeSetup(9);
+                break;
+            case '0':
+                JE_changeSetup(10);
+                break;
+            case '!':
+                JE_changeSetup(11);
+                break;
+            case '@':
+                JE_changeSetup(12);
+                break;
+            case '#':
+                JE_changeSetup(13);
+                break;
+            case '$':
+                JE_changeSetup(14);
+                break;
+
+            case 'C':
+                JE_resetValues();
+                break;
+            case 'S':
+                nspVarVarInc = mt_rand_1() * 0.01f - 0.005f;
+                break;
+            case 'X':
+            case 27:
+                run = false;
+                break;
+            case '[':
+                pColor--;
+                break;
+            case ']':
+                pColor++;
+                break;
+            case '{':
+                pColor -= 72;
+                break;
+            case '}':
+                pColor += 72;
+                break;
+            case '`': /* ` */
+                doChange = !doChange;
+                break;
+            case 'P':
+                wait_noinput(true, false, false);
+                wait_input(true, false, false);
+                break;
+            default:
+                break;
+        }
+    }
+
+    if(doChange) {
+        stepCounter++;
+        if(stepCounter > changeTime) {
+            JE_changeSetup(0);
+        }
+    }
+
+    if((mt_rand() % 1000) == 1) {
+        nspVarVarInc = mt_rand_1() * 0.01f - 0.005f;
+    }
+
+    nspVarInc += nspVarVarInc;
 }
 
-void JE_wackyCol( void )
+void JE_wackyCol(void)
 {
-	/* YKS: Does nothing */
+    /* YKS: Does nothing */
 }
 
-void JE_starlib_init( void )
+void JE_starlib_init(void)
 {
-	static JE_boolean initialized = false;
+    static JE_boolean initialized = false;
 
-	if (!initialized)
-	{
-		initialized = true;
+    if(!initialized) {
+        initialized = true;
 
-		JE_resetValues();
-		JE_changeSetup(2);
-		doChange = true;
+        JE_resetValues();
+        JE_changeSetup(2);
+        doChange = true;
 
-		/* RANDOMIZE; */
-		//star = (struct JE_StarType*)malloc(sizeof(struct JE_StarType)*starlib_MAX_STARS);
-		for (int x = 0; x < starlib_MAX_STARS; x++)
-		{
-			star[x].spX = (mt_rand() % 64000) - 32000;
-			star[x].spY = (mt_rand() % 40000) - 20000;
-			star[x].spZ = x+1;
-		}
-	}
+        /* RANDOMIZE; */
+        // star = (struct JE_StarType*)malloc(sizeof(struct JE_StarType)*starlib_MAX_STARS);
+        for(int x = 0; x < starlib_MAX_STARS; x++) {
+            star[x].spX = (mt_rand() % 64000) - 32000;
+            star[x].spY = (mt_rand() % 40000) - 20000;
+            star[x].spZ = x + 1;
+        }
+    }
 }
 
-void JE_resetValues( void )
+void JE_resetValues(void)
 {
-	nsp2 = 1;
-	nspVar2Inc = 1;
-	nspVarInc = 0.1f;
-	nspVarVarInc = 0.0001f;
-	nsp = 0;
-	pColor = 32;
-	starlib_speed = 2;
-	speedChange = 0;
+    nsp2 = 1;
+    nspVar2Inc = 1;
+    nspVarInc = 0.1f;
+    nspVarVarInc = 0.0001f;
+    nsp = 0;
+    pColor = 32;
+    starlib_speed = 2;
+    speedChange = 0;
 }
 
-void JE_changeSetup( JE_byte setupType )
+void JE_changeSetup(JE_byte setupType)
 {
-	stepCounter = 0;
-	changeTime = (mt_rand() % 1000);
+    stepCounter = 0;
+    changeTime = (mt_rand() % 1000);
 
-	if (setupType > 0)
-	{
-		setupByte = setupType;
-	} else {
-		setupByte = mt_rand() % (MAX_TYPES + 1);
-	}
+    if(setupType > 0) {
+        setupByte = setupType;
+    } else {
+        setupByte = mt_rand() % (MAX_TYPES + 1);
+    }
 
-	if (setupByte == 1)
-	{
-		nspVarInc = 0.1f;
-	}
-	if (nspVarInc > 2.2f)
-	{
-		nspVarInc = 0.1f;
-	}
+    if(setupByte == 1) {
+        nspVarInc = 0.1f;
+    }
+    if(nspVarInc > 2.2f) {
+        nspVarInc = 0.1f;
+    }
 }
 
-void JE_newStar( void )
+void JE_newStar(void)
 {
-	if (setupByte == 0)
-	{
-		tempX = (mt_rand() % 64000) - 32000;
-		tempY = (mt_rand() % 40000) - 20000;
-	} else {
-		nsp = nsp + nspVarInc; /* YKS: < lol */
-		switch (setupByte)
-		{
-			case 1:
-				tempX = (int)(sinf(nsp / 30) * 20000);
-				tempY = (mt_rand() % 40000) - 20000;
-				break;
-			case 2:
-				tempX = (int)(cosf(nsp) * 20000);
-				tempY = (int)(sinf(nsp) * 20000);
-				break;
-			case 3:
-				tempX = (int)(cosf(nsp * 15) * 100) * ((int)(nsp / 6) % 200);
-				tempY = (int)(sinf(nsp * 15) * 100) * ((int)(nsp / 6) % 200);
-				break;
-			case 4:
-				tempX = (int)(sinf(nsp / 60) * 20000);
-				tempY = (int)(cosf(nsp) * (int)(sinf(nsp / 200) * 300) * 100);
-				break;
-			case 5:
-				tempX = (int)(sinf(nsp / 2) * 20000);
-				tempY = (int)(cosf(nsp) * (int)(sinf(nsp / 200) * 300) * 100);
-				break;
-			case 6:
-				tempX = (int)(sinf(nsp) * 40000);
-				tempY = (int)(cosf(nsp) * 20000);
-				break;
-			case 8:
-				tempX = (int)(sinf(nsp / 2) * 40000);
-				tempY = (int)(cosf(nsp) * 20000);
-				break;
-			case 7:
-				tempX = mt_rand() % 65535;
-				if ((mt_rand() % 2) == 0)
-				{
-					tempY = (int)(cosf(nsp / 80) * 10000) + 15000;
-				} else {
-					tempY = 50000 - (int)(cosf(nsp / 80) * 13000);
-				}
-				break;
-			case 9:
-				nsp2 += nspVar2Inc;
-				if ((nsp2 == 65535) || (nsp2 == 0))
-				{
-					nspVar2Inc = -nspVar2Inc;
-				}
-				tempX = (int)(cosf(sinf(nsp2 / 10.0f) + (nsp / 500)) * 32000);
-				tempY = (int)(sinf(cosf(nsp2 / 10.0f) + (nsp / 500)) * 30000);
-				break;
-			case 10:
-				nsp2 += nspVar2Inc;
-				if ((nsp2 == 65535) || (nsp2 == 0))
-				{
-					nspVar2Inc = -nspVar2Inc;
-				}
-				tempX = (int)(cosf(sinf(nsp2 / 5.0f) + (nsp / 100)) * 32000);
-				tempY = (int)(sinf(cosf(nsp2 / 5.0f) + (nsp / 100)) * 30000);
-				break;;
-			case 11:
-				nsp2 += nspVar2Inc;
-				if ((nsp2 == 65535) || (nsp2 == 0))
-				{
-					nspVar2Inc = -nspVar2Inc;
-				}
-				tempX = (int)(cosf(sinf(nsp2 / 1000.0f) + (nsp / 2)) * 32000);
-				tempY = (int)(sinf(cosf(nsp2 / 1000.0f) + (nsp / 2)) * 30000);
-				break;
-			case 12:
-				if (nsp != 0)
-				{
-					nsp2 += nspVar2Inc;
-					if ((nsp2 == 65535) || (nsp2 == 0))
-					{
-						nspVar2Inc = -nspVar2Inc;
-					}
-					tempX = (int)(cosf(sinf(nsp2 / 2.0f) / (sqrtf(fabsf(nsp)) / 10.0f + 1) + (nsp2 / 100.0f)) * 32000);
-					tempY = (int)(sinf(cosf(nsp2 / 2.0f) / (sqrtf(fabsf(nsp)) / 10.0f + 1) + (nsp2 / 100.0f)) * 30000);
-				}
-				break;
-			case 13:
-				if (nsp != 0)
-				{
-					nsp2 += nspVar2Inc;
-					if ((nsp2 == 65535) || (nsp2 == 0))
-					{
-						nspVar2Inc = -nspVar2Inc;
-					}
-					tempX = (int)(cosf(sinf(nsp2 / 10.0f) / 2 + (nsp / 20)) * 32000);
-					tempY = (int)(sinf(sinf(nsp2 / 11.0f) / 2 + (nsp / 20)) * 30000);
-				}
-				break;
-			case 14:
-				nsp2 += nspVar2Inc;
-				tempX = (int)((sinf(nsp) + cosf(nsp2 / 1000.0f) * 3) * 12000);
-				tempY = (int)(cosf(nsp) * 10000) + nsp2;
-				break;
-		}
-	}
+    if(setupByte == 0) {
+        tempX = (mt_rand() % 64000) - 32000;
+        tempY = (mt_rand() % 40000) - 20000;
+    } else {
+        nsp = nsp + nspVarInc; /* YKS: < lol */
+        switch(setupByte) {
+            case 1:
+                tempX = (int) (sinf(nsp / 30) * 20000);
+                tempY = (mt_rand() % 40000) - 20000;
+                break;
+            case 2:
+                tempX = (int) (cosf(nsp) * 20000);
+                tempY = (int) (sinf(nsp) * 20000);
+                break;
+            case 3:
+                tempX = (int) (cosf(nsp * 15) * 100) * ((int) (nsp / 6) % 200);
+                tempY = (int) (sinf(nsp * 15) * 100) * ((int) (nsp / 6) % 200);
+                break;
+            case 4:
+                tempX = (int) (sinf(nsp / 60) * 20000);
+                tempY = (int) (cosf(nsp) * (int) (sinf(nsp / 200) * 300) * 100);
+                break;
+            case 5:
+                tempX = (int) (sinf(nsp / 2) * 20000);
+                tempY = (int) (cosf(nsp) * (int) (sinf(nsp / 200) * 300) * 100);
+                break;
+            case 6:
+                tempX = (int) (sinf(nsp) * 40000);
+                tempY = (int) (cosf(nsp) * 20000);
+                break;
+            case 8:
+                tempX = (int) (sinf(nsp / 2) * 40000);
+                tempY = (int) (cosf(nsp) * 20000);
+                break;
+            case 7:
+                tempX = mt_rand() % 65535;
+                if((mt_rand() % 2) == 0) {
+                    tempY = (int) (cosf(nsp / 80) * 10000) + 15000;
+                } else {
+                    tempY = 50000 - (int) (cosf(nsp / 80) * 13000);
+                }
+                break;
+            case 9:
+                nsp2 += nspVar2Inc;
+                if((nsp2 == 65535) || (nsp2 == 0)) {
+                    nspVar2Inc = -nspVar2Inc;
+                }
+                tempX = (int) (cosf(sinf(nsp2 / 10.0f) + (nsp / 500)) * 32000);
+                tempY = (int) (sinf(cosf(nsp2 / 10.0f) + (nsp / 500)) * 30000);
+                break;
+            case 10:
+                nsp2 += nspVar2Inc;
+                if((nsp2 == 65535) || (nsp2 == 0)) {
+                    nspVar2Inc = -nspVar2Inc;
+                }
+                tempX = (int) (cosf(sinf(nsp2 / 5.0f) + (nsp / 100)) * 32000);
+                tempY = (int) (sinf(cosf(nsp2 / 5.0f) + (nsp / 100)) * 30000);
+                break;
+                ;
+            case 11:
+                nsp2 += nspVar2Inc;
+                if((nsp2 == 65535) || (nsp2 == 0)) {
+                    nspVar2Inc = -nspVar2Inc;
+                }
+                tempX = (int) (cosf(sinf(nsp2 / 1000.0f) + (nsp / 2)) * 32000);
+                tempY = (int) (sinf(cosf(nsp2 / 1000.0f) + (nsp / 2)) * 30000);
+                break;
+            case 12:
+                if(nsp != 0) {
+                    nsp2 += nspVar2Inc;
+                    if((nsp2 == 65535) || (nsp2 == 0)) {
+                        nspVar2Inc = -nspVar2Inc;
+                    }
+                    tempX = (int) (cosf(sinf(nsp2 / 2.0f) / (sqrtf(fabsf(nsp)) / 10.0f + 1) + (nsp2 / 100.0f)) * 32000);
+                    tempY = (int) (sinf(cosf(nsp2 / 2.0f) / (sqrtf(fabsf(nsp)) / 10.0f + 1) + (nsp2 / 100.0f)) * 30000);
+                }
+                break;
+            case 13:
+                if(nsp != 0) {
+                    nsp2 += nspVar2Inc;
+                    if((nsp2 == 65535) || (nsp2 == 0)) {
+                        nspVar2Inc = -nspVar2Inc;
+                    }
+                    tempX = (int) (cosf(sinf(nsp2 / 10.0f) / 2 + (nsp / 20)) * 32000);
+                    tempY = (int) (sinf(sinf(nsp2 / 11.0f) / 2 + (nsp / 20)) * 30000);
+                }
+                break;
+            case 14:
+                nsp2 += nspVar2Inc;
+                tempX = (int) ((sinf(nsp) + cosf(nsp2 / 1000.0f) * 3) * 12000);
+                tempY = (int) (cosf(nsp) * 10000) + nsp2;
+                break;
+        }
+    }
 }
-

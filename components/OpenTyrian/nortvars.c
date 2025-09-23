@@ -29,59 +29,55 @@
 
 JE_boolean inputDetected;
 
-JE_boolean JE_anyButton( void )
+JE_boolean JE_anyButton(void)
 {
-	poll_joysticks();
-	service_SDL_events(true);
-	return newkey || mousedown || joydown;
+    poll_joysticks();
+    service_SDL_events(true);
+    return newkey || mousedown || joydown;
 }
 
-void JE_dBar3( SDL_Surface *surface, JE_integer x,  JE_integer y,  JE_integer num,  JE_integer col )
+void JE_dBar3(SDL_Surface *surface, JE_integer x, JE_integer y, JE_integer num, JE_integer col)
 {
-	JE_byte z;
-	JE_byte zWait = 2;
+    JE_byte z;
+    JE_byte zWait = 2;
 
-	col += 2;
+    col += 2;
 
-	for (z = 0; z <= num; z++)
-	{
-		JE_rectangle(surface, x, y - 1, x + 8, y, col); /* <MXD> SEGa000 */
-		if (zWait > 0)
-		{
-			zWait--;
-		} else {
-			col++;
-			zWait = 1;
-		}
-		y -= 2;
-	}
+    for(z = 0; z <= num; z++) {
+        JE_rectangle(surface, x, y - 1, x + 8, y, col); /* <MXD> SEGa000 */
+        if(zWait > 0) {
+            zWait--;
+        } else {
+            col++;
+            zWait = 1;
+        }
+        y -= 2;
+    }
 }
 
-void JE_barDrawShadow( SDL_Surface *surface, JE_word x, JE_word y, JE_word res, JE_word col, JE_word amt, JE_word xsize, JE_word ysize )
+void JE_barDrawShadow(
+    SDL_Surface *surface, JE_word x, JE_word y, JE_word res, JE_word col, JE_word amt, JE_word xsize, JE_word ysize)
 {
-	xsize--;
-	ysize--;
+    xsize--;
+    ysize--;
 
-	for (int z = 1; z <= amt / res; z++)
-	{
-		JE_barShade(surface, x+2, y+2, x+xsize+2, y+ysize+2);
-		fill_rectangle_xy(surface, x, y, x+xsize, y+ysize, col+12);
-		fill_rectangle_xy(surface, x, y, x+xsize, y, col+13);
-		JE_pix(surface, x, y, col+15);
-		fill_rectangle_xy(surface, x, y+ysize, x+xsize, y+ysize, col+11);
-		x += xsize + 2;
-	}
+    for(int z = 1; z <= amt / res; z++) {
+        JE_barShade(surface, x + 2, y + 2, x + xsize + 2, y + ysize + 2);
+        fill_rectangle_xy(surface, x, y, x + xsize, y + ysize, col + 12);
+        fill_rectangle_xy(surface, x, y, x + xsize, y, col + 13);
+        JE_pix(surface, x, y, col + 15);
+        fill_rectangle_xy(surface, x, y + ysize, x + xsize, y + ysize, col + 11);
+        x += xsize + 2;
+    }
 
-	amt %= res;
-	if (amt > 0)
-	{
-		JE_barShade(surface, x+2, y+2, x+xsize+2, y+ysize+2);
-		fill_rectangle_xy(surface, x,y, x+xsize, y+ysize, col+(12 / res * amt));
-	}
+    amt %= res;
+    if(amt > 0) {
+        JE_barShade(surface, x + 2, y + 2, x + xsize + 2, y + ysize + 2);
+        fill_rectangle_xy(surface, x, y, x + xsize, y + ysize, col + (12 / res * amt));
+    }
 }
 
-void JE_wipeKey( void )
+void JE_wipeKey(void)
 {
-	// /!\ Doesn't seems to affect anything.
+    // /!\ Doesn't seems to affect anything.
 }
-

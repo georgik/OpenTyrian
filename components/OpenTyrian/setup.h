@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -21,7 +21,6 @@
 
 #include "opentyr.h"
 
-void JE_textMenuWait( JE_word *waitTime, JE_boolean doGamma );
+void JE_textMenuWait(JE_word *waitTime, JE_boolean doGamma);
 
 #endif /* SETUP_H */
-

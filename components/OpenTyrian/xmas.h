@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -23,8 +23,7 @@
 
 extern bool xmas;
 
-bool xmas_time( void );
-bool xmas_prompt( void );
+bool xmas_time(void);
+bool xmas_prompt(void);
 
 #endif /* XMAS_H */
-

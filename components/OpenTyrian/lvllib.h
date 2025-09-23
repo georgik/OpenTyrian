@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -28,7 +28,6 @@ extern JE_LvlPosType lvlPos;
 extern char levelFile[22]; /* string [12] */
 extern JE_word lvlNum;
 
-void JE_analyzeLevel( void );
+void JE_analyzeLevel(void);
 
 #endif /* LVLLIB_H */
-

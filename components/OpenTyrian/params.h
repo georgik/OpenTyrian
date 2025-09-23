@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -23,7 +23,6 @@
 
 extern JE_boolean richMode, constantPlay, constantDie;
 
-void JE_paramCheck( int argc, char *argv[] );
+void JE_paramCheck(int argc, char *argv[]);
 
 #endif /* PARAMS_H */
-

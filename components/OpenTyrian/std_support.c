@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -18,9 +18,9 @@
  */
 #include "std_support.h"
 
-char *ot_strchrnul( const char *s, int c )
+char *ot_strchrnul(const char *s, int c)
 {
-	for (; *s != c && *s != '\0'; ++s)
-		;
-	return (char *)s;
+    for(; *s != c && *s != '\0'; ++s)
+        ;
+    return (char *) s;
 }

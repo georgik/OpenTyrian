@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -25,26 +25,25 @@
 
 extern const char *custom_data_dir;
 
-const char *data_dir( void );
+const char *data_dir(void);
 
-FILE *dir_fopen( const char *dir, const char *file, const char *mode );
-FILE *dir_fopen_warn( const char *dir, const char *file, const char *mode );
-FILE *dir_fopen_die( const char *dir, const char *file, const char *mode );
+FILE *dir_fopen(const char *dir, const char *file, const char *mode);
+FILE *dir_fopen_warn(const char *dir, const char *file, const char *mode);
+FILE *dir_fopen_die(const char *dir, const char *file, const char *mode);
 
-bool dir_file_exists( const char *dir, const char *file );
+bool dir_file_exists(const char *dir, const char *file);
 
-long ftell_eof( FILE *f );
+long ftell_eof(FILE *f);
 
 // endian-swapping fread/fwrite that die if the expected amount cannot be read/written
-size_t eefwrite ( const void * ptr, size_t size, size_t count, FILE * stream );
-int efeof ( FILE * stream );
-int efputc ( int character, FILE * stream );
-int efgetc ( FILE * stream );
-int efclose ( FILE * stream );
-long int eftell ( FILE * stream );
-int efseek( FILE * stream, long int offset, int origin );
-size_t efread( void *buffer, size_t size, size_t num, FILE *stream );
-size_t efwrite( const void *buffer, size_t size, size_t num, FILE *stream );
+size_t eefwrite(const void *ptr, size_t size, size_t count, FILE *stream);
+int efeof(FILE *stream);
+int efputc(int character, FILE *stream);
+int efgetc(FILE *stream);
+int efclose(FILE *stream);
+long int eftell(FILE *stream);
+int efseek(FILE *stream, long int offset, int origin);
+size_t efread(void *buffer, size_t size, size_t num, FILE *stream);
+size_t efwrite(const void *buffer, size_t size, size_t num, FILE *stream);
 
-#endif // FILE_H
-
+#endif  // FILE_H

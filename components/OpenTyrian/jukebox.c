@@ -33,170 +33,159 @@
 
 #include <stdio.h>
 
-void jukebox( void )
+void jukebox(void)
 {
-	bool trigger_quit = false,  // true when user wants to quit
-	     quitting = false;
-	
-	bool hide_text = false;
+    bool trigger_quit = false,  // true when user wants to quit
+        quitting = false;
 
-	bool fade_looped_songs = true, fading_song = false;
-	bool stopped = false;
+    bool hide_text = false;
 
-	bool fx = false;
-	int fx_num = 0;
+    bool fade_looped_songs = true, fading_song = false;
+    bool stopped = false;
 
-	int palette_fade_steps = 15;
+    bool fx = false;
+    int fx_num = 0;
 
-	int diff[256][3];
-	init_step_fade_palette(diff, vga_palette, 0, 255);
+    int palette_fade_steps = 15;
 
-	JE_starlib_init();
+    int diff[256][3];
+    init_step_fade_palette(diff, vga_palette, 0, 255);
 
-	int fade_volume = tyrMusicVolume;
-	
-	for (; ; )
-	{
-		if (!stopped && !audio_disabled)
-		{
-			if (songlooped && fade_looped_songs)
-				fading_song = true;
+    JE_starlib_init();
 
-			if (fading_song)
-			{
-				if (fade_volume > 5)
-				{
-					fade_volume -= 2;
-				}
-				else
-				{
-					fade_volume = tyrMusicVolume;
+    int fade_volume = tyrMusicVolume;
 
-					fading_song = false;
-				}
+    for(;;) {
+        if(!stopped && !audio_disabled) {
+            if(songlooped && fade_looped_songs)
+                fading_song = true;
 
-				set_volume(fade_volume, fxVolume);
-			}
+            if(fading_song) {
+                if(fade_volume > 5) {
+                    fade_volume -= 2;
+                } else {
+                    fade_volume = tyrMusicVolume;
 
-			if (!playing || (songlooped && fade_looped_songs && !fading_song))
-				play_song(mt_rand() % MUSIC_NUM);
-		}
+                    fading_song = false;
+                }
 
-		setdelay(1);
+                set_volume(fade_volume, fxVolume);
+            }
 
-		SDL_FillSurfaceRect(VGAScreenSeg, NULL, 0);
+            if(!playing || (songlooped && fade_looped_songs && !fading_song))
+                play_song(mt_rand() % MUSIC_NUM);
+        }
 
-		// starlib input needs to be rewritten
-		JE_starlib_main();
+        setdelay(1);
 
-		push_joysticks_as_keyboard();
-		service_SDL_events(true);
+        SDL_FillSurfaceRect(VGAScreenSeg, NULL, 0);
 
-		if (!hide_text)
-		{
-			char buffer[60];
-			
-			if (fx)
-				snprintf(buffer, sizeof(buffer), "%d %s", fx_num + 1, soundTitle[fx_num]);
-			else
-				snprintf(buffer, sizeof(buffer), "%d %s", song_playing + 1, musicTitle[song_playing]);
-			
-			const int x = VGAScreen->w / 2;
-			
-			draw_font_hv(VGAScreen, x, 170, "Press ESC to quit the jukebox.",           small_font, centered, 1, 0);
-			draw_font_hv(VGAScreen, x, 180, "Arrow keys change the song being played.", small_font, centered, 1, 0);
-			draw_font_hv(VGAScreen, x, 190, buffer,                                     small_font, centered, 1, 4);
-		}
+        // starlib input needs to be rewritten
+        JE_starlib_main();
 
-		if (palette_fade_steps > 0)
-			step_fade_palette(diff, palette_fade_steps--, 0, 255);
-		
-		JE_showVGA();
+        push_joysticks_as_keyboard();
+        service_SDL_events(true);
 
-		wait_delay();
+        if(!hide_text) {
+            char buffer[60];
 
-		// quit on mouse click
-		Uint16 x, y;
-		if (JE_mousePosition((JE_word*)&x, (JE_word*)&y) > 0)
-			trigger_quit = true;
+            if(fx)
+                snprintf(buffer, sizeof(buffer), "%d %s", fx_num + 1, soundTitle[fx_num]);
+            else
+                snprintf(buffer, sizeof(buffer), "%d %s", song_playing + 1, musicTitle[song_playing]);
 
-		if (newkey)
-		{
-			switch (lastkey_sym)
-			{
-			case SDL_SCANCODE_ESCAPE: // quit jukebox
-			case SDL_SCANCODE_Q:
-				trigger_quit = true;
-				break;
+            const int x = VGAScreen->w / 2;
 
-			case SDL_SCANCODE_SPACE:
-				hide_text = !hide_text;
-				break;
+            draw_font_hv(VGAScreen, x, 170, "Press ESC to quit the jukebox.", small_font, centered, 1, 0);
+            draw_font_hv(VGAScreen, x, 180, "Arrow keys change the song being played.", small_font, centered, 1, 0);
+            draw_font_hv(VGAScreen, x, 190, buffer, small_font, centered, 1, 4);
+        }
 
-			case SDL_SCANCODE_F:
-				fading_song = !fading_song;
-				break;
-			case SDL_SCANCODE_N:
-				fade_looped_songs = !fade_looped_songs;
-				break;
+        if(palette_fade_steps > 0)
+            step_fade_palette(diff, palette_fade_steps--, 0, 255);
 
-			case SDL_SCANCODE_SLASH: // switch to sfx mode
-				fx = !fx;
-				break;
-			case SDL_SCANCODE_COMMA:
-				if (fx && --fx_num < 0)
-					fx_num = SAMPLE_COUNT - 1;
-				break;
-			case SDL_SCANCODE_PERIOD:
-				if (fx && ++fx_num >= SAMPLE_COUNT)
-					fx_num = 0;
-				break;
-			case SDL_SCANCODE_SEMICOLON:
-				if (fx)
-					JE_playSampleNum(fx_num + 1);
-				break;
+        JE_showVGA();
 
-			case SDL_SCANCODE_LEFT:
-			case SDL_SCANCODE_UP:
-				play_song((song_playing > 0 ? song_playing : MUSIC_NUM) - 1);
-				stopped = false;
-				break;
-			case SDL_SCANCODE_RETURN:
-			case SDL_SCANCODE_RIGHT:
-			case SDL_SCANCODE_DOWN:
-				play_song((song_playing + 1) % MUSIC_NUM);
-				stopped = false;
-				break;
-			case SDL_SCANCODE_S: // stop song
-				stop_song();
-				stopped = true;
-				break;
-			case SDL_SCANCODE_R: // restart song
-				restart_song();
-				stopped = false;
-				break;
+        wait_delay();
 
-			default:
-				break;
-			}
-		}
-		
-		// user wants to quit, start fade-out
-		if (trigger_quit && !quitting)
-		{
-			palette_fade_steps = 15;
-			
-			SDL_Color black = { 0, 0, 0 };
-			init_step_fade_solid(diff, black, 0, 255);
-			
-			quitting = true;
-		}
-		
-		// if fade-out finished, we can finally quit
-		if (quitting && palette_fade_steps == 0)
-			break;
-	}
+        // quit on mouse click
+        Uint16 x, y;
+        if(JE_mousePosition((JE_word *) &x, (JE_word *) &y) > 0)
+            trigger_quit = true;
 
-	set_volume(tyrMusicVolume, fxVolume);
+        if(newkey) {
+            switch(lastkey_sym) {
+                case SDL_SCANCODE_ESCAPE:  // quit jukebox
+                case SDL_SCANCODE_Q:
+                    trigger_quit = true;
+                    break;
+
+                case SDL_SCANCODE_SPACE:
+                    hide_text = !hide_text;
+                    break;
+
+                case SDL_SCANCODE_F:
+                    fading_song = !fading_song;
+                    break;
+                case SDL_SCANCODE_N:
+                    fade_looped_songs = !fade_looped_songs;
+                    break;
+
+                case SDL_SCANCODE_SLASH:  // switch to sfx mode
+                    fx = !fx;
+                    break;
+                case SDL_SCANCODE_COMMA:
+                    if(fx && --fx_num < 0)
+                        fx_num = SAMPLE_COUNT - 1;
+                    break;
+                case SDL_SCANCODE_PERIOD:
+                    if(fx && ++fx_num >= SAMPLE_COUNT)
+                        fx_num = 0;
+                    break;
+                case SDL_SCANCODE_SEMICOLON:
+                    if(fx)
+                        JE_playSampleNum(fx_num + 1);
+                    break;
+
+                case SDL_SCANCODE_LEFT:
+                case SDL_SCANCODE_UP:
+                    play_song((song_playing > 0 ? song_playing : MUSIC_NUM) - 1);
+                    stopped = false;
+                    break;
+                case SDL_SCANCODE_RETURN:
+                case SDL_SCANCODE_RIGHT:
+                case SDL_SCANCODE_DOWN:
+                    play_song((song_playing + 1) % MUSIC_NUM);
+                    stopped = false;
+                    break;
+                case SDL_SCANCODE_S:  // stop song
+                    stop_song();
+                    stopped = true;
+                    break;
+                case SDL_SCANCODE_R:  // restart song
+                    restart_song();
+                    stopped = false;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        // user wants to quit, start fade-out
+        if(trigger_quit && !quitting) {
+            palette_fade_steps = 15;
+
+            SDL_Color black = {0, 0, 0};
+            init_step_fade_solid(diff, black, 0, 255);
+
+            quitting = true;
+        }
+
+        // if fade-out finished, we can finally quit
+        if(quitting && palette_fade_steps == 0)
+            break;
+    }
+
+    set_volume(tyrMusicVolume, fxVolume);
 }
-

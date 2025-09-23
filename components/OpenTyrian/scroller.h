@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -22,11 +22,10 @@
 #include "opentyr.h"
 
 extern const struct about_text_type {
-	int effect;
-	const char *text;
+    int effect;
+    const char *text;
 } about_text[];
 
-void scroller_sine( const struct about_text_type text[] );
+void scroller_sine(const struct about_text_type text[]);
 
 #endif /* SCROLLER_H */
-

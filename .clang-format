@@ -1,0 +1,37 @@
+---
+# OpenTyrian ESP32 C/C++ code formatting style
+# Based on ESP-IDF recommendations with Google style
+BasedOnStyle: Google
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+IndentCaseLabels: true
+SpaceBeforeParens: Never
+AlignAfterOpenBracket: Align
+BinPackArguments: false
+BinPackParameters: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBraces: Linux
+IndentPPDirectives: AfterHash
+SpaceInEmptyParentheses: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+Standard: Auto
+PointerAlignment: Right
+AlwaysBreakAfterReturnType: None
+AlwaysBreakAfterDefinitionReturnType: None
+BreakStringLiterals: true
+ContinuationIndentWidth: 4
+Cpp11BracedListStyle: true
+SpaceAfterCStyleCast: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeRangeBasedForLoopColon: true
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: false
+SortIncludes: Never

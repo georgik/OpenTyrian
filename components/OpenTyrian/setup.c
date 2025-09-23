@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -29,67 +29,57 @@
 
 #include "SDL3/SDL.h"
 
-void JE_textMenuWait( JE_word *waitTime, JE_boolean doGamma )
+void JE_textMenuWait(JE_word *waitTime, JE_boolean doGamma)
 {
-	set_mouse_position(160, 100);
-	
-	do
-	{
-		JE_showVGA();
-		
-		push_joysticks_as_keyboard();
-		service_SDL_events(true);
-		
-		if (doGamma)
-			JE_gammaCheck();
-		
-		inputDetected = newkey | mousedown;
-		
-		if (lastkey_sym == SDL_SCANCODE_SPACE)
-		{
-			lastkey_sym = SDL_SCANCODE_RETURN;
-		}
-		
-		if (mousedown)
-		{
-			newkey = true;
-			lastkey_sym = SDL_SCANCODE_RETURN;
-		}
-		
-		if (has_mouse && input_grab_enabled)
-		{
-			if (abs(mouse_y - 100) > 10)
-			{
-				inputDetected = true;
-				if (mouse_y - 100 < 0)
-				{
-					lastkey_sym = SDL_SCANCODE_UP;
-				} else {
-					lastkey_sym = SDL_SCANCODE_DOWN;
-				}
-				newkey = true;
-			}
-			if (abs(mouse_x - 160) > 10)
-			{
-				inputDetected = true;
-				if (mouse_x - 160 < 0)
-				{
-					lastkey_sym = SDL_SCANCODE_LEFT;
-				} else {
-					lastkey_sym = SDL_SCANCODE_RIGHT;
-				}
-				newkey = true;
-			}
-		}
-		
-		NETWORK_KEEP_ALIVE();
-		
-		SDL_Delay(16);
-		
-		if (*waitTime > 0)
-		{
-			(*waitTime)--;
-		}
-	} while (!(inputDetected || *waitTime == 1 || haltGame));
-}
+    set_mouse_position(160, 100);
 
+    do {
+        JE_showVGA();
+
+        push_joysticks_as_keyboard();
+        service_SDL_events(true);
+
+        if(doGamma)
+            JE_gammaCheck();
+
+        inputDetected = newkey | mousedown;
+
+        if(lastkey_sym == SDL_SCANCODE_SPACE) {
+            lastkey_sym = SDL_SCANCODE_RETURN;
+        }
+
+        if(mousedown) {
+            newkey = true;
+            lastkey_sym = SDL_SCANCODE_RETURN;
+        }
+
+        if(has_mouse && input_grab_enabled) {
+            if(abs(mouse_y - 100) > 10) {
+                inputDetected = true;
+                if(mouse_y - 100 < 0) {
+                    lastkey_sym = SDL_SCANCODE_UP;
+                } else {
+                    lastkey_sym = SDL_SCANCODE_DOWN;
+                }
+                newkey = true;
+            }
+            if(abs(mouse_x - 160) > 10) {
+                inputDetected = true;
+                if(mouse_x - 160 < 0) {
+                    lastkey_sym = SDL_SCANCODE_LEFT;
+                } else {
+                    lastkey_sym = SDL_SCANCODE_RIGHT;
+                }
+                newkey = true;
+            }
+        }
+
+        NETWORK_KEEP_ALIVE();
+
+        SDL_Delay(16);
+
+        if(*waitTime > 0) {
+            (*waitTime)--;
+        }
+    } while(!(inputDetected || *waitTime == 1 || haltGame));
+}

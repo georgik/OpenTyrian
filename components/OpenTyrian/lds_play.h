@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -25,10 +25,10 @@
 
 extern bool playing, songlooped;
 
-int lds_update( void );
-bool lds_load( FILE *f, unsigned int music_offset, unsigned int music_size );
-void lds_free( void );
-void lds_rewind( void );
+int lds_update(void);
+bool lds_load(FILE *f, unsigned int music_offset, unsigned int music_size);
+void lds_free(void);
+void lds_rewind(void);
 
 #define REFRESH 70.0f
 
@@ -39,31 +39,28 @@ unsigned int getspeed() { return speed; }
 unsigned int getinstruments() { return numpatch; }*/
 
 typedef struct {
-	unsigned char mod_misc, mod_vol, mod_ad, mod_sr, mod_wave,
-		car_misc, car_vol, car_ad, car_sr, car_wave, feedback, keyoff,
-		portamento, glide, finetune, vibrato, vibdelay, mod_trem, car_trem,
-		tremwait, arpeggio, arp_tab[12];
-	unsigned short start, size;
-	unsigned char fms;
-	unsigned short transp;
-	unsigned char midinst, midvelo, midkey, midtrans, middum1, middum2;
+    unsigned char mod_misc, mod_vol, mod_ad, mod_sr, mod_wave, car_misc, car_vol, car_ad, car_sr, car_wave, feedback,
+        keyoff, portamento, glide, finetune, vibrato, vibdelay, mod_trem, car_trem, tremwait, arpeggio, arp_tab[12];
+    unsigned short start, size;
+    unsigned char fms;
+    unsigned short transp;
+    unsigned char midinst, midvelo, midkey, midtrans, middum1, middum2;
 } SoundBank;
 
 typedef struct {
-	unsigned short gototune, lasttune, packpos;
-	unsigned char finetune, glideto, portspeed, nextvol, volmod, volcar,
-		vibwait, vibspeed, vibrate, trmstay, trmwait, trmspeed, trmrate, trmcount,
-		trcwait, trcspeed, trcrate, trccount, arp_size, arp_speed, keycount,
-		vibcount, arp_pos, arp_count, packwait, arp_tab[12];
-	struct {
-		unsigned char chandelay, sound;
-		unsigned short high;
-	} chancheat;
+    unsigned short gototune, lasttune, packpos;
+    unsigned char finetune, glideto, portspeed, nextvol, volmod, volcar, vibwait, vibspeed, vibrate, trmstay, trmwait,
+        trmspeed, trmrate, trmcount, trcwait, trcspeed, trcrate, trccount, arp_size, arp_speed, keycount, vibcount,
+        arp_pos, arp_count, packwait, arp_tab[12];
+    struct {
+        unsigned char chandelay, sound;
+        unsigned short high;
+    } chancheat;
 } Channel;
 
 typedef struct {
-	unsigned short patnum;
-	unsigned char transpose;
+    unsigned short patnum;
+    unsigned char transpose;
 } Position;
 
 void lds_playsound(int inst_number, int channel_number, int tunehigh);
@@ -71,4 +68,3 @@ void lds_setregs(unsigned char reg, unsigned char val);
 void lds_setregs_adv(unsigned char reg, unsigned char mask, unsigned char val);
 
 #endif /* LDS_PLAY_H */
-

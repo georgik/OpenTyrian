@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -40,19 +40,18 @@ extern Uint8 keysactive[SDL_SCANCODE_COUNT];
 extern bool input_grab_enabled;
 
 void process_keyboard();
-void flush_events_buffer( void );
-void wait_input( JE_boolean keyboard, JE_boolean mouse, JE_boolean joystick );
-void wait_noinput( JE_boolean keyboard, JE_boolean mouse, JE_boolean joystick );
-void init_keyboard( void );
-void input_grab( bool enable );
-JE_word JE_mousePosition( JE_word *mouseX, JE_word *mouseY );
-void set_mouse_position( int x, int y );
+void flush_events_buffer(void);
+void wait_input(JE_boolean keyboard, JE_boolean mouse, JE_boolean joystick);
+void wait_noinput(JE_boolean keyboard, JE_boolean mouse, JE_boolean joystick);
+void init_keyboard(void);
+void input_grab(bool enable);
+JE_word JE_mousePosition(JE_word *mouseX, JE_word *mouseY);
+void set_mouse_position(int x, int y);
 
-void service_SDL_events( JE_boolean clear_new );
+void service_SDL_events(JE_boolean clear_new);
 
-void sleep_game( void );
+void sleep_game(void);
 
-void JE_clearKeyboard( void );
+void JE_clearKeyboard(void);
 
 #endif /* KEYBOARD_H */
-

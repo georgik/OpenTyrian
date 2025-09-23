@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -26,12 +26,12 @@
 
 /*!
  * \brief Locate a character in a a string.
- * 
+ *
  * \param[in] s the string
  * \param[in] c the character
  * \return the pointer to the first occurrence of \p c in \p s if there is an occurrences;
  *         otherwise the pointer to the terminating null character of \p s
  */
-char *ot_strchrnul( const char *s, int c );
+char *ot_strchrnul(const char *s, int c);
 
-#endif // STD_SUPPORT_H
+#endif  // STD_SUPPORT_H

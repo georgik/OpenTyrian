@@ -1,4 +1,4 @@
-/* 
+/*
  * OpenTyrian: A modern cross-platform port of Tyrian
  * Copyright (C) 2007-2009  The OpenTyrian Development Team
  *
@@ -21,28 +21,25 @@
 
 
 const char *pcxfile[PCX_NUM] = /* [1..PCXnum] */
-{
-	"INTSHPB.PCX",
-	"SETUP2.PCX",
-	"TYRPLAY.PCX",
-	"TYRLOG2.PCX",
-	"P1.PCX",
-	"TYRPLAY2.PCX",
-	"BUC4.PCX",
-	"GMOVR4a.PCX",
-	"GMOVR4b.PCX",
-	"EPICSKY.PCX",
-	"DESTRUCT.PCX",
-	"ECLIPSE.PCX",
-	"FIREPICA.PCX"
-};
+    {"INTSHPB.PCX",
+     "SETUP2.PCX",
+     "TYRPLAY.PCX",
+     "TYRLOG2.PCX",
+     "P1.PCX",
+     "TYRPLAY2.PCX",
+     "BUC4.PCX",
+     "GMOVR4a.PCX",
+     "GMOVR4b.PCX",
+     "EPICSKY.PCX",
+     "DESTRUCT.PCX",
+     "ECLIPSE.PCX",
+     "FIREPICA.PCX"};
 
 const JE_byte pcxpal[PCX_NUM] = /* [1..PCXnum] */
-{ 0, 7, 5, 8, 10, 5, 18, 19, 19, 20, 21, 22, 5};
+    {0, 7, 5, 8, 10, 5, 18, 19, 19, 20, 21, 22, 5};
 
 /*FACEMAX*/
 const JE_byte facepal[12] = /* [1..12] */
-{ 1, 2, 3, 4, 6, 9, 11, 12, 16, 13, 14, 15};
+    {1, 2, 3, 4, 6, 9, 11, 12, 16, 13, 14, 15};
 
 JE_pcxpostype pcxpos;
-
