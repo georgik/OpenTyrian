@@ -53,8 +53,7 @@ idf_component_register(
         "std_support.c"
         "loudness.c"
     INCLUDE_DIRS "."
-    REQUIRES georgik__sdl fatfs littlefs usb usb_host_hid vfs esp_driver_sdspi esp_driver_sdmmc sdmmc
-    PRIV_REQUIRES espressif__esp32_p4_function_ev_board_noglib
+    REQUIRES georgik__sdl fatfs littlefs usb usb_host_hid vfs esp_driver_sdspi esp_driver_sdmmc sdmmc georgik__sdl_audio
 )
 
 # Reduce warning level for now
