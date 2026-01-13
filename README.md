@@ -7,7 +7,7 @@ OpenTyrian with ESP32-P4 and [T-Keyboard S3 Pro](https://github.com/MatheyDeo/Li
 
 This is a port of OpenTyrian to the ESP32 platform, originally ported to ESP32 by Gadget Workbench and updated for new hardware with support for [Board Support Packages](https://components.espressif.com/components?q=Board+Support+Package).
 
-The fork was updated to use all the game data directly from flash, as SD cards have a tendency to be unreliable. It now works with ESP-IDF and utilizes the latest [SDL3](https://components.espressif.com/components/georgik/sdl) available at the Espressif Component Registry.
+The port works with ESP-IDF and utilizes the latest [SDL3](https://components.espressif.com/components/georgik/sdl) available at the Espressif Component Registry. Game data can be stored either in flash memory or on SD card (ESP32-P4 only).
 
 ## Storyline
 
@@ -17,7 +17,7 @@ Tyrian is an arcade-style vertical scrolling shooter. The story is set in 20,031
 
 ## Supported Hardware
 
-- ESP-IDF 5.4+ or later
+- ESP-IDF 6.1 or later
 - **ESP32-P4 boards (16MB Flash):**
   - [ESP32-P4 Function EV Board](https://components.espressif.com/components/espressif/esp32_p4_function_ev_board_noglib) - 1024x600 RGB display, 32MB PSRAM
   - [M5Stack Tab5](https://shop.m5stack.com/products/m5stack-tab5-esp32-p4-5-inch-1280-720-mipi-dsi-ips-display-touch-screen-development-board) - 5-inch 1280x720 MIPI-DSI display with touch, 32MB PSRAM
@@ -37,28 +37,112 @@ The [PPA peripheral](https://docs.espressif.com/projects/esp-idf/en/stable/esp32
 
 This hardware acceleration ensures OpenTyrian runs smoothly at full display resolution while maintaining responsive gameplay.
 
-## Flash Storage and Partition Tables
+## Game Data Storage
 
-OpenTyrian uses custom partition tables optimized for each board architecture to maximize available storage for game assets:
+OpenTyrian supports two methods for storing game data:
 
-### ESP32-P4 Boards (16MB Flash)
+### Storage Options Overview
+
+| Method | Boards Supported | Capacity | Setup |
+|--------|-----------------|----------|-------|
+| **Internal Flash** | All boards | 11-12 MB | Automatic (embedded in firmware) |
+| **SD Card** | ESP32-P4 only | Up to SD card size | Manual (copy data to SD card) |
+
+### ESP32-P4 Automatic Fallback
+
+On ESP32-P4 boards, the game automatically detects and uses available game data in this priority order:
+
+1. **SD Card** (if present with Tyrian data at `/sdcard/tyrian/data/`)
+2. **Internal Flash** (fallback if SD card unavailable or missing data)
+
+This fallback system is completely automatic—no configuration needed. Simply insert an SD card with game data and the game will use it; otherwise, it uses the internal flash storage.
+
+### Internal Flash Storage
+
+All boards support game data stored directly in flash memory using LittleFS filesystem.
+
+#### ESP32-P4 Boards (16MB Flash)
 - **Partition Table**: `partitions.csv`
 - **Factory App**: 3MB (main application)
 - **LittleFS Storage**: 11MB (game data and assets)
-- **Configuration**: All game assets loaded directly from flash storage for reliability
+- **Mount Point**: `/flash/`
 
-### ESP32-S3 Boards (16MB Flash)
+#### ESP32-S3 Boards (16MB Flash)
 - **Partition Table**: `partitions_esp32s3_16mb.csv`
 - **Factory App**: 3MB (main application)
 - **LittleFS Storage**: 12MB (game data and assets)
-- **PSRAM Configuration**: Optimized for frame buffers and large data structures
+- **Mount Point**: `/flash/`
 
-### Storage Architecture
-The game data is stored in a LittleFS filesystem containing:
-- Original Tyrian game assets (sprites, levels, sounds, music)
-- Configuration files and save data
-- All assets pre-loaded during build process
-- No SD card dependency for maximum reliability
+Flash storage is embedded during the build process—no additional setup required.
+
+### SD Card Storage (ESP32-P4 Only)
+
+ESP32-P4 Function EV Board supports loading game data from SD card, which offers several advantages:
+
+- **Larger Capacity**: Store additional game mods or custom assets
+- **Easy Updates**: Change game data without reflashing firmware
+- **Development**: Test new assets quickly during development
+
+#### Supported Hardware
+- ESP32-P4 Function EV Board (SDMMC interface)
+- SD card interface pins: GPIO 39-44 (D0-D3, CMD, CLK)
+
+#### SD Card Setup
+
+1. **Format SD Card** (if needed):
+   - Filesystem: FAT32
+   - Cluster size: Default or 4KB
+
+2. **Create Directory Structure**:
+   ```
+   /sdcard/
+   └── tyrian/
+       └── data/
+           ├── tyrian1.lvl
+           ├── tyrian.hdt
+           ├── voices.snd
+           └── [all other game files]
+   ```
+
+3. **Copy Game Data**:
+   - Download Tyrian data files from the official OpenTyrian project
+   - Extract and copy all files to `/sdcard/tyrian/data/` on the SD card
+   - Ensure `tyrian1.lvl` exists in the data directory (used for detection)
+
+4. **Insert SD Card**:
+   - Power off the board
+   - Insert SD card into the slot
+   - Power on—the game will automatically detect and use SD card data
+
+#### SD Card Behavior
+
+- **Hot Plugging**: Not supported. Insert SD card before powering on.
+- **Card Removal**: Game may crash if SD card is removed during play.
+- **Empty/Missing Data**: Falls back to internal flash automatically.
+- **Corrupted Card**: Falls back to internal flash with error message.
+
+#### Verification
+
+When the game boots, watch the serial output for confirmation:
+
+```
+OpenTyrian File System Initialization
+==============================================
+
+[1/2] Attempting to mount SD card...
+SUCCESS: SD card mounted at /sdcard
+Found Tyrian data on SD card at /sdcard/tyrian/data
+
+>>> Using SD card for game data <<<
+```
+
+If SD card is not used:
+```
+[2/2] Attempting to mount internal flash LittleFS...
+SUCCESS: Internal flash LittleFS mounted at /flash
+
+>>> Using internal flash for game data <<<
+```
 
 ## Game Controls
 
@@ -98,7 +182,7 @@ For the quickest installation, use our web-based installer (Chrome/Edge browsers
 ## Building from Source
 
 ### Prerequisites
-- ESP-IDF 5.4+ installed and configured
+- ESP-IDF 6.1 installed and configured
 - Git for cloning the repository
 - USB cable for flashing
 
@@ -199,6 +283,7 @@ SDKCONFIG_DEFAULTS="sdkconfig.defaults.m5stack_core_s3" idf.py -B "build.m5stack
 - **PPA Acceleration**: Hardware-accelerated 3x scaling (320x200 → 960x600)
 - **RGB Display**: Direct RGB interface for minimal latency
 - **USB HID**: Full keyboard and mouse support
+- **SD Card**: SDMMC interface with automatic fallback to flash storage
 - **Partition Table**: `partitions.csv` (3MB app + 11MB storage)
 
 #### ESP32-S3-BOX-3
@@ -284,7 +369,7 @@ rm -rf support/ logs/
 - Check for proper touch controller initialization in logs
 
 **Build errors:**
-- Ensure ESP-IDF 5.4+ is installed and properly configured
+- Ensure ESP-IDF 6.1 is installed and properly configured
 - Using espbrew: Check build logs in `./logs/` directory
 - Using manual builds: Clean specific build directory `rm -rf build.{board_name}`
 - Check component dependencies are properly resolved
@@ -304,6 +389,12 @@ rm -rf support/ logs/
 - ESP32-P4 boards use Hex PSRAM mode
 - Large frame buffers should be allocated in PSRAM, not internal RAM
 
+**SD card issues (ESP32-P4):**
+- Game not detecting SD card: Verify `tyrian1.lvl` exists at `/sdcard/tyrian/data/`
+- SD card mounting fails: Check SD card is formatted as FAT32
+- Automatic fallback not working: Check boot logs for filesystem initialization messages
+- Using wrong mount point: ESP32-P4 uses `/sdcard`, not `/sd` (changed from earlier versions)
+
 ### Performance Optimization
 
 - **M5Stack Tab5**: Hardware scaling provides optimal performance
@@ -316,15 +407,15 @@ If you'd like to extend the project by using [T-Keyboard S3 Pro](https://lilygo.
 
 ## Acknowledgements
 
-This port is based on the work of the original OpenTyrian project (https://github.com/jkirsons/OpenTyrian) and an ESP32 port by Gadget Workbench, which was initially created for ESP-WROVER and ESP-IDF 4.2. 
+This port is based on the work of the original OpenTyrian project (https://github.com/jkirsons/OpenTyrian) and an ESP32 port by Gadget Workbench, which was initially created for ESP-WROVER and ESP-IDF 4.2.
 
 The current version has been significantly updated to:
-- Support ESP-IDF 5.4+ with modern Board Support Packages (ESP-BSP)
+- Support ESP-IDF 6.1 with modern Board Support Packages (ESP-BSP)
 - Utilize SDL3 from the [Espressif Component Registry](https://components.espressif.com/components/georgik/sdl/)
 - Add M5Stack Tab5 support with optimized landscape orientation and touch input
 - Implement hardware-accelerated scaling using ESP32-P4 PPA
 - Include comprehensive USB HID keyboard support
-- Provide game data directly from flash storage for reliability
+- Provide flexible game data storage (flash and SD card with automatic fallback)
 
 Special thanks to:
 - The OpenTyrian development team for the original open-source port

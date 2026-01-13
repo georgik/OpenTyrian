@@ -9,7 +9,7 @@ dependencies:
 
   ## Required IDF version
   idf:
-    version: '>=6.0'
+    version: '>=6.1'
 
   # BSP - information reguired for SDL
   espressif/esp-box-3_noglib:

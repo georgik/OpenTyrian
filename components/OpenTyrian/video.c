@@ -31,9 +31,14 @@
 
 #include <time.h>  // Include for time functions
 
-// Define variables for FPS calculation
+// Define variables for FPS calculation and frame limiting
 static uint32_t frame_count = 0;
 static uint32_t start_time = 0;
+static uint32_t last_frame_time = 0;
+
+// Original Tyrian was designed for 70 Hz (70 FPS)
+#define TARGET_FPS 70
+#define FRAME_TIME_MS (1000 / TARGET_FPS)  // ~14.285ms per frame
 
 bool fullscreen_enabled = false;
 
@@ -245,6 +250,29 @@ void scale_and_flip(SDL_Surface *src_surface)
         return;
     }
 
+    // Frame rate limiting: maintain original 70 FPS
+    uint32_t current_time = SDL_GetTicks();
+
+    if (last_frame_time == 0) {
+        // First frame - initialize timing
+        last_frame_time = current_time;
+        start_time = current_time;
+    } else {
+        // Calculate time elapsed since last frame
+        uint32_t elapsed = current_time - last_frame_time;
+
+        // If we're running faster than target FPS, delay to maintain 70 FPS
+        if (elapsed < FRAME_TIME_MS) {
+            uint32_t delay_time = FRAME_TIME_MS - elapsed;
+            if (delay_time > 0 && delay_time < 100) {  // Sanity check: don't delay excessively
+                SDL_Delay(delay_time);
+            }
+        }
+
+        // Update last frame time (after any delay)
+        last_frame_time = SDL_GetTicks();
+    }
+
     // Convert the SDL_Surface to an SDL_Texture
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, src_surface);
     if (!texture) {
@@ -273,7 +301,7 @@ void scale_and_flip(SDL_Surface *src_surface)
 
     // --- FPS Calculation ---
     frame_count++;  // Increment the frame count
-    uint32_t current_time = SDL_GetTicks();  // Get current time in milliseconds
+    current_time = SDL_GetTicks();  // Get current time after render
 
     if (start_time == 0) {
         // Initialize the start time for the first frame
@@ -284,7 +312,7 @@ void scale_and_flip(SDL_Surface *src_surface)
 
     if (elapsed_time >= 5000) {  // If 5 seconds have passed
         float fps = (frame_count / (elapsed_time / 1000.0f));  // Calculate FPS
-        printf("FPS: %.2f\n", fps);  // Print FPS to console
+        printf("FPS: %.2f (Target: %d FPS)\n", fps, TARGET_FPS);  // Print FPS to console
 
         // Reset for next interval
         frame_count = 0;
