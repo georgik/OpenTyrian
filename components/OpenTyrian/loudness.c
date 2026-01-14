@@ -23,6 +23,9 @@
 #include "opentyr.h"
 #include "params.h"
 
+// ESP32 audio backend
+#include "SDL_audio_esp32.h"
+
 float music_volume = 0, sample_volume = 0;
 float volume = 0;
 
@@ -46,47 +49,44 @@ Uint8 channel_vol[SFX_CHANNELS];
 int sound_init_state = false;
 int freq = 11025 * OUTPUT_QUALITY;
 
-SDL_AudioStream *audio_stream = NULL;
-
+// Audio callback (will be registered with ESP32 backend)
 void audio_cb( void *userdata, unsigned char *feedme, int howmuch );
 
 void load_song( unsigned int song_num );
-SDL_AudioDeviceID dev_id;
 
 bool init_audio(void) {
     if (audio_disabled)
         return false;
 
- /*   SDL_AudioSpec ask, got;
+    // ESP32-P4 Audio Backend Integration
+    // Following ESP32-Quake pattern for audio initialization
+    printf("Initializing ESP32-P4 audio backend...\n");
 
-    ask.freq = freq;
-    ask.format = (BYTES_PER_SAMPLE == 2) ? SDL_AUDIO_S16 : SDL_AUDIO_S8;
-    ask.channels = 1;
-
-    printf("\trequested %d Hz, %d channels\n", ask.freq, ask.channels);
-
-    // Update to SDL3 OpenAudioDevice
-    dev_id = SDL_OpenAudioDevice(0, &ask);
-    if (dev_id == 0) {
-        fprintf(stderr, "error: failed to initialize SDL audio: %s\n", SDL_GetError());
+    // Initialize ESP32 audio hardware (Quake-style)
+    extern bool SDL_ESP_Audio_Init(void);
+    if (!SDL_ESP_Audio_Init()) {
+        fprintf(stderr, "error: failed to initialize ESP32 audio backend\n");
         audio_disabled = true;
         return false;
     }
 
-    printf("\tobtained  %d Hz, %d channels\n", got.freq, got.channels);
+    printf("\trequested %d Hz, %d channels\n", freq, 1);
+    printf("\tESP32 audio backend initialized: 44100 Hz, 2 channels (stereo)\n");
 
-    // Create Audio Stream
-    audio_stream = SDL_CreateAudioStream(&ask, &got);
-    if (!audio_stream) {
-        fprintf(stderr, "error: failed to create SDL_AudioStream: %s\n", SDL_GetError());
-        audio_disabled = true;
-        return false;
-    }
-
+    // Initialize OPL/AdLib emulator for music
     opl_init();
 
-    SDL_PauseAudioDevice(dev_id);  // Start playing audio
-*/
+    // Set initial volume (max volume = 255)
+    // This is critical - without this, sample_volume stays at 0 and all SFX are silent!
+    set_volume(192, 255);  // Music at 75%, SFX at 100%
+
+    sound_init_state = true;
+
+    // Register audio callback with ESP32 backend
+    extern void SDL_ESP_RegisterAudioCallback(void (*callback)(void *, uint8_t *, int), void *userdata);
+    SDL_ESP_RegisterAudioCallback((void (*)(void *, uint8_t *, int))audio_cb, NULL);
+
+    printf("\tAudio system ready\n");
     return true;
 }
 
@@ -97,7 +97,12 @@ IRAM_ATTR void audio_cb(void *user_data, unsigned char *sdl_buffer, int howmuch)
     static long ct = 0;
 
     SAMPLE_TYPE *feedme = (SAMPLE_TYPE *)sdl_buffer;
-    music_disabled = true;
+
+    // Clear buffer to silence first - prevents garbage data from being played
+    memset(feedme, 0, howmuch);
+
+    // Music processing (disabled until load_song is implemented)
+    // music_disabled = true;  // REMOVED: This was preventing all audio
     if (!music_disabled && !music_stopped)
     {
         SAMPLE_TYPE *music_pos = feedme;
@@ -129,6 +134,10 @@ IRAM_ATTR void audio_cb(void *user_data, unsigned char *sdl_buffer, int howmuch)
     {
         for (int ch = 0; ch < SFX_CHANNELS; ch++)
         {
+            // Skip this channel if it's not active (NULL pointer check)
+            if (channel_pos[ch] == NULL || channel_buffer[ch] == NULL)
+                continue;
+
             volume = sample_volume * (channel_vol[ch] / (float)SFX_CHANNELS);
 
             unsigned int qu = ((unsigned)howmuch > channel_len[ch] ? channel_len[ch] : (unsigned)howmuch) / BYTES_PER_SAMPLE;
@@ -154,29 +163,19 @@ IRAM_ATTR void audio_cb(void *user_data, unsigned char *sdl_buffer, int howmuch)
         }
     }
 
-    // Use SDL_AudioStream for conversion
-    if (audio_stream) {
-        SDL_PutAudioStreamData(audio_stream, sdl_buffer, howmuch);
-        int converted_size = SDL_GetAudioStreamData(audio_stream, sdl_buffer, howmuch);
-        if (converted_size < 0) {
-            fprintf(stderr, "error: SDL_GetAudioStreamData failed: %s\n", SDL_GetError());
-        }
-    }
+    // ESP32 backend handles the output directly, no conversion needed
+    // The codec device expects int16 stereo samples
 }
 
 void deinit_audio(void) {
     if (audio_disabled)
         return;
-/*
-    SDL_PauseAudioDevice(dev_id);  // Pause audio
 
-    SDL_CloseAudioDevice(dev_id);  // Close audio device
+    // Shutdown ESP32 audio backend
+    extern void SDL_ESP_Audio_Shutdown(void);
+    SDL_ESP_Audio_Shutdown();
 
-    if (audio_stream) {
-        SDL_DestroyAudioStream(audio_stream);  // Destroy the audio stream
-        audio_stream = NULL;
-    }
-
+    // Free audio buffers
     for (unsigned int i = 0; i < SFX_CHANNELS; i++) {
         free(channel_buffer[i]);
         channel_buffer[i] = channel_pos[i] = NULL;
@@ -184,7 +183,7 @@ void deinit_audio(void) {
     }
 
     lds_free();
-	*/
+    sound_init_state = false;
 }
 
 
@@ -263,28 +262,36 @@ void JE_multiSamplePlay(JE_byte *buffer, JE_word size, JE_byte chan, JE_byte vol
 {
 	if (audio_disabled || samples_disabled)
 		return;
-	
-// 	SDL_LockAudio();
-	
-// 	free(channel_buffer[chan]);
-	
-// 	channel_len[chan] = size * BYTES_PER_SAMPLE * SAMPLE_SCALING;
-// 	channel_buffer[chan] = malloc(channel_len[chan]);
-// 	channel_pos[chan] = channel_buffer[chan];
-// 	channel_vol[chan] = vol + 1;
 
-// 	for (int i = 0; i < size; i++)
-// 	{
-// 		for (int ex = 0; ex < SAMPLE_SCALING; ex++)
-// 		{
-// #if (BYTES_PER_SAMPLE == 2)
-// 			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i] << 8;
-// #else  /* BYTES_PER_SAMPLE */
-// 			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i];
-// #endif  /* BYTES_PER_SAMPLE */
-// 		}
-// 	}
+	// ESP32: No SDL_LockAudio needed - audio task runs continuously
+	// The audio callback reads these buffers, so we just need to update them atomically
 
-// 	SDL_UnlockAudio();
+	// Free any existing buffer in this channel
+	free(channel_buffer[chan]);
+
+	// Calculate buffer size: upsample from SOURCE_QUALITY to OUTPUT_QUALITY
+	// SAMPLE_SCALING = OUTPUT_QUALITY (e.g., 4x for 11kHz->44kHz)
+	channel_len[chan] = size * BYTES_PER_SAMPLE * SAMPLE_SCALING;
+	channel_buffer[chan] = malloc(channel_len[chan]);
+	channel_pos[chan] = channel_buffer[chan];
+	channel_vol[chan] = vol + 1;
+
+	// Convert 8-bit unsigned samples to 16-bit signed and upsample
+	// Each input byte is replicated SAMPLE_SCALING times
+	for (int i = 0; i < size; i++)
+	{
+		for (int ex = 0; ex < SAMPLE_SCALING; ex++)
+		{
+#if (BYTES_PER_SAMPLE == 2)
+			// Convert 8-bit unsigned (0-255) to 16-bit signed (-32768 to 32767)
+			// Shift left by 8 and treat as signed to get full scale
+			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i] << 8;
+#else  /* BYTES_PER_SAMPLE */
+			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i];
+#endif  /* BYTES_PER_SAMPLE */
+		}
+	}
+
+	// ESP32: No SDL_UnlockAudio needed
 }
 

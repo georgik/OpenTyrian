@@ -36,14 +36,15 @@
 #include "freertos/queue.h"
 #include "esp_err.h"
 #include "esp_log.h"
-#include "usb/usb_host.h"
 #include "errno.h"
 #include "driver/gpio.h"
+#include "soc/soc_caps.h"
 
+// USB OTG support - always include headers, but will detect at runtime
+#include "usb/usb_host.h"
 #include "usb/hid_host.h"
 #include "usb/hid_usage_keyboard.h"
 #include "usb/hid_usage_mouse.h"
-
 #include <pthread.h>
 #include <semaphore.h>
 
@@ -657,61 +658,72 @@ void init_keyboard(void)
     newkey = newmouse = false;
     keydown = mousedown = false;
 
-    ESP_LOGI(TAG, "HID Keyboard");
+    // Runtime check: Only initialize USB if USB OTG peripheral is available
+    if (SOC_USB_OTG_PERIPH_NUM > 0) {
+        ESP_LOGI(TAG, "Initializing USB HID Keyboard");
 
-    // Init BOOT button: Pressing the button simulates app request to exit
-    const gpio_config_t input_pin = {
-        .pin_bit_mask = BIT64(APP_QUIT_PIN),
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
-        .intr_type = GPIO_INTR_NEGEDGE,
-    };
-    ESP_ERROR_CHECK(gpio_config(&input_pin));
-    ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1));
-    ESP_ERROR_CHECK(gpio_isr_handler_add(APP_QUIT_PIN, gpio_isr_cb, NULL));
+        // Init BOOT button: Pressing the button simulates app request to exit
+        const gpio_config_t input_pin = {
+            .pin_bit_mask = BIT64(APP_QUIT_PIN),
+            .mode = GPIO_MODE_INPUT,
+            .pull_up_en = GPIO_PULLUP_ENABLE,
+            .intr_type = GPIO_INTR_NEGEDGE,
+        };
+        ESP_ERROR_CHECK(gpio_config(&input_pin));
+        ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1));
+        ESP_ERROR_CHECK(gpio_isr_handler_add(APP_QUIT_PIN, gpio_isr_cb, NULL));
 
-    // Initialize semaphore for synchronization
-    sem_init(&usb_task_semaphore, 0, 0);
+        // Initialize semaphore for synchronization
+        sem_init(&usb_task_semaphore, 0, 0);
 
-    // Create usb_lib_task thread
-    pthread_t usb_thread;
-    pthread_attr_t usb_thread_attr;
-    pthread_attr_init(&usb_thread_attr);
-    pthread_attr_setstacksize(&usb_thread_attr, 8912);
+        // Create usb_lib_task thread
+        pthread_t usb_thread;
+        pthread_attr_t usb_thread_attr;
+        pthread_attr_init(&usb_thread_attr);
+        pthread_attr_setstacksize(&usb_thread_attr, 8912);
 
-    int ret = pthread_create(&usb_thread, &usb_thread_attr, usb_lib_thread, NULL);
-    if (ret != 0) {
-        ESP_LOGE(TAG, "Failed to create USB thread: %d", ret);
-        return;
+        int ret = pthread_create(&usb_thread, &usb_thread_attr, usb_lib_thread, NULL);
+        if (ret != 0) {
+            ESP_LOGE(TAG, "Failed to create USB thread: %d", ret);
+            return;
+        }
+
+        // Wait for notification from usb_lib_thread to proceed (using semaphore)
+        sem_wait(&usb_task_semaphore);
+
+        // HID host driver configuration
+        const hid_host_driver_config_t hid_host_driver_config = {
+            .create_background_task = false,  // No background task, handled manually
+            .task_priority = 5,               // Priority doesn't apply to pthreads
+            .stack_size = 8912,               // Stack size for thread (set manually if needed)
+            .core_id = 0,
+            .callback = hid_host_device_callback,
+            .callback_arg = NULL
+        };
+
+        esp_err_t err = hid_host_install(&hid_host_driver_config);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to install HID host: %s", esp_err_to_name(err));
+            // Don't fail initialization, just log the error
+            return;
+        }
+
+        // Create queue (keeping xQueue for event handling if necessary)
+        app_event_queue = xQueueCreate(10, sizeof(app_event_queue_t));
+
+        ESP_LOGI(TAG, "Waiting for HID Device to be connected");
+
+        // Start the HID event handler thread
+        ret = pthread_create(&usb_event_thread, NULL, usb_event_handler_thread, NULL);
+        if (ret != 0) {
+            ESP_LOGE(TAG, "Failed to create HID event handler thread: %d", ret);
+            return;
+        }
+        pthread_detach(usb_event_thread);
+    } else {
+        ESP_LOGI(TAG, "USB HID Keyboard not supported on this chip (no USB OTG peripheral)");
+        ESP_LOGI(TAG, "Keyboard input via SDL only");
     }
-
-    // Wait for notification from usb_lib_thread to proceed (using semaphore)
-    sem_wait(&usb_task_semaphore);
-
-    // HID host driver configuration
-    const hid_host_driver_config_t hid_host_driver_config = {
-        .create_background_task = false,  // No background task, handled manually
-        .task_priority = 5,               // Priority doesn't apply to pthreads
-        .stack_size = 8912,               // Stack size for thread (set manually if needed)
-        .core_id = 0,
-        .callback = hid_host_device_callback,
-        .callback_arg = NULL
-    };
-
-    ESP_ERROR_CHECK(hid_host_install(&hid_host_driver_config));
-
-    // Create queue (keeping xQueue for event handling if necessary)
-    app_event_queue = xQueueCreate(10, sizeof(app_event_queue_t));
-
-    ESP_LOGI(TAG, "Waiting for HID Device to be connected");
-
-    // Start the HID event handler thread
-    ret = pthread_create(&usb_event_thread, NULL, usb_event_handler_thread, NULL);
-    if (ret != 0) {
-        ESP_LOGE(TAG, "Failed to create HID event handler thread: %d", ret);
-        return;
-    }
-    pthread_detach(usb_event_thread);
 }
 
 void input_grab( bool enable )

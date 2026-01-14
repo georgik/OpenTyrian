@@ -25,17 +25,26 @@
 #include <stdio.h>
 #include <string.h>
 
-// #include "esp_vfs_fat.h"
+#include "esp_vfs_fat.h"
 #include "esp_vfs.h"
 #include "esp_littlefs.h"
 #include "driver/sdmmc_host.h"
 #include "driver/sdspi_host.h"
+
+// Include BSP SD card support for ESP32-P4 Function EV Board
+#if CONFIG_SDL_BSP_ESP32_P4_FUNCTION_EV
+#include "bsp/esp32_p4_function_ev_board.h"
+#endif
 
 #define MODE_SPI 1
 #define PIN_NUM_MISO CONFIG_HW_SD_PIN_NUM_MISO
 #define PIN_NUM_MOSI CONFIG_HW_SD_PIN_NUM_MOSI
 #define PIN_NUM_CLK  CONFIG_HW_SD_PIN_NUM_CLK
 #define PIN_NUM_CS   CONFIG_HW_SD_PIN_NUM_CS
+
+// Track which filesystem is available
+static bool sd_card_available = false;
+static bool flash_available = false;
 
 const char *custom_data_dir = NULL;
 
@@ -82,26 +91,103 @@ void listFiles(const char *dirname) {
 
 
 
-void SDL_InitFS(void) {
-    printf("Initialising File System\n");
+// Check if Tyrian data exists on SD card
+static bool check_sd_card_data(void) {
+    const char *test_file = BSP_SD_MOUNT_POINT "/tyrian/data/tyrian1.lvl";
+    FILE *f = fopen(test_file, "r");
 
-    // Define the LittleFS configuration
+    if (f) {
+        fclose(f);
+        printf("Found Tyrian data on SD card at %s\n", BSP_SD_MOUNT_POINT "/tyrian/data");
+        return true;
+    }
+
+    printf("Tyrian data not found on SD card (checked %s)\n", test_file);
+    return false;
+}
+
+// Check if Tyrian data exists on internal flash
+static bool check_flash_data(void) {
+    const char *test_file = "/flash/tyrian/data/tyrian1.lvl";
+    FILE *f = fopen(test_file, "r");
+
+    if (f) {
+        fclose(f);
+        printf("Found Tyrian data on internal flash at /flash/tyrian/data\n");
+        return true;
+    }
+
+    printf("Tyrian data not found on internal flash (checked %s)\n", test_file);
+    return false;
+}
+
+void SDL_InitFS(void) {
+    printf("==============================================\n");
+    printf("OpenTyrian File System Initialization\n");
+    printf("==============================================\n");
+
+#if CONFIG_SDL_BSP_ESP32_P4_FUNCTION_EV
+    // Try to mount SD card first (if ESP32-P4 Function EV Board)
+    printf("\n[1/2] Attempting to mount SD card...\n");
+
+    esp_err_t sd_err = bsp_sdcard_mount();
+    if (sd_err == ESP_OK) {
+        printf("SUCCESS: SD card mounted at %s\n", BSP_SD_MOUNT_POINT);
+
+        // Check if Tyrian data exists on SD card
+        if (check_sd_card_data()) {
+            sd_card_available = true;
+            printf("\n>>> Using SD card for game data <<<\n");
+            init_SD = true;
+            return;
+        } else {
+            printf("INFO: SD card mounted but no Tyrian data found\n");
+            // Unmount SD card since we don't need it
+            bsp_sdcard_unmount();
+        }
+    } else {
+        printf("INFO: SD card not available or mount failed (error: 0x%x)\n", sd_err);
+        printf("      This is normal if no SD card is inserted\n");
+    }
+#else
+    printf("INFO: SD card support not available for this board\n");
+#endif
+
+    // Fall back to internal flash LittleFS
+    printf("\n[2/2] Attempting to mount internal flash LittleFS...\n");
+
     esp_vfs_littlefs_conf_t conf = {
-        .base_path = "/sd",
+        .base_path = "/flash",
         .partition_label = "storage",
         .format_if_mount_failed = false,
         .dont_mount = false,
     };
 
-    // Use the API to mount and possibly format the file system
-    esp_err_t err = esp_vfs_littlefs_register(&conf);
-    if (err != ESP_OK) {
-        printf("Failed to mount or format filesystem\n");
-    } else {
-        printf("Filesystem mounted\n");
-        printf("Listing files in /:\n");
-        listFiles("/sd");
+    esp_err_t flash_err = esp_vfs_littlefs_register(&conf);
+    if (flash_err != ESP_OK) {
+        printf("ERROR: Failed to mount internal flash filesystem (error: 0x%x)\n", flash_err);
+        printf("FATAL ERROR: No game data source available!\n");
+        printf("Please ensure either:\n");
+        printf("  1. SD card with tyrian/data is inserted, OR\n");
+        printf("  2. Firmware includes LittleFS partition with game data\n");
+        return;
     }
+
+    printf("SUCCESS: Internal flash LittleFS mounted at /flash\n");
+
+    // Verify data exists on flash
+    if (check_flash_data()) {
+        flash_available = true;
+        printf("\n>>> Using internal flash for game data <<<\n");
+        printf("Listing files in /flash:\n");
+        listFiles("/flash");
+    } else {
+        printf("ERROR: No Tyrian data found on internal flash!\n");
+        printf("Please flash firmware with embedded game data or use SD card\n");
+    }
+
+    printf("==============================================\n");
+    init_SD = true;
 }
 
 void Init_SD()
@@ -114,39 +200,56 @@ void Init_SD()
 // finds the Tyrian data directory
 const char *data_dir( void )
 {
-	return "/sd/tyrian/data";
+	// Return the appropriate path based on which filesystem is available
+#if CONFIG_SDL_BSP_ESP32_P4_FUNCTION_EV
+	if (sd_card_available) {
+		printf("data_dir: Using SD card path: %s/tyrian/data\n", BSP_SD_MOUNT_POINT);
+		return BSP_SD_MOUNT_POINT "/tyrian/data";
+	}
+#endif
+
+	if (flash_available) {
+		printf("data_dir: Using flash path: /flash/tyrian/data\n");
+		return "/flash/tyrian/data";
+	}
+
+	// Fallback to original logic for custom data dir or other configurations
 	const char *dirs[] =
 	{
-		"/sd/tyrian/data",
-		custom_data_dir,
-		TYRIAN_DIR,
-		"data",
-		".",
+#if CONFIG_SDL_BSP_ESP32_P4_FUNCTION_EV
+		BSP_SD_MOUNT_POINT "/tyrian/data",  // Try SD card first
+#endif
+		"/flash/tyrian/data",               // Then try flash
+		custom_data_dir,                    // Custom path if set
+		TYRIAN_DIR,                         // Default path
+		"data",                             // Relative path
+		".",                                // Current directory
 	};
-	
+
 	static const char *dir = NULL;
-	
+
 	if (dir != NULL)
 		return dir;
-	
+
 	for (uint i = 0; i < COUNTOF(dirs); ++i)
 	{
 		if (dirs[i] == NULL)
 			continue;
-		
+
 		FILE *f = dir_fopen(dirs[i], "tyrian1.lvl", "rb");
 		if (f)
 		{
 			efclose(f);
-			
+
 			dir = dirs[i];
+			printf("data_dir: Found Tyrian data at: %s\n", dir);
 			break;
 		}
 	}
-	
+
 	if (dir == NULL) // data not found
 		dir = "";
-	
+
 	return dir;
 }
 
