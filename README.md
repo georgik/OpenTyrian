@@ -27,6 +27,10 @@ Tyrian is an arcade-style vertical scrolling shooter. The story is set in 20,031
 
 ## ESP32-P4 Features
 
+The ESP32-P4 version includes hardware-accelerated graphics and audio capabilities for optimal performance.
+
+### Pixel Processing Accelerator (PPA)
+
 The ESP32-P4 version leverages the **Pixel Processing Accelerator (PPA)** for enhanced graphics performance. The PPA is a hardware accelerator specifically designed for image and graphics processing operations, enabling smooth scaling of the original game graphics to full display resolution with minimal CPU overhead.
 
 The [PPA peripheral](https://docs.espressif.com/projects/esp-idf/en/stable/esp32p4/api-reference/peripherals/ppa.html) provides hardware acceleration for:
@@ -36,6 +40,29 @@ The [PPA peripheral](https://docs.espressif.com/projects/esp-idf/en/stable/esp32
 - Real-time graphics transformations
 
 This hardware acceleration ensures OpenTyrian runs smoothly at full display resolution while maintaining responsive gameplay.
+
+### Audio System
+
+OpenTyrian on ESP32-P4 includes a complete audio implementation supporting all original game sound effects and music.
+
+**Audio Hardware:**
+- ES8311 audio codec with I2S interface
+- 22.05kHz sample rate (downsampled from 44.1kHz for memory efficiency)
+- Mono output optimized for embedded systems
+- TX-only I2S configuration to minimize DMA memory usage
+
+**Audio Features:**
+- All original sound effects (explosions, shooting, pickups, UI sounds)
+- OPL/AdLib emulator for music playback
+- Real-time audio mixing with proper volume control
+- Memory-efficient design using PSRAM for buffers
+
+**Technical Implementation:**
+The audio system uses a custom SDL backend that integrates with the ESP-IDF audio codec framework. Sound samples are loaded from the game data files and mixed in real-time by the audio callback. The system handles:
+- Automatic volume initialization (75% music, 100% SFX)
+- Codec mute/unmute during initialization to prevent startup artifacts
+- NULL pointer safety for completed sounds
+- Efficient memory usage with TX-only I2S mode and mono output
 
 ## Game Data Storage
 
@@ -281,6 +308,7 @@ SDKCONFIG_DEFAULTS="sdkconfig.defaults.m5stack_core_s3" idf.py -B "build.m5stack
 - **Display**: 1024x600 RGB LCD
 - **Storage**: 16MB Flash + 32MB PSRAM (Hex mode)
 - **PPA Acceleration**: Hardware-accelerated 3x scaling (320x200 → 960x600)
+- **Audio**: ES8311 codec with I2S, 22.05kHz mono output, all SFX and music working
 - **RGB Display**: Direct RGB interface for minimal latency
 - **USB HID**: Full keyboard and mouse support
 - **SD Card**: SDMMC interface with automatic fallback to flash storage
@@ -395,6 +423,13 @@ rm -rf support/ logs/
 - Automatic fallback not working: Check boot logs for filesystem initialization messages
 - Using wrong mount point: ESP32-P4 uses `/sdcard`, not `/sd` (changed from earlier versions)
 
+**Audio issues (ESP32-P4):**
+- No sound effects: Verify audio codec is initialized in boot logs (look for "ES8311" and "I2S_IF" messages)
+- Sound but no music: Music files may not be loaded; check for "audio loaded" message after sound files load
+- Distorted audio: Check that I2S_MCLK_MULTIPLE_384 is configured for ES8311 codec at 22.05kHz
+- Audio crashes: Ensure audio task stack size is sufficient (12KB recommended for OPL emulator)
+- Startup sounds: Audio codec is muted during initialization to prevent artifacts; this is normal behavior
+
 ### Performance Optimization
 
 - **M5Stack Tab5**: Hardware scaling provides optimal performance
@@ -411,11 +446,13 @@ This port is based on the work of the original OpenTyrian project (https://githu
 
 The current version has been significantly updated to:
 - Support ESP-IDF 6.1 with modern Board Support Packages (ESP-BSP)
+- Implement complete audio system with ES8311 codec (all SFX and music working)
 - Utilize SDL3 from the [Espressif Component Registry](https://components.espressif.com/components/georgik/sdl/)
 - Add M5Stack Tab5 support with optimized landscape orientation and touch input
 - Implement hardware-accelerated scaling using ESP32-P4 PPA
 - Include comprehensive USB HID keyboard support
 - Provide flexible game data storage (flash and SD card with automatic fallback)
+- Optimize memory usage for DMA-constrained ESP32-P4 architecture
 
 Special thanks to:
 - The OpenTyrian development team for the original open-source port
