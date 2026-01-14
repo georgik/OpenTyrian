@@ -67,44 +67,6 @@ static void audio_task(void *param)
                 audio_downsample_buf[i] = audio_mix_buf[i * 2];  // Keep every other sample
             }
 
-            // DEBUG: Check if callback produced any non-zero audio
-            bool has_audio = false;
-            int16_t max_sample = 0;
-            for (size_t i = 0; i < samples_22k; i++) {
-                if (audio_downsample_buf[i] != 0) {
-                    has_audio = true;
-                }
-                if (abs(audio_downsample_buf[i]) > max_sample) {
-                    max_sample = abs(audio_downsample_buf[i]);
-                }
-            }
-
-            if (!has_audio && test_tone_counter++ < 100) {
-                // Callback produced silence - inject test tone periodically
-                // This happens every ~1 second for first few seconds
-                ESP_LOGW(TAG, "Audio callback produced silence - injecting test tone (iteration %d, max_sample=%d)", test_tone_counter, max_sample);
-                for (size_t i = 0; i < samples_22k; i++) {
-                    float t = (float)sample_count / 22050;  // 22.05kHz for output
-                    audio_downsample_buf[i] = (int16_t)(16000.0 * sin(2.0 * 3.14159 * tone_frequency * t));
-                    sample_count++;
-                }
-            } else if (has_audio && test_tone_counter < 5) {
-                ESP_LOGI(TAG, "Audio callback IS producing audio! max_sample=%d", max_sample);
-                test_tone_counter = 100; // Stop showing test tone messages
-            } else if (has_audio) {
-                // Count how many times we get audio
-                static int audio_frame_count = 0;
-                if (++audio_frame_count % 2000 == 0) {
-                    ESP_LOGI(TAG, "Audio frames with data: #%d, max_sample=%d", audio_frame_count, max_sample);
-                }
-            } else {
-                // Silence during normal operation
-                static int silence_count = 0;
-                if (++silence_count % 2000 == 0) {
-                    ESP_LOGW(TAG, "Audio callback producing silence: #%d", silence_count);
-                }
-            }
-
 #if defined(CONFIG_SDL_BSP_ESP32_P4_FUNCTION_EV) && CONFIG_SDL_BSP_ESP32_P4_FUNCTION_EV
             // Write downsampled audio to codec (22.05kHz mono)
             size_t bytes_22k = samples_22k * sizeof(int16_t);
@@ -116,38 +78,17 @@ static void audio_task(void *param)
 
             if (ret != ESP_OK) {
                 ESP_LOGW(TAG, "Audio write failed: %s", esp_err_to_name(ret));
-            } else {
-                // Log successful write every ~2 seconds
-                static int write_count = 0;
-                if (++write_count % 2000 == 0) {
-                    ESP_LOGI(TAG, "Audio write #%d: %zu bytes, has_audio=%d", write_count, bytes_22k, has_audio);
-                }
             }
 #endif
         } else {
-            // No audio callback - generate test tone continuously
-            if (test_tone_counter++ % 100 == 0) {
-                ESP_LOGW(TAG, "No audio callback - generating test tone (iteration %d)", test_tone_counter);
-            }
+            // No audio callback yet - write silence instead of test tone
+            // Don't generate any sound until the callback is registered
 #if defined(CONFIG_SDL_BSP_ESP32_P4_FUNCTION_EV) && CONFIG_SDL_BSP_ESP32_P4_FUNCTION_EV
-            // Generate 440Hz sine wave test tone (22.05kHz mono)
+            // Write silence (zeros)
             size_t samples_22k = AUDIO_CHUNK_SIZE / sizeof(int16_t) / 2;
-            for (size_t i = 0; i < samples_22k; i++) {
-                float t = (float)sample_count / 22050;  // 22.05kHz output
-                audio_downsample_buf[i] = (int16_t)(16000.0 * sin(2.0 * 3.14159 * tone_frequency * t));
-                sample_count++;
-            }
-
+            memset(audio_downsample_buf, 0, samples_22k * sizeof(int16_t));
             size_t bytes_22k = samples_22k * sizeof(int16_t);
-            esp_err_t ret = esp_codec_dev_write(
-                sdl_esp_audio_codec_dev,
-                (uint8_t *)audio_downsample_buf,
-                bytes_22k
-            );
-
-            if (ret != ESP_OK) {
-                ESP_LOGE(TAG, "Test tone write failed: %s", esp_err_to_name(ret));
-            }
+            esp_codec_dev_write(sdl_esp_audio_codec_dev, (uint8_t *)audio_downsample_buf, bytes_22k);
 #endif
         }
 
@@ -199,13 +140,18 @@ bool SDL_ESP_Audio_Init(void)
     // This allocates only the TX channel, not RX (we don't need audio input)
     extern esp_codec_dev_handle_t bsp_audio_codec_speaker_init_tx_only(void);
     sdl_esp_audio_codec_dev = bsp_audio_codec_speaker_init_tx_only();
-
     if (!sdl_esp_audio_codec_dev) {
-        ESP_LOGE(TAG, "Failed to initialize speaker codec");
+        ESP_LOGE(TAG, "Failed to initialize codec device");
         free(audio_mix_buf);
         audio_mix_buf = NULL;
+        free(audio_downsample_buf);
+        audio_downsample_buf = NULL;
         return false;
     }
+
+    // CRITICAL: Mute codec during initialization to prevent garbage sounds
+    ESP_LOGI(TAG, "Muting codec during initialization...");
+    esp_codec_dev_set_out_mute(sdl_esp_audio_codec_dev, 1);
 
     // Open the codec device for playback (22.05kHz mono)
     // MCLK_MULTIPLE_384 is required for ES8311 codec at 22.05kHz
@@ -222,14 +168,19 @@ bool SDL_ESP_Audio_Init(void)
         sdl_esp_audio_codec_dev = NULL;
         free(audio_mix_buf);
         audio_mix_buf = NULL;
+        free(audio_downsample_buf);
+        audio_downsample_buf = NULL;
         return false;
     }
 
-    // Set initial volume
+    // Set initial volume (codec is still muted)
     esp_codec_dev_set_out_vol(sdl_esp_audio_codec_dev, current_volume);
-    esp_codec_dev_set_out_mute(sdl_esp_audio_codec_dev, 0);
 
     ESP_LOGI(TAG, "Audio initialized: 44.1kHz -> 22.05kHz mono (2x downsampling)");
+
+    // CRITICAL: Unmute codec now that everything is initialized
+    ESP_LOGI(TAG, "Unmuting codec - audio ready!");
+    esp_codec_dev_set_out_mute(sdl_esp_audio_codec_dev, 0);
 
     // Create audio task with larger stack for OPL emulator
     // OPL emulator (adlib_getsample) needs significant stack space

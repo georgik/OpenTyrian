@@ -87,12 +87,6 @@ bool init_audio(void) {
     SDL_ESP_RegisterAudioCallback((void (*)(void *, uint8_t *, int))audio_cb, NULL);
 
     printf("\tAudio system ready\n");
-
-    // Play a test sound effect to verify audio output
-    printf("\tPlaying test sound effect (S_CLICK)...\n");
-    extern void JE_playSampleNum(JE_byte samplenum);
-    JE_playSampleNum(S_CLICK);  // Play click sound to verify audio works
-
     return true;
 }
 
@@ -103,6 +97,9 @@ IRAM_ATTR void audio_cb(void *user_data, unsigned char *sdl_buffer, int howmuch)
     static long ct = 0;
 
     SAMPLE_TYPE *feedme = (SAMPLE_TYPE *)sdl_buffer;
+
+    // Clear buffer to silence first - prevents garbage data from being played
+    memset(feedme, 0, howmuch);
 
     // Music processing (disabled until load_song is implemented)
     // music_disabled = true;  // REMOVED: This was preventing all audio
@@ -137,6 +134,10 @@ IRAM_ATTR void audio_cb(void *user_data, unsigned char *sdl_buffer, int howmuch)
     {
         for (int ch = 0; ch < SFX_CHANNELS; ch++)
         {
+            // Skip this channel if it's not active (NULL pointer check)
+            if (channel_pos[ch] == NULL || channel_buffer[ch] == NULL)
+                continue;
+
             volume = sample_volume * (channel_vol[ch] / (float)SFX_CHANNELS);
 
             unsigned int qu = ((unsigned)howmuch > channel_len[ch] ? channel_len[ch] : (unsigned)howmuch) / BYTES_PER_SAMPLE;
