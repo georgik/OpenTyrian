@@ -25,7 +25,9 @@ extern "C" {
 #define SDL_AUDIO_SAMPLE_RATE     44100
 #define SDL_AUDIO_CHANNELS        2  // Stereo (mono converted to stereo)
 #define SDL_AUDIO_BITS_PER_SAMPLE 16
-#define SDL_AUDIO_BUFFER_SIZE     (16*1024)  // 16KB DMA buffer
+// Reduced buffer size to save internal DRAM
+// Original: 16KB, Reduced to 4KB for minimum viable audio (22.05kHz mono)
+#define SDL_AUDIO_BUFFER_SIZE     (4*1024)  // 4KB DMA buffer
 
 // Audio device handle (similar to Quake's spk_codec_dev)
 extern esp_codec_dev_handle_t sdl_esp_audio_codec_dev;

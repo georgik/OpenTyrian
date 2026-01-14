@@ -76,6 +76,10 @@ bool init_audio(void) {
     // Initialize OPL/AdLib emulator for music
     opl_init();
 
+    // Set initial volume (max volume = 255)
+    // This is critical - without this, sample_volume stays at 0 and all SFX are silent!
+    set_volume(192, 255);  // Music at 75%, SFX at 100%
+
     sound_init_state = true;
 
     // Register audio callback with ESP32 backend
@@ -83,6 +87,12 @@ bool init_audio(void) {
     SDL_ESP_RegisterAudioCallback((void (*)(void *, uint8_t *, int))audio_cb, NULL);
 
     printf("\tAudio system ready\n");
+
+    // Play a test sound effect to verify audio output
+    printf("\tPlaying test sound effect (S_CLICK)...\n");
+    extern void JE_playSampleNum(JE_byte samplenum);
+    JE_playSampleNum(S_CLICK);  // Play click sound to verify audio works
+
     return true;
 }
 
@@ -93,7 +103,9 @@ IRAM_ATTR void audio_cb(void *user_data, unsigned char *sdl_buffer, int howmuch)
     static long ct = 0;
 
     SAMPLE_TYPE *feedme = (SAMPLE_TYPE *)sdl_buffer;
-    music_disabled = true;
+
+    // Music processing (disabled until load_song is implemented)
+    // music_disabled = true;  // REMOVED: This was preventing all audio
     if (!music_disabled && !music_stopped)
     {
         SAMPLE_TYPE *music_pos = feedme;
@@ -249,28 +261,36 @@ void JE_multiSamplePlay(JE_byte *buffer, JE_word size, JE_byte chan, JE_byte vol
 {
 	if (audio_disabled || samples_disabled)
 		return;
-	
-// 	SDL_LockAudio();
-	
-// 	free(channel_buffer[chan]);
-	
-// 	channel_len[chan] = size * BYTES_PER_SAMPLE * SAMPLE_SCALING;
-// 	channel_buffer[chan] = malloc(channel_len[chan]);
-// 	channel_pos[chan] = channel_buffer[chan];
-// 	channel_vol[chan] = vol + 1;
 
-// 	for (int i = 0; i < size; i++)
-// 	{
-// 		for (int ex = 0; ex < SAMPLE_SCALING; ex++)
-// 		{
-// #if (BYTES_PER_SAMPLE == 2)
-// 			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i] << 8;
-// #else  /* BYTES_PER_SAMPLE */
-// 			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i];
-// #endif  /* BYTES_PER_SAMPLE */
-// 		}
-// 	}
+	// ESP32: No SDL_LockAudio needed - audio task runs continuously
+	// The audio callback reads these buffers, so we just need to update them atomically
 
-// 	SDL_UnlockAudio();
+	// Free any existing buffer in this channel
+	free(channel_buffer[chan]);
+
+	// Calculate buffer size: upsample from SOURCE_QUALITY to OUTPUT_QUALITY
+	// SAMPLE_SCALING = OUTPUT_QUALITY (e.g., 4x for 11kHz->44kHz)
+	channel_len[chan] = size * BYTES_PER_SAMPLE * SAMPLE_SCALING;
+	channel_buffer[chan] = malloc(channel_len[chan]);
+	channel_pos[chan] = channel_buffer[chan];
+	channel_vol[chan] = vol + 1;
+
+	// Convert 8-bit unsigned samples to 16-bit signed and upsample
+	// Each input byte is replicated SAMPLE_SCALING times
+	for (int i = 0; i < size; i++)
+	{
+		for (int ex = 0; ex < SAMPLE_SCALING; ex++)
+		{
+#if (BYTES_PER_SAMPLE == 2)
+			// Convert 8-bit unsigned (0-255) to 16-bit signed (-32768 to 32767)
+			// Shift left by 8 and treat as signed to get full scale
+			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i] << 8;
+#else  /* BYTES_PER_SAMPLE */
+			channel_buffer[chan][(i * SAMPLE_SCALING) + ex] = (Sint8)buffer[i];
+#endif  /* BYTES_PER_SAMPLE */
+		}
+	}
+
+	// ESP32: No SDL_UnlockAudio needed
 }
 

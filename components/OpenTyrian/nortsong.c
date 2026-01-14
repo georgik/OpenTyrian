@@ -101,8 +101,9 @@ void wait_delayorinput( JE_boolean keyboard, JE_boolean mouse, JE_boolean joysti
 
 void JE_loadSndFile( const char *effects_sndfile, const char *voices_sndfile )
 {
-	notYetLoadedSound = false;
-	return;
+	// STUB REMOVED: Actually load sound samples now!
+	// notYetLoadedSound = false;
+	// return;
 	JE_byte y, z;
 	JE_word x;
 	JE_longint templ;
