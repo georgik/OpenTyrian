@@ -1,0 +1,30 @@
+dependencies:
+  esp_codec_dev:
+    public: true
+    version: ~1.5
+  esp_lcd_ek79007: '>=2.0.1,<3.0.0'
+  esp_lcd_ili9881c:
+    version: '>=1.0.3,<2.0.0'
+  esp_lcd_touch_gt911:
+    version: ^1
+  esp_video:
+    public: true
+    version: ~1.4
+  espressif/esp_lcd_lt8912b:
+    version: '>=0.1.3,<1.0.0'
+  idf: '>=5.4'
+  usb:
+    public: true
+    rules:
+    - if: idf_version >=6.0
+    version: ^1.0.0
+description: Board Support Package (BSP) for ESP32-P4 Function EV Board (preview)
+  with no graphical library
+repository: git://github.com/espressif/esp-bsp.git
+tags:
+- bsp
+- noglib
+targets:
+- esp32p4
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_p4_function_ev_board
+version: 5.2.0

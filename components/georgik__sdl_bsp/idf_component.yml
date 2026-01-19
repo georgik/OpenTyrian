@@ -1,0 +1,53 @@
+
+name: sdl_bsp
+version: 3.3.0~2
+description: ESP-BSP-SDL Abstraction Layer Component. Board-specific BSP dependencies based on Kconfig selection for SDL3.
+dependencies:
+  # IDF version requirement
+  idf:
+    version: '>=5.5.0'
+  
+  # Conditional BSP dependencies - only load the BSP for the selected board
+  espressif/m5_atom_s3_noglib:
+    version: "~1.0.0"
+    matches:
+      - if: "$CONFIG{SDL_BSP_M5_ATOM_S3} == True"
+  espressif/esp-box-3_noglib:
+    version: "*"
+    matches:
+      - if: "$CONFIG{SDL_BSP_ESP_BOX_3} == True"
+  espressif/m5stack_core_s3_noglib:
+    version: "*"
+    matches:
+      - if: "$CONFIG{SDL_BSP_M5STACK_CORE_S3} == True"
+  espressif/esp32_p4_function_ev_board_noglib:
+    version: "*"
+    matches:
+      - if: "$CONFIG{SDL_BSP_ESP32_P4_FUNCTION_EV} == True"
+  espressif/esp32_s3_lcd_ev_board_noglib:
+    version: "*"
+    matches:
+      - if: "$CONFIG{SDL_BSP_ESP32_S3_LCD_EV_BOARD} == True"
+  georgik/m5stack_tab5:
+    version: "feature/m5stack-tab5-sdl3"
+    git: "https://github.com/georgik/esp-bsp.git"
+    path: "bsp/m5stack_tab5"
+    matches:
+      - if: "$CONFIG{SDL_BSP_M5STACK_TAB5} == True"
+
+  # Touch support - required by some BSPs (esp-box-3, core_s3, etc.)
+  # Making it unconditional since conditional Kconfig resolution is problematic
+  espressif/esp_lcd_touch:
+    version: "*"
+    require: "private"
+
+
+license: MIT License and the Apache License 2.0
+repository: https://github.com/georgik/esp-idf-component-SDL_bsp
+url: https://github.com/georgik/esp-idf-component-SDL_bsp
+
+exclude:
+  - build/**
+  - support/**
+  - .clang-format
+  - sdkconfig
