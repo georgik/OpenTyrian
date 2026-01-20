@@ -28,6 +28,7 @@
 #include "SDL3/SDL_keyboard.h"
 #include "SDL_internal.h"
 #include "events/SDL_keyboard_c.h"
+#include "events/SDL_mouse_c.h"
 #include <stdio.h>
 
 #include "freertos/FreeRTOS.h"
@@ -36,14 +37,15 @@
 #include "freertos/queue.h"
 #include "esp_err.h"
 #include "esp_log.h"
-#include "usb/usb_host.h"
 #include "errno.h"
 #include "driver/gpio.h"
+#include "soc/soc_caps.h"
 
+// USB OTG support - always include headers, but will detect at runtime
+#include "usb/usb_host.h"
 #include "usb/hid_host.h"
 #include "usb/hid_usage_keyboard.h"
 #include "usb/hid_usage_mouse.h"
-
 #include <pthread.h>
 #include <semaphore.h>
 
@@ -63,12 +65,15 @@ Uint16 lastmouse_x, lastmouse_y;
 JE_boolean mouse_pressed[3] = {false, false, false};
 Uint16 mouse_x, mouse_y;
 
+// Variables to track if mouse position was reset by game
+bool mouse_position_reset = false;
+
 Uint8 keysactive[SDL_SCANCODE_COUNT];
 
 #ifdef NDEBUG
 bool input_grab_enabled = true;
 #else
-bool input_grab_enabled = false;
+bool input_grab_enabled = true;  // Always enable mouse input grab for ESP32 port
 #endif
 
 QueueHandle_t app_event_queue = NULL;
@@ -414,48 +419,63 @@ static void hid_host_mouse_report_callback(const uint8_t *const data, const int 
         return;
     }
 
-    static int x_pos = 160;  // Start at screen center
-    static int y_pos = 100;  // Start at screen center
+    // Track absolute mouse position ourselves
+    // Start at center (159, 100) and accumulate displacement
+    static int tracked_x = 159;
+    static int tracked_y = 100;
 
-    // Calculate absolute position from displacement
-    x_pos += mouse_report->x_displacement;
-    y_pos += mouse_report->y_displacement;
+    // Check if game reset the mouse position
+    if (mouse_position_reset) {
+        tracked_x = mouse_x;
+        tracked_y = mouse_y;
+        mouse_position_reset = false;
+    }
 
-    // Constrain mouse position to screen bounds (320x200 for Tyrian)
-    if (x_pos < 0) x_pos = 0;
-    if (x_pos >= 320) x_pos = 319;
-    if (y_pos < 0) y_pos = 0;
-    if (y_pos >= 200) y_pos = 199;
+    // Update tracked position with displacement
+    tracked_x += mouse_report->x_displacement;
+    tracked_y += mouse_report->y_displacement;
 
-    // Update OpenTyrian mouse variables
-    mouse_x = (Uint16)x_pos;
-    mouse_y = (Uint16)y_pos;
+    // Constrain to screen bounds (320x200 for Tyrian)
+    if (tracked_x < 0) tracked_x = 0;
+    if (tracked_x >= 320) tracked_x = 319;
+    if (tracked_y < 0) tracked_y = 0;
+    if (tracked_y >= 200) tracked_y = 199;
+
+    // Update global mouse position directly
+    mouse_x = (Uint16)tracked_x;
+    mouse_y = (Uint16)tracked_y;
     lastmouse_x = mouse_x;
     lastmouse_y = mouse_y;
 
-    // Update button states
-    uint8_t buttons = 0;
-    if (mouse_report->buttons.button1) buttons |= 1;  // Left button
-    if (mouse_report->buttons.button2) buttons |= 2;  // Right button
-    if (mouse_report->buttons.button3) buttons |= 4;  // Middle button (if present)
+    // Get registered mouse device for button events
+    int num_mice;
+    SDL_MouseID *mouse_ids = SDL_GetMice(&num_mice);
+    if (num_mice == 0) {
+        return;
+    }
+    SDL_MouseID mouseID = mouse_ids[0];
 
-    lastmouse_but = buttons;
-    mousedown = (buttons != 0);
-    newmouse = true;
+    // Send button events to SDL (only on state changes)
+    // Note: button2 and button3 are swapped - button3 is right, button2 is middle
+    if (mouse_report->buttons.button1 && !mouse_pressed[0])
+        SDL_SendMouseButton(SDL_GetTicks(), NULL, mouseID, SDL_BUTTON_LEFT, true);
+    if (!mouse_report->buttons.button1 && mouse_pressed[0])
+        SDL_SendMouseButton(SDL_GetTicks(), NULL, mouseID, SDL_BUTTON_LEFT, false);
 
-    // Update individual button press states
-    mouse_pressed[0] = mouse_report->buttons.button1;  // Left
-    mouse_pressed[1] = mouse_report->buttons.button2;  // Right
-    mouse_pressed[2] = mouse_report->buttons.button3;  // Middle
+    if (mouse_report->buttons.button3 && !mouse_pressed[1])
+        SDL_SendMouseButton(SDL_GetTicks(), NULL, mouseID, SDL_BUTTON_RIGHT, true);
+    if (!mouse_report->buttons.button3 && mouse_pressed[1])
+        SDL_SendMouseButton(SDL_GetTicks(), NULL, mouseID, SDL_BUTTON_RIGHT, false);
 
-    hid_print_new_device_report_header(HID_PROTOCOL_MOUSE);
+    if (mouse_report->buttons.button2 && !mouse_pressed[2])
+        SDL_SendMouseButton(SDL_GetTicks(), NULL, mouseID, SDL_BUTTON_MIDDLE, true);
+    if (!mouse_report->buttons.button2 && mouse_pressed[2])
+        SDL_SendMouseButton(SDL_GetTicks(), NULL, mouseID, SDL_BUTTON_MIDDLE, false);
 
-    printf("X: %06d\tY: %06d\t|%c|%c|%c|\r",
-           x_pos, y_pos,
-           (mouse_report->buttons.button1 ? 'o' : ' '),
-           (mouse_report->buttons.button2 ? 'o' : ' '),
-           (mouse_report->buttons.button3 ? 'o' : ' '));
-    fflush(stdout);
+    // Update button state tracking for next callback (swapped to match above)
+    mouse_pressed[0] = mouse_report->buttons.button1;
+    mouse_pressed[1] = mouse_report->buttons.button3;
+    mouse_pressed[2] = mouse_report->buttons.button2;
 }
 
 static void hid_host_generic_report_callback(const uint8_t *const data, const int length)
@@ -653,65 +673,77 @@ void* usb_event_handler_thread(void* arg)
 void init_keyboard(void)
 {
     SDL_AddKeyboard(1, "Virtual Keyboard");
+    SDL_AddMouse(1, "USB Mouse");  // Register mouse device with SDL
 
     newkey = newmouse = false;
     keydown = mousedown = false;
 
-    ESP_LOGI(TAG, "HID Keyboard");
+    // Runtime check: Only initialize USB if USB OTG peripheral is available
+    if (SOC_USB_OTG_PERIPH_NUM > 0) {
+        ESP_LOGI(TAG, "Initializing USB HID Keyboard");
 
-    // Init BOOT button: Pressing the button simulates app request to exit
-    const gpio_config_t input_pin = {
-        .pin_bit_mask = BIT64(APP_QUIT_PIN),
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
-        .intr_type = GPIO_INTR_NEGEDGE,
-    };
-    ESP_ERROR_CHECK(gpio_config(&input_pin));
-    ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1));
-    ESP_ERROR_CHECK(gpio_isr_handler_add(APP_QUIT_PIN, gpio_isr_cb, NULL));
+        // Init BOOT button: Pressing the button simulates app request to exit
+        const gpio_config_t input_pin = {
+            .pin_bit_mask = BIT64(APP_QUIT_PIN),
+            .mode = GPIO_MODE_INPUT,
+            .pull_up_en = GPIO_PULLUP_ENABLE,
+            .intr_type = GPIO_INTR_NEGEDGE,
+        };
+        ESP_ERROR_CHECK(gpio_config(&input_pin));
+        ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1));
+        ESP_ERROR_CHECK(gpio_isr_handler_add(APP_QUIT_PIN, gpio_isr_cb, NULL));
 
-    // Initialize semaphore for synchronization
-    sem_init(&usb_task_semaphore, 0, 0);
+        // Initialize semaphore for synchronization
+        sem_init(&usb_task_semaphore, 0, 0);
 
-    // Create usb_lib_task thread
-    pthread_t usb_thread;
-    pthread_attr_t usb_thread_attr;
-    pthread_attr_init(&usb_thread_attr);
-    pthread_attr_setstacksize(&usb_thread_attr, 8912);
+        // Create usb_lib_task thread
+        pthread_t usb_thread;
+        pthread_attr_t usb_thread_attr;
+        pthread_attr_init(&usb_thread_attr);
+        pthread_attr_setstacksize(&usb_thread_attr, 8912);
 
-    int ret = pthread_create(&usb_thread, &usb_thread_attr, usb_lib_thread, NULL);
-    if (ret != 0) {
-        ESP_LOGE(TAG, "Failed to create USB thread: %d", ret);
-        return;
+        int ret = pthread_create(&usb_thread, &usb_thread_attr, usb_lib_thread, NULL);
+        if (ret != 0) {
+            ESP_LOGE(TAG, "Failed to create USB thread: %d", ret);
+            return;
+        }
+
+        // Wait for notification from usb_lib_thread to proceed (using semaphore)
+        sem_wait(&usb_task_semaphore);
+
+        // HID host driver configuration
+        const hid_host_driver_config_t hid_host_driver_config = {
+            .create_background_task = false,  // No background task, handled manually
+            .task_priority = 5,               // Priority doesn't apply to pthreads
+            .stack_size = 8912,               // Stack size for thread (set manually if needed)
+            .core_id = 0,
+            .callback = hid_host_device_callback,
+            .callback_arg = NULL
+        };
+
+        esp_err_t err = hid_host_install(&hid_host_driver_config);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to install HID host: %s", esp_err_to_name(err));
+            // Don't fail initialization, just log the error
+            return;
+        }
+
+        // Create queue (keeping xQueue for event handling if necessary)
+        app_event_queue = xQueueCreate(10, sizeof(app_event_queue_t));
+
+        ESP_LOGI(TAG, "Waiting for HID Device to be connected");
+
+        // Start the HID event handler thread
+        ret = pthread_create(&usb_event_thread, NULL, usb_event_handler_thread, NULL);
+        if (ret != 0) {
+            ESP_LOGE(TAG, "Failed to create HID event handler thread: %d", ret);
+            return;
+        }
+        pthread_detach(usb_event_thread);
+    } else {
+        ESP_LOGI(TAG, "USB HID Keyboard not supported on this chip (no USB OTG peripheral)");
+        ESP_LOGI(TAG, "Keyboard input via SDL only");
     }
-
-    // Wait for notification from usb_lib_thread to proceed (using semaphore)
-    sem_wait(&usb_task_semaphore);
-
-    // HID host driver configuration
-    const hid_host_driver_config_t hid_host_driver_config = {
-        .create_background_task = false,  // No background task, handled manually
-        .task_priority = 5,               // Priority doesn't apply to pthreads
-        .stack_size = 8912,               // Stack size for thread (set manually if needed)
-        .core_id = 0,
-        .callback = hid_host_device_callback,
-        .callback_arg = NULL
-    };
-
-    ESP_ERROR_CHECK(hid_host_install(&hid_host_driver_config));
-
-    // Create queue (keeping xQueue for event handling if necessary)
-    app_event_queue = xQueueCreate(10, sizeof(app_event_queue_t));
-
-    ESP_LOGI(TAG, "Waiting for HID Device to be connected");
-
-    // Start the HID event handler thread
-    ret = pthread_create(&usb_event_thread, NULL, usb_event_handler_thread, NULL);
-    if (ret != 0) {
-        ESP_LOGE(TAG, "Failed to create HID event handler thread: %d", ret);
-        return;
-    }
-    pthread_detach(usb_event_thread);
 }
 
 void input_grab( bool enable )
@@ -732,6 +764,8 @@ void set_mouse_position( int x, int y )
 	{
 		mouse_x = x;
 		mouse_y = y;
+		// Signal to HID callback that position was reset
+		mouse_position_reset = true;
 	}
 }
 
@@ -770,6 +804,37 @@ void service_SDL_events(JE_boolean clear_new)
                 keysactive[event.key.scancode] = false;  // Update key state
                 break;
             }
+
+            // Mouse events
+            case SDL_EVENT_MOUSE_MOTION: {
+                // Update absolute mouse position from the event
+                // The game will calculate displacement from center (159, 100)
+                mouse_x = (Uint16)event.motion.x;
+                mouse_y = (Uint16)event.motion.y;
+                lastmouse_x = mouse_x;
+                lastmouse_y = mouse_y;
+                break;
+            }
+            case SDL_EVENT_MOUSE_BUTTON_DOWN: {
+                lastmouse_but = event.button.button;
+                mousedown = true;
+                newmouse = true;
+                // Update individual button states
+                if (event.button.button == SDL_BUTTON_LEFT) mouse_pressed[0] = true;
+                if (event.button.button == SDL_BUTTON_RIGHT) mouse_pressed[1] = true;
+                if (event.button.button == SDL_BUTTON_MIDDLE) mouse_pressed[2] = true;
+                break;
+            }
+            case SDL_EVENT_MOUSE_BUTTON_UP: {
+                lastmouse_but = 0;
+                mousedown = false;
+                // Update individual button states
+                if (event.button.button == SDL_BUTTON_LEFT) mouse_pressed[0] = false;
+                if (event.button.button == SDL_BUTTON_RIGHT) mouse_pressed[1] = false;
+                if (event.button.button == SDL_BUTTON_MIDDLE) mouse_pressed[2] = false;
+                break;
+            }
+
             case SDL_EVENT_QUIT:
                 // Handle quit event (if needed)
                 break;

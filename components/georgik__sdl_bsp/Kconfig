@@ -1,0 +1,88 @@
+menu "ESP-BSP SDL Configuration"
+
+    choice SDL_BSP_SELECTION
+        prompt "Select Target Board"
+        default SDL_BSP_ESP_BOX_3
+        help
+            Select the target board for your SDL application.
+            This determines which ESP-BSP will be used and configures
+            the appropriate display, touch, and other hardware settings.
+
+        config SDL_BSP_ESP_BOX_3
+            bool "ESP-Box-3"
+            help
+                ESP-Box-3 development board with ESP32-S3, LCD display and touch.
+
+        config SDL_BSP_ESP32_C6_DEVKIT
+            bool "ESP32-C6 DevKit with ILI9341 Display"
+            help
+                ESP32-C6 development board with external ILI9341 LCD display.
+
+        config SDL_BSP_M5STACK_CORE_S3
+            bool "M5Stack Core S3"
+            help
+                M5Stack Core S3 with ESP32-S3 and built-in display.
+
+        config SDL_BSP_M5_ATOM_S3
+            bool "M5 Atom S3"
+            help
+                M5 Atom S3 with ESP32-S3 and 240x240 round LCD display.
+
+        config SDL_BSP_ESP32_C3_LCDKIT
+            bool "ESP32-C3-LCDkit"
+            help
+                ESP32-C3-LCDkit development board with LCD display.
+
+        config SDL_BSP_ESP32_P4_FUNCTION_EV
+            bool "ESP32-P4 Function EV Board"
+            help
+                ESP32-P4 Function Evaluation Board with advanced display capabilities.
+
+        config SDL_BSP_ESP32_S3_LCD_EV_BOARD
+            bool "ESP32-S3-LCD-EV-Board"
+            help
+                ESP32-S3-LCD-EV-Board development board for evaluating ESP32-S3 screen interactive applications.
+
+        config SDL_BSP_M5STACK_TAB5
+            bool "M5Stack Tab5 (Experimental)"
+            help
+                M5Stack Tab5 ESP32-P4 tablet with 5-inch 720×1280 MIPI-DSI display, 
+                GT911 touch controller, and high-performance hardware. 
+                Requires 200MHz PSRAM for proper operation.
+
+    endchoice
+
+    config NAME
+        string
+        default "esp-box-3_noglib" if SDL_BSP_ESP_BOX_3
+        default "esp-box_noglib" if SDL_BSP_ESP_BOX
+        default "esp_bsp_generic" if SDL_BSP_ESP32_C6_DEVKIT
+        default "m5stack_core_s3_noglib" if SDL_BSP_M5STACK_CORE_S3
+        default "m5_atom_s3" if SDL_BSP_M5_ATOM_S3
+        default "esp32_c3_lcdkit" if SDL_BSP_ESP32_C3_LCDKIT
+        default "esp32_p4_function_ev_board_noglib" if SDL_BSP_ESP32_P4_FUNCTION_EV
+        default "esp32_s3_lcd_ev_board_noglib" if SDL_BSP_ESP32_S3_LCD_EV_BOARD
+        default "m5stack_tab5_noglib" if SDL_BSP_M5STACK_TAB5
+
+    config SDL_BSP_SDKCONFIG_SUFFIX
+        string
+        default "esp-box-3" if SDL_BSP_ESP_BOX_3
+        default "esp-box" if SDL_BSP_ESP_BOX
+        default "esp32_c6_devkit" if SDL_BSP_ESP32_C6_DEVKIT
+        default "m5stack_core_s3" if SDL_BSP_M5STACK_CORE_S3
+        default "m5_atom_s3" if SDL_BSP_M5_ATOM_S3
+        default "esp32_c3_lcdkit" if SDL_BSP_ESP32_C3_LCDKIT
+        default "esp32_p4_function_ev_board" if SDL_BSP_ESP32_P4_FUNCTION_EV
+        default "esp32_s3_lcd_ev_board" if SDL_BSP_ESP32_S3_LCD_EV_BOARD
+        default "m5stack_tab5" if SDL_BSP_M5STACK_TAB5
+
+    config SDL_BSP_TOUCH_ENABLE
+        bool "Enable Touch Support"
+        default n
+        help
+            Enable touch interface support for boards that have touch capabilities.
+            This is disabled by default since some boards may have complex touch
+            initialization that could interfere with the application.
+            Only enable this if your application needs touch input.
+
+endmenu

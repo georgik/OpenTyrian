@@ -1,0 +1,6 @@
+# ESP-IDF build artifacts
+build/
+
+# ESP-IDF configuration files
+sdkconfig
+sdkconfig.old
